@@ -1,0 +1,60 @@
+#ifndef RESOURCES_RH
+#define RESOURCES_RH
+
+#define VER_FILEVERSION              1,0,0,0
+#define VER_FILEVERSION_STR          "1.0.0.0"
+#define VER_PRODUCTVERSION           1,0,0,0
+#define VER_PRODUCTVERSION_STR       "1.0.0.0"
+
+#ifndef DEBUG
+#define VER_DEBUG                    0
+#else
+#define VER_DEBUG                    VS_FF_DEBUG
+#endif
+
+#ifndef PRIVATEBUILD
+#define VER_PRIVATEBUILD             0
+#else
+#define VER_PRIVATEBUILD             VS_FF_PRIVATEBUILD
+#endif
+
+#ifndef PRERELEASE
+#define VER_PRERELEASE               0
+#else
+#define VER_PRERELEASE               VS_FF_PRERELEASE
+#endif
+
+#ifndef SPECIALBUILD
+#define VER_SPECIALBUILD             0
+#else
+#define VER_SPECIALBUILD             VS_FF_SPECIALBUILD
+#endif
+
+#define IDR_RT_MANIFEST1             00001
+#define IDI_MAIN                     00500
+
+#define IDM_MENU                     01000
+
+#define IDA_ACCEL                    02000
+
+#define IDD_DLG_INPUTDATA            10000
+#define IDC_STC_DESCRIPTION          10001
+#define IDC_BTN_INPUTDATA            10002
+#define IDC_STC_COEFFICIENTA         10003
+#define IDC_EDT_COEFFICIENTA         10004
+#define IDC_UPD_COEFFICIENTA         10005
+#define IDC_STC_COEFFICIENTB         10006
+#define IDC_EDT_COEFFICIENTB         10007
+#define IDC_UPD_COEFFICIENTB         10008
+#define IDC_STC_COEFFICIENTC         10009
+#define IDC_EDT_COEFFICIENTC         10010
+#define IDC_UPD_COEFFICIENTC         10011
+#define IDC_BTN_OUTPUTDATA           10012
+#define IDC_STC_ROOTX1               10013
+#define IDC_EDT_ROOTX1               10014
+#define IDC_STC_ROOTX2               10015
+#define IDC_EDT_ROOTX2               10016
+
+#define IDS_WINDOWTITLE              20001
+
+#endif
