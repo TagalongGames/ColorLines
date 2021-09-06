@@ -300,6 +300,37 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				Render(MemoryDC)
 			End If
 			
+		Case WM_ERASEBKGND
+			Return TRUE
+			
+		Case WM_PAINT
+			Dim ps As PAINTSTRUCT = Any
+			Dim hDC As HDC = BeginPaint(hWin, @ps)
+			
+			BitBlt( _
+				hDC, _
+				ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom, _
+				MemoryDC, _
+				ps.rcPaint.left, ps.rcPaint.top, _
+				SRCCOPY _
+			)
+			
+			EndPaint(hWin, @ps)
+			
+		Case WM_DESTROY
+			DeleteObject(RedBrush)
+			DeleteObject(GreenBrush)
+			DeleteObject(BlueBrush)
+			DeleteObject(YellowBrush)
+			DeleteObject(MagentaBrush)
+			DeleteObject(DarkRedBrush)
+			DeleteObject(CyanBrush)
+			DeleteObject(GrayBrush)
+			DeleteObject(GreenPen)
+			DeleteObject(DarkGrayPen)
+			DestroyMemoryDC(MemoryDC)
+			PostQuitMessage(0)
+			
 		/'
 		Case WM_LBUTTONDOWN
 			PtInRect(RECT *lprc, POINT pt)
@@ -350,38 +381,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					
 			End Select
 		'/
-			
-		Case WM_ERASEBKGND
-			Return TRUE
-			
-		Case WM_PAINT
-			Dim ps As PAINTSTRUCT = Any
-			Dim hDC As HDC = BeginPaint(hWin, @ps)
-			
-			BitBlt( _
-				hDC, _
-				ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom, _
-				MemoryDC, _
-				ps.rcPaint.left, ps.rcPaint.top, _
-				SRCCOPY _
-			)
-			
-			EndPaint(hWin, @ps)
-			
-		Case WM_DESTROY
-			DeleteObject(RedBrush)
-			DeleteObject(GreenBrush)
-			DeleteObject(BlueBrush)
-			DeleteObject(YellowBrush)
-			DeleteObject(MagentaBrush)
-			DeleteObject(DarkRedBrush)
-			DeleteObject(CyanBrush)
-			DeleteObject(GrayBrush)
-			DeleteObject(GreenPen)
-			DeleteObject(DarkGrayPen)
-			DestroyMemoryDC(MemoryDC)
-			PostQuitMessage(0)
-			
+		
 		Case Else
 			Return DefWindowProc(hWin, wMsg, wParam, lParam)
 			
