@@ -232,8 +232,8 @@ LIBRARIES_WINAPI=-ladvapi32 -lcomctl32 -lcomdlg32 -lcrypt32 -lgdi32 -lgdiplus -l
 LIBRARIES_BASE=$(LIBRARIES_GCCRUNTIME) $(LIBRARIES_FBRUNTIME) $(LIBRARIES_WINAPI) $(LIBRARIES_UUID) $(LIBRARIES_GMONITOR)
 LIBRARIES_ALL=$(LIBRARIES_BASE)
 
-OBJECTFILES_RELEASE_GUI_MODULES=    $(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_GUI).o     $(OBJ_RELEASE_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).o     $(OBJ_RELEASE_DIR)\DisplayError$(FILE_SUFFIX_GUI).o     
-OBJECTFILES_DEBUG_GUI_MODULES=      $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_GUI).o       $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).o       $(OBJ_DEBUG_DIR)\DisplayError$(FILE_SUFFIX_GUI).o       
+OBJECTFILES_RELEASE_GUI_MODULES=    $(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_GUI).o     $(OBJ_RELEASE_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\DisplayError$(FILE_SUFFIX_GUI).o     
+OBJECTFILES_DEBUG_GUI_MODULES=      $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_GUI).o       $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\DisplayError$(FILE_SUFFIX_GUI).o       
 OBJECTFILES_RELEASE_CONSOLE_MODULES=$(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).o  
 OBJECTFILES_DEBUG_CONSOLE_MODULES=  $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).o   
 
@@ -407,13 +407,36 @@ $(OBJ_RELEASE_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\C
 $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c
 	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).asm
 
-$(OBJ_RELEASE_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c: Forms\ColorLinesWndProc.bas Forms\ColorLinesWndProc.bi Resources.RH Modules\DisplayError.bi
+$(OBJ_RELEASE_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c: Forms\ColorLinesWndProc.bas Forms\ColorLinesWndProc.bi Resources.RH Modules\DisplayError.bi Classes\Scene.bi Classes\Stage.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Forms\ColorLinesWndProc.bas"
 	move /y Forms\ColorLinesWndProc.c $(OBJ_RELEASE_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c
 
-$(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c:   Forms\ColorLinesWndProc.bas Forms\ColorLinesWndProc.bi Resources.RH Modules\DisplayError.bi
+$(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c:   Forms\ColorLinesWndProc.bas Forms\ColorLinesWndProc.bi Resources.RH Modules\DisplayError.bi Classes\Scene.bi Classes\Stage.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Forms\ColorLinesWndProc.bas"
 	move /y Forms\ColorLinesWndProc.c $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c
+
+
+
+
+$(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).o: $(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_RELEASE) $(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).asm -o $(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).o
+
+$(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).o:   $(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).asm -o $(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).o
+
+$(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_RELEASE) $(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).c -o $(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).c: Classes\Scene.bas Classes\Scene.bi Classes\Stage.bi
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Classes\Scene.bas"
+	move /y Classes\Scene.c $(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).c
+
+$(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).c:   Classes\Scene.bas Classes\Scene.bi Classes\Stage.bi
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Classes\Scene.bas"
+	move /y Classes\Scene.c $(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).c
 
 
 

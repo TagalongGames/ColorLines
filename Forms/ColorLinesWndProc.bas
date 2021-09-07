@@ -1,264 +1,16 @@
 #include once "ColorLinesWndProc.bi"
 #include once "win\windowsx.bi"
 #include once "win\GdiPlus.bi"
+#include once "Scene.bi"
+#include once "Stage.bi"
 #include once "DisplayError.bi"
 #include once "Resources.RH"
-
-Enum
-	rgbBlack =       &h00000000
-	rgbDarkBlue =    &h00800000
-	rgbDarkGreen =   &h00008000
-	rgbDarkCyan =    &h00808000
-	rgbDarkRed =     &h00000080
-	rgbDarkMagenta = &h00800080
-	rgbDarkYellow =  &h00008080
-	rgbGray =        &h00C0C0C0
-	rgbDarkGray =    &h00808080
-	rgbBlue =        &h00FF0000
-	rgbGreen =       &h0000FF00
-	rgbCyan =        &h00FFFF00
-	rgbRed =         &h000000FF
-	rgbMagenta =     &h00FF00FF
-	rgbYellow =      &h0000FFFF
-	rgbWhite =       &h00FFFFFF
-End Enum
-
-Type RgbColors As COLORREF
-
-Enum BallColors
-	Red
-	Green
-	Blue
-	Yellow
-	Magenta
-	DarkRed
-	Cyan
-End Enum
-
-Type ColorBall
-	Color As BallColors
-	BallRectangle As RECT
-	Exist As Boolean
-End Type
-
-Type Cell
-	CellRectangle As RECT
-	Ball As ColorBall
-End Type
-
-Type Stage
-	Lines(0 To 8, 0 To 8) As Cell
-	Tablo(0 To 2) As Cell
-	MovedBall As ColorBall
-	Score As Integer
-	HiScore As Integer
-End Type
-
-Type Scene
-	DeviceContext As HDC
-	Bitmap As HBITMAP
-	OldBitmap As HGDIOBJ
-	Width As UINT
-	Height As UINT
-End Type
-
-Declare Function CreateScene( _
-	ByVal hWin As HWND, _
-	ByVal nWidth As UINT, _
-	ByVal nHeight As UINT _
-)As Scene Ptr
-
-Declare Sub DestroyScene( _
-	ByVal pScene As Scene Ptr _
-)
-
-Declare Sub SceneRender( _
-	ByVal pScene As Scene Ptr, _
-	ByVal pStage As Stage Ptr _
-)
-
-Declare Sub SceneCopyRectangle( _
-	ByVal pScene As Scene Ptr, _
-	ByVal hDCDestination As HDC, _
-	ByVal pRectangle As RECT Ptr _
-)
 
 ' Сцена
 Dim Shared ColorLinesScene As Scene Ptr
 
-' Кисти и перья
-Dim Shared GreenPen As HPEN
-Dim Shared DarkGrayPen As HPEN
-
-Dim Shared RedBrush As HBRUSH
-Dim Shared GreenBrush As HBRUSH
-Dim Shared BlueBrush As HBRUSH
-Dim Shared YellowBrush As HBRUSH
-Dim Shared MagentaBrush As HBRUSH
-Dim Shared DarkRedBrush As HBRUSH
-Dim Shared CyanBrush As HBRUSH
-Dim Shared GrayBrush As HBRUSH
-
 ' Игровое поле 9x9
 Dim Shared ColorLinesStage As Stage
-
-' Масштаб игрового поля
-' Dim Shared Scale As UINT
-
-' Размер ячейки {40, 40} * множитель
-' Dim Shared CellWidth As UINT
-' Dim Shared CellHeight As UINT
-' Отступ 2 * множитель
-' Dim Shared BallMargin As UINT
-' Размер шара {CellWidth - BallMargin, CellHeight - BallMargin} * множитель
-' Dim Shared BallWidth As UINT
-' Dim Shared BallHeight As UINT
-
-Function CreateScene( _
-		ByVal hWin As HWND, _
-		ByVal nWidth As UINT, _
-		ByVal nHeight As UINT _
-	)As Scene Ptr
-	
-	Dim pScene As Scene Ptr = Allocate(SizeOf(Scene))
-	If pScene = NULL Then
-		Return NULL
-	End If
-	
-	Dim WindowDC As HDC = GetDC(hWin)
-	
-	' Контекст устройства в памяти
-	pScene->DeviceContext = CreateCompatibleDC(WindowDC)
-	
-	' Цветной рисунок на основе окна
-	pScene->Bitmap = CreateCompatibleBitmap(WindowDC, nWidth, nHeight)
-	' Выбираем цветной рисунок, сохраняя старый
-	pScene->OldBitmap = SelectObject(pScene->DeviceContext, pScene->Bitmap)
-	
-	pScene->Width = nWidth
-	pScene->Height = nHeight
-	
-	ReleaseDC(hWin, WindowDC)
-	
-	Return pScene
-	
-End Function
-
-Sub DestroyScene( _
-		ByVal pScene As Scene Ptr _
-	)
-	
-	SelectObject(pScene->DeviceContext, pScene->OldBitmap)
-	DeleteObject(pScene->Bitmap)
-	DeleteDC(pScene->DeviceContext)
-	Deallocate(pScene)
-	
-End Sub
-
-Sub SceneRender( _
-		ByVal pScene As Scene Ptr, _
-		ByVal pStage As Stage Ptr _
-	)
-	
-	Dim OldPen As HGDIOBJ = Any
-	Dim OldBrush As HGDIOBJ = Any
-	
-	' Прямоугольник обновления
-	Dim MemoryBMRectangle As RECT = Any
-	SetRect(@MemoryBMRectangle, 0, 0, pScene->Width, pScene->Height)
-	
-	' Очистка
-	FillRect(pScene->DeviceContext, @MemoryBMRectangle, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
-	
-	' Рисуем
-	
-	' Ячейки
-	OldPen = SelectObject(pScene->DeviceContext, DarkGrayPen)
-	OldBrush = SelectObject(pScene->DeviceContext, GrayBrush)
-	For j As Integer = 0 To 8
-		For i As Integer = 0 To 8
-			Rectangle(pScene->DeviceContext, pStage->Lines(j, i).CellRectangle.left, pStage->Lines(j, i).CellRectangle.top, pStage->Lines(j, i).CellRectangle.right, pStage->Lines(j, i).CellRectangle.bottom)
-		Next
-	Next
-	SelectObject(pScene->DeviceContext, OldBrush)
-	SelectObject(pScene->DeviceContext, OldPen)
-	
-	' Стоящие шары
-	For j As Integer = 0 To 8
-		For i As Integer = 0 To 8
-			
-			If pStage->Lines(j, i).Ball.Exist Then
-				
-				Select Case pStage->Lines(j, i).Ball.Color
-					
-					Case BallColors.Red
-						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, RedBrush)
-						
-					Case BallColors.Green
-						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, GreenBrush)
-						
-					Case BallColors.Blue
-						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, BlueBrush)
-						
-					Case BallColors.Yellow
-						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, YellowBrush)
-						
-					Case BallColors.Magenta
-						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, MagentaBrush)
-						
-					Case BallColors.DarkRed
-						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, DarkRedBrush)
-						
-					Case BallColors.Cyan
-						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, CyanBrush)
-						
-				End Select
-				
-				Ellipse(pScene->DeviceContext, pStage->Lines(j, i).Ball.BallRectangle.left, pStage->Lines(j, i).Ball.BallRectangle.top, pStage->Lines(j, i).Ball.BallRectangle.right, pStage->Lines(j, i).Ball.BallRectangle.bottom)
-				
-				SelectObject(pScene->DeviceContext, OldBrush)
-				' SelectObject(pScene->DeviceContext, OldPen)
-			End If
-		Next
-	Next
-	
-	' Двигающийся шар
-	' тип движения:
-	' - появление из точки в нормальный размер (от 0 до 9)
-	' - прыжки при выборе мышью (от 0 до 5 и обратно)
-	' - уничтожение, рассыпался в прах (от 9 до 0)
-	' координаты
-	If pStage->MovedBall.Exist Then
-	End If
-	
-	' Табло с тремя новыми шарами
-	For i As Integer = 0 To 2
-	Next
-	
-End Sub
-
-Sub SceneCopyRectangle( _
-		ByVal pScene As Scene Ptr, _
-		ByVal hDCDestination As hDC, _
-		ByVal pRectangle As RECT Ptr _
-	)
-	
-	BitBlt( _
-		hDCDestination, _
-		pRectangle->left, pRectangle->top, pRectangle->right, pRectangle->bottom, _
-		pScene->DeviceContext, _
-		pRectangle->left, pRectangle->top, _
-		SRCCOPY _
-	)
-	
-End Sub
 
 Function GetRandomBoolean()As Boolean
 	
@@ -306,18 +58,6 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 	Select Case wMsg
 		
 		Case WM_CREATE
-			' Перья и кисти
-			GreenPen = CreatePen(PS_SOLID, 2, rgbGreen)
-			DarkGrayPen = CreatePen(PS_SOLID, 2, rgbDarkGray)
-			RedBrush = CreateSolidBrush(rgbRed)
-			GreenBrush = CreateSolidBrush(rgbGreen)
-			BlueBrush = CreateSolidBrush(rgbBlue)
-			YellowBrush = CreateSolidBrush(rgbYellow)
-			MagentaBrush = CreateSolidBrush(rgbMagenta)
-			DarkRedBrush = CreateSolidBrush(rgbDarkRed)
-			CyanBrush = CreateSolidBrush(rgbCyan)
-			GrayBrush = CreateSolidBrush(rgbGray)
-			
 			' Игровое поле
 			For j As Integer = 0 To 8
 				For i As Integer = 0 To 8
@@ -384,33 +124,14 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim ps As PAINTSTRUCT = Any
 			Dim hDC As HDC = BeginPaint(hWin, @ps)
 			
-			' BitBlt( _
-				' hDC, _
-				' ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom, _
-				' ColorLinesScene->DeviceContext, _
-				' ps.rcPaint.left, ps.rcPaint.top, _
-				' SRCCOPY _
-			' )
 			SceneCopyRectangle(ColorLinesScene, hDC, @ps.rcPaint)
 			
 			EndPaint(hWin, @ps)
 			
 		Case WM_DESTROY
-			DeleteObject(RedBrush)
-			DeleteObject(GreenBrush)
-			DeleteObject(BlueBrush)
-			DeleteObject(YellowBrush)
-			DeleteObject(MagentaBrush)
-			DeleteObject(DarkRedBrush)
-			DeleteObject(CyanBrush)
-			DeleteObject(GrayBrush)
-			DeleteObject(GreenPen)
-			DeleteObject(DarkGrayPen)
-			
 			If ColorLinesScene <> NULL Then
 				DestroyScene(ColorLinesScene)
 			End If
-			
 			PostQuitMessage(0)
 			
 		/'
