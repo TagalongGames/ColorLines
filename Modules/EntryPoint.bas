@@ -1,5 +1,5 @@
-#include "EntryPoint.bi"
-#include "WinMain.bi"
+#include once "EntryPoint.bi"
+#include once "WinMain.bi"
 
 #ifdef WITHOUT_RUNTIME
 Sub ENTRYPOINT Alias "ENTRYPOINT"()

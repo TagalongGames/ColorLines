@@ -1,7 +1,7 @@
 #ifndef FULLSCREENWINDOW_BI
 #define FULLSCREENWINDOW_BI
 
-#include "windows.bi"
+#include once "windows.bi"
 
 Declare Function wWinMain( _
 	Byval hInst As HINSTANCE, _

@@ -1,8 +1,8 @@
-#include "WinMain.bi"
-#include "win\commctrl.bi"
-#include "ColorLinesWndProc.bi"
-#include "Resources.RH"
-#include "DisplayError.bi"
+#include once "WinMain.bi"
+#include once "win\commctrl.bi"
+#include once "ColorLinesWndProc.bi"
+#include once "Resources.RH"
+#include once "DisplayError.bi"
 
 Const MainWindowClassName = __TEXT("ColorLines")
 

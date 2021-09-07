@@ -1,7 +1,7 @@
 #ifndef DISPLAYERROR_BI
 #define DISPLAYERROR_BI
 
-#include "windows.bi"
+#include once "windows.bi"
 
 Declare Sub DisplayErrorA Alias "DisplayErrorA"( _
 	ByVal dwErrorCode As DWORD, _

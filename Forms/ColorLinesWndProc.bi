@@ -1,7 +1,7 @@
 #ifndef MAINFORMWNDPROC_BI
 #define MAINFORMWNDPROC_BI
 
-#include "windows.bi"
+#include once "windows.bi"
 
 Declare Function MainFormWndProc( _
 	ByVal hWnd As HWND, _

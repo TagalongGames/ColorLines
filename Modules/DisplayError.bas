@@ -1,4 +1,4 @@
-#include "DisplayError.bi"
+#include once "DisplayError.bi"
 
 #ifdef UNICODE
 Sub DisplayErrorW Alias "DisplayErrorW"( _

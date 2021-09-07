@@ -1,7 +1,8 @@
-#include "ColorLinesWndProc.bi"
-#include "win\windowsx.bi"
-#include "DisplayError.bi"
-#include "Resources.RH"
+#include once "ColorLinesWndProc.bi"
+#include once "win\windowsx.bi"
+#include once "win\GdiPlus.bi"
+#include once "DisplayError.bi"
+#include once "Resources.RH"
 
 Enum
 	rgbBlack =       &h00000000
@@ -42,11 +43,12 @@ Type Cell
 End Type
 
 ' Поверхности для рисования
+Dim Shared g_token As ULONG_PTR
 Dim Shared MemoryDC As HDC
 Dim Shared MemoryBM As HBITMAP
 Dim Shared OldMemoryBM As HGDIOBJ
-Dim Shared MemoryBMWidth As UINT
-Dim Shared MemoryBMHeight As UINT
+Dim Shared SceneWidth As UINT
+Dim Shared SceneHeight As UINT
 
 ' Кисти и перья
 Dim Shared GreenPen As HPEN
@@ -75,13 +77,13 @@ Dim Shared MovedBall As Cell
 ' Dim Shared Scale As UINT
 
 ' Размер ячейки {40, 40} * множитель
-Dim Shared CellWidth As UINT
-Dim Shared CellHeight As UINT
+' Dim Shared CellWidth As UINT
+' Dim Shared CellHeight As UINT
 ' Отступ 2 * множитель
-Dim Shared BallMargin As UINT
+' Dim Shared BallMargin As UINT
 ' Размер шара {CellWidth - BallMargin, CellHeight - BallMargin} * множитель
-Dim Shared BallWidth As UINT
-Dim Shared BallHeight As UINT
+' Dim Shared BallWidth As UINT
+' Dim Shared BallHeight As UINT
 
 Declare Function CreateMemoryDC( _
 	ByVal hWin As HWND, _
@@ -124,7 +126,7 @@ End Sub
 Sub Render(ByVal hDC As HDC)
 	' Прямоугольник обновления
 	Dim MemoryBMRectangle As RECT = Any
-	SetRect(@MemoryBMRectangle, 0, 0, MemoryBMWidth, MemoryBMHeight)
+	SetRect(@MemoryBMRectangle, 0, 0, SceneWidth, SceneHeight)
 	
 	' Очистка
 	FillRect(hDC, @MemoryBMRectangle, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
@@ -201,8 +203,6 @@ Sub Render(ByVal hDC As HDC)
 	For i As Integer = 0 To 2
 	Next
 	
-	' Выводим в окно
-	' InvalidateRect(hWin, @UpdateRectangle, FALSE)
 End Sub
 
 Function GetRandomBoolean()As Boolean
@@ -226,11 +226,40 @@ Function GetRandomBallColor()As BallColor
 	
 End Function
 
+Sub Visualisation()
+	' Вычислить прямоугольник для старого положения объекта
+	' Dim OldRect As RECT
+	
+	' Переместить объект
+	' object.Move
+	
+	' Вычислить прямоугольник для нового положения объекта
+	' Dim NewRect As RECT
+	
+	' Объединить оба прямоугольника
+	' Dim UnionRect As RECT
+	
+	' Отрендерить сцену в буфер
+	' Render(hDC)
+	
+	' Вывести в окно объединённый прямоугольник
+	' InvalidateRect(hWin, @UnionRect, FALSE)
+End Sub
+
 Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As WPARAM, ByVal lParam As LPARAM) As LRESULT
 	
 	Select Case wMsg
 		
 		Case WM_CREATE
+			' GDI+ Initialize
+			Dim gsi As GdiPlus.GdiplusStartupInput = Any
+			ZeroMemory(@gsi, SizeOf(GdiPlus.GdiplusStartupInput))
+			gsi.GdiplusVersion = 1
+			Dim st As GdiPlus.GpStatus = GdiPlus.GdiplusStartup(@g_token, @gsi, NULL)
+			If st <> GdiPlus.Ok Then
+				DisplayError(st, __TEXT("GdiplusStartup"))
+			End If
+			
 			' Перья и кисти
 			GreenPen = CreatePen(PS_SOLID, 2, rgbGreen)
 			DarkGrayPen = CreatePen(PS_SOLID, 2, rgbDarkGray)
@@ -242,6 +271,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			DarkRedBrush = CreateSolidBrush(rgbDarkRed)
 			CyanBrush = CreateSolidBrush(rgbCyan)
 			GrayBrush = CreateSolidBrush(rgbGray)
+			
 			' Игровое поле
 			For j As Integer = 0 To 8
 				For i As Integer = 0 To 8
@@ -253,19 +283,22 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				Next
 			Next
 			
+			' Три случайных цвета
+			
 		Case WM_SIZE
 			If wParam <> SIZE_MINIMIZED Then
 				Dim nWidth As UINT = LOWORD(lParam)
 				Dim nHeight As UINT = HIWORD(lParam)
-				MemoryBMWidth = nWidth
-				MemoryBMHeight = nHeight
+				SceneWidth = nWidth
+				SceneHeight = nHeight
 				
 				'Scale = max(nHeight \ 480, 1)
-				CellWidth = max(40, (nHeight - 100) \ 9)
-				CellHeight = max(40, (nHeight - 100) \ 9)
-				BallMargin = max(2, CellWidth \ 20)
-				BallWidth = CellWidth - BallMargin
-				BallHeight = CellHeight - BallMargin
+				Dim CellWidth As UINT = max(40, (nHeight - 100) \ 9)
+				Dim CellHeight As UINT = max(40, (nHeight - 100) \ 9)
+				Dim BallMarginWidth As UINT = max(2, CellWidth \ 20)
+				Dim BallMarginHeight As UINT = max(2, CellHeight \ 20)
+				' Dim BallWidth As UINT = CellWidth - BallMargin
+				' Dim BallHeight As UINT = CellHeight - BallMargin
 				
 				' Ячейка
 				For j As Integer = 0 To 8
@@ -283,10 +316,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				For j As Integer = 0 To 8
 					For i As Integer = 0 To 8
 						SetRect(@ColorLinesStage(j, i).BallRectangle, _
-							i * CellWidth + BallMargin, _
-							j * CellHeight + BallMargin, _
-							i * CellWidth + CellWidth - BallMargin, _
-							j * CellHeight + CellHeight - BallMargin _
+							i * CellWidth + BallMarginWidth, _
+							j * CellHeight + BallMarginHeight, _
+							i * CellWidth + CellWidth - BallMarginWidth, _
+							j * CellHeight + CellHeight - BallMarginHeight _
 						)
 					Next
 				Next
@@ -329,6 +362,8 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			DeleteObject(GreenPen)
 			DeleteObject(DarkGrayPen)
 			DestroyMemoryDC(MemoryDC)
+			' GDI+ Uninitialize
+			GdiPlus.GdiplusShutdown(g_token)
 			PostQuitMessage(0)
 			
 		/'

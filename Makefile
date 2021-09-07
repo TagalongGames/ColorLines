@@ -297,11 +297,11 @@ $(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\EntryPoi
 $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_GUI).c
 	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_GUI).asm
 
-$(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_GUI).c: Modules\EntryPoint.bas
+$(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_GUI).c: Modules\EntryPoint.bas Modules\EntryPoint.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Modules\EntryPoint.bas"
 	move /y Modules\EntryPoint.c $(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_GUI).c
 
-$(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_GUI).c:   Modules\EntryPoint.bas
+$(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_GUI).c:   Modules\EntryPoint.bas Modules\EntryPoint.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Modules\EntryPoint.bas"
 	move /y Modules\EntryPoint.c $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_GUI).c
 
@@ -319,11 +319,11 @@ $(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).asm: $(OBJ_RELEASE_DIR)\Entr
 $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).asm:   $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).c
 	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).c -o $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).asm
 
-$(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).c: Modules\EntryPoint.bas
+$(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).c: Modules\EntryPoint.bas Modules\EntryPoint.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_CONSOLE) "Modules\EntryPoint.bas"
 	move /y Modules\EntryPoint.c $(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).c
 
-$(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).c:   Modules\EntryPoint.bas
+$(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).c:   Modules\EntryPoint.bas Modules\EntryPoint.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_CONSOLE) "Modules\EntryPoint.bas"
 	move /y Modules\EntryPoint.c $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).c
 
@@ -341,11 +341,11 @@ $(OBJ_RELEASE_DIR)\ConsoleMain$(FILE_SUFFIX_CONSOLE).asm: $(OBJ_RELEASE_DIR)\Con
 $(OBJ_DEBUG_DIR)\ConsoleMain$(FILE_SUFFIX_CONSOLE).asm:   $(OBJ_DEBUG_DIR)\ConsoleMain$(FILE_SUFFIX_CONSOLE).c
 	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\ConsoleMain$(FILE_SUFFIX_CONSOLE).c -o $(OBJ_DEBUG_DIR)\ConsoleMain$(FILE_SUFFIX_CONSOLE).asm
 
-$(OBJ_RELEASE_DIR)\ConsoleMain$(FILE_SUFFIX_CONSOLE).c: Modules\ConsoleMain.bas
+$(OBJ_RELEASE_DIR)\ConsoleMain$(FILE_SUFFIX_CONSOLE).c: Modules\ConsoleMain.bas Modules\ConsoleMain.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_CONSOLE) "Modules\ConsoleMain.bas"
 	move /y Modules\ConsoleMain.c $(OBJ_RELEASE_DIR)\ConsoleMain$(FILE_SUFFIX_CONSOLE).c
 
-$(OBJ_DEBUG_DIR)\ConsoleMain$(FILE_SUFFIX_CONSOLE).c:   Modules\ConsoleMain.bas
+$(OBJ_DEBUG_DIR)\ConsoleMain$(FILE_SUFFIX_CONSOLE).c:   Modules\ConsoleMain.bas Modules\ConsoleMain.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_CONSOLE) "Modules\ConsoleMain.bas"
 	move /y Modules\ConsoleMain.c $(OBJ_DEBUG_DIR)\ConsoleMain$(FILE_SUFFIX_CONSOLE).c
 
@@ -363,11 +363,11 @@ $(OBJ_RELEASE_DIR)\WinMain$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\WinMain$(FI
 $(OBJ_DEBUG_DIR)\WinMain$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\WinMain$(FILE_SUFFIX_GUI).c
 	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\WinMain$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\WinMain$(FILE_SUFFIX_GUI).asm
 
-$(OBJ_RELEASE_DIR)\WinMain$(FILE_SUFFIX_GUI).c: Modules\WinMain.bas Resources.RH Modules\DisplayError.bi
+$(OBJ_RELEASE_DIR)\WinMain$(FILE_SUFFIX_GUI).c: Modules\WinMain.bas Modules\WinMain.bi Resources.RH Modules\DisplayError.bi Forms\ColorLinesWndProc.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Modules\WinMain.bas"
 	move /y Modules\WinMain.c $(OBJ_RELEASE_DIR)\WinMain$(FILE_SUFFIX_GUI).c
 
-$(OBJ_DEBUG_DIR)\WinMain$(FILE_SUFFIX_GUI).c:   Modules\WinMain.bas Resources.RH Modules\DisplayError.bi
+$(OBJ_DEBUG_DIR)\WinMain$(FILE_SUFFIX_GUI).c:   Modules\WinMain.bas Modules\WinMain.bi Resources.RH Modules\DisplayError.bi Forms\ColorLinesWndProc.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Modules\WinMain.bas"
 	move /y Modules\WinMain.c $(OBJ_DEBUG_DIR)\WinMain$(FILE_SUFFIX_GUI).c
 
@@ -407,11 +407,11 @@ $(OBJ_RELEASE_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\C
 $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c
 	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).asm
 
-$(OBJ_RELEASE_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c: Forms\ColorLinesWndProc.bas
+$(OBJ_RELEASE_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c: Forms\ColorLinesWndProc.bas Forms\ColorLinesWndProc.bi Resources.RH Modules\DisplayError.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Forms\ColorLinesWndProc.bas"
 	move /y Forms\ColorLinesWndProc.c $(OBJ_RELEASE_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c
 
-$(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c:   Forms\ColorLinesWndProc.bas
+$(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c:   Forms\ColorLinesWndProc.bas Forms\ColorLinesWndProc.bi Resources.RH Modules\DisplayError.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Forms\ColorLinesWndProc.bas"
 	move /y Forms\ColorLinesWndProc.c $(OBJ_DEBUG_DIR)\ColorLinesWndProc$(FILE_SUFFIX_GUI).c
 
