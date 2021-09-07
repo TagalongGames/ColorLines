@@ -42,13 +42,37 @@ Type Cell
 	Exist As Boolean
 End Type
 
-' Поверхности для рисования
-Dim Shared g_token As ULONG_PTR
-Dim Shared MemoryDC As HDC
-Dim Shared MemoryBM As HBITMAP
-Dim Shared OldMemoryBM As HGDIOBJ
-Dim Shared SceneWidth As UINT
-Dim Shared SceneHeight As UINT
+Type Scene
+	DeviceContext As HDC
+	Bitmap As HBITMAP
+	OldBitmap As HGDIOBJ
+	Width As UINT
+	Height As UINT
+End Type
+
+Declare Function CreateScene( _
+	ByVal hWin As HWND, _
+	ByVal nWidth As UINT, _
+	ByVal nHeight As UINT _
+)As Scene Ptr
+
+Declare Sub DestroyScene( _
+	ByVal pScene As Scene Ptr _
+)
+
+Declare Sub SceneRender( _
+	ByVal pScene As Scene Ptr _
+)
+
+Declare Sub SceneCopy( _
+	ByVal pScene As Scene Ptr, _
+	ByVal hDCDestination As hDC, _
+	ByVal pRectangle As RECT Ptr _
+)
+
+' Сцена
+Dim Shared ColorLinesScene As Scene Ptr
+Dim Shared GdiplusToken As ULONG_PTR
 
 ' Кисти и перья
 Dim Shared GreenPen As HPEN
@@ -62,9 +86,6 @@ Dim Shared MagentaBrush As HBRUSH
 Dim Shared DarkRedBrush As HBRUSH
 Dim Shared CyanBrush As HBRUSH
 Dim Shared GrayBrush As HBRUSH
-
-Dim Shared OldPen As HGDIOBJ
-Dim Shared OldBrush As HGDIOBJ
 
 ' Игровое поле 9x9
 Dim Shared ColorLinesStage(0 To 8, 0 To 8) As Cell
@@ -85,64 +106,70 @@ Dim Shared MovedBall As Cell
 ' Dim Shared BallWidth As UINT
 ' Dim Shared BallHeight As UINT
 
-Declare Function CreateMemoryDC( _
-	ByVal hWin As HWND, _
-	ByVal nWidth As UINT, _
-	ByVal nHeight As UINT _
-)As HDC
-
-Declare Sub DestroyMemoryDC( _
-	ByVal hDC As HDC _
-)
-
-Function CreateMemoryDC( _
+Function CreateScene( _
 		ByVal hWin As HWND, _
 		ByVal nWidth As UINT, _
 		ByVal nHeight As UINT _
-	)As HDC
+	)As Scene Ptr
+	
+	Dim pScene As Scene Ptr = Allocate(SizeOf(Scene))
+	If pScene = NULL Then
+		Return NULL
+	End If
 	
 	Dim WindowDC As HDC = GetDC(hWin)
 	
 	' Контекст устройства в памяти
-	Dim hDC As HDC = CreateCompatibleDC(WindowDC)
+	pScene->DeviceContext = CreateCompatibleDC(WindowDC)
 	
 	' Цветной рисунок на основе окна
-	MemoryBM = CreateCompatibleBitmap(WindowDC, nWidth, nHeight)
+	pScene->Bitmap = CreateCompatibleBitmap(WindowDC, nWidth, nHeight)
 	' Выбираем цветной рисунок, сохраняя старый
-	OldMemoryBM = SelectObject(hDC, MemoryBM)
+	pScene->OldBitmap = SelectObject(pScene->DeviceContext, pScene->Bitmap)
+	
+	pScene->Width = nWidth
+	pScene->Height = nHeight
 	
 	ReleaseDC(hWin, WindowDC)
 	
-	Return hDC
+	Return pScene
 	
 End Function
 
-Sub DestroyMemoryDC(ByVal hDC As HDC)
-	SelectObject(MemoryDC, OldMemoryBM)
-	DeleteObject(MemoryBM)
-	DeleteDC(hDC)
+Sub DestroyScene( _
+		ByVal pScene As Scene Ptr _
+	)
+	SelectObject(pScene->DeviceContext, pScene->OldBitmap)
+	DeleteObject(pScene->Bitmap)
+	DeleteDC(pScene->DeviceContext)
 End Sub
 
-Sub Render(ByVal hDC As HDC)
+Sub SceneRender( _
+		ByVal pScene As Scene Ptr _
+	)
+	
+	Dim OldPen As HGDIOBJ = Any
+	Dim OldBrush As HGDIOBJ = Any
+	
 	' Прямоугольник обновления
 	Dim MemoryBMRectangle As RECT = Any
-	SetRect(@MemoryBMRectangle, 0, 0, SceneWidth, SceneHeight)
+	SetRect(@MemoryBMRectangle, 0, 0, pScene->Width, pScene->Height)
 	
 	' Очистка
-	FillRect(hDC, @MemoryBMRectangle, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
+	FillRect(pScene->DeviceContext, @MemoryBMRectangle, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
 	
 	' Рисуем
 	
 	' Ячейки
-	OldPen = SelectObject(hDC, DarkGrayPen)
-	OldBrush = SelectObject(hDC, GrayBrush)
+	OldPen = SelectObject(pScene->DeviceContext, DarkGrayPen)
+	OldBrush = SelectObject(pScene->DeviceContext, GrayBrush)
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			Rectangle(hDC, ColorLinesStage(j, i).CellRectangle.left, ColorLinesStage(j, i).CellRectangle.top, ColorLinesStage(j, i).CellRectangle.right, ColorLinesStage(j, i).CellRectangle.bottom)
+			Rectangle(pScene->DeviceContext, ColorLinesStage(j, i).CellRectangle.left, ColorLinesStage(j, i).CellRectangle.top, ColorLinesStage(j, i).CellRectangle.right, ColorLinesStage(j, i).CellRectangle.bottom)
 		Next
 	Next
-	SelectObject(hDC, OldBrush)
-	SelectObject(hDC, OldPen)
+	SelectObject(pScene->DeviceContext, OldBrush)
+	SelectObject(pScene->DeviceContext, OldPen)
 	
 	' Стоящие шары
 	For j As Integer = 0 To 8
@@ -153,39 +180,39 @@ Sub Render(ByVal hDC As HDC)
 				Select Case ColorLinesStage(j, i).Color
 					
 					Case BallColor.Red
-						' OldPen = SelectObject(hDC, GreenPen)
-						OldBrush = SelectObject(hDC, RedBrush)
+						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
+						OldBrush = SelectObject(pScene->DeviceContext, RedBrush)
 						
 					Case BallColor.Green
-						' OldPen = SelectObject(hDC, GreenPen)
-						OldBrush = SelectObject(hDC, GreenBrush)
+						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
+						OldBrush = SelectObject(pScene->DeviceContext, GreenBrush)
 						
 					Case BallColor.Blue
-						' OldPen = SelectObject(hDC, GreenPen)
-						OldBrush = SelectObject(hDC, BlueBrush)
+						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
+						OldBrush = SelectObject(pScene->DeviceContext, BlueBrush)
 						
 					Case BallColor.Yellow
-						' OldPen = SelectObject(hDC, GreenPen)
-						OldBrush = SelectObject(hDC, YellowBrush)
+						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
+						OldBrush = SelectObject(pScene->DeviceContext, YellowBrush)
 						
 					Case BallColor.Magenta
-						' OldPen = SelectObject(hDC, GreenPen)
-						OldBrush = SelectObject(hDC, MagentaBrush)
+						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
+						OldBrush = SelectObject(pScene->DeviceContext, MagentaBrush)
 						
 					Case BallColor.DarkRed
-						' OldPen = SelectObject(hDC, GreenPen)
-						OldBrush = SelectObject(hDC, DarkRedBrush)
+						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
+						OldBrush = SelectObject(pScene->DeviceContext, DarkRedBrush)
 						
 					Case BallColor.Cyan
-						' OldPen = SelectObject(hDC, GreenPen)
-						OldBrush = SelectObject(hDC, CyanBrush)
+						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
+						OldBrush = SelectObject(pScene->DeviceContext, CyanBrush)
 						
 				End Select
 				
-				Ellipse(hDC, ColorLinesStage(j, i).BallRectangle.left, ColorLinesStage(j, i).BallRectangle.top, ColorLinesStage(j, i).BallRectangle.right, ColorLinesStage(j, i).BallRectangle.bottom)
+				Ellipse(pScene->DeviceContext, ColorLinesStage(j, i).BallRectangle.left, ColorLinesStage(j, i).BallRectangle.top, ColorLinesStage(j, i).BallRectangle.right, ColorLinesStage(j, i).BallRectangle.bottom)
 				
-				SelectObject(hDC, OldBrush)
-				' SelectObject(hDC, OldPen)
+				SelectObject(pScene->DeviceContext, OldBrush)
+				' SelectObject(pScene->DeviceContext, OldPen)
 			End If
 		Next
 	Next
@@ -202,6 +229,22 @@ Sub Render(ByVal hDC As HDC)
 	' Табло с тремя новыми шарами
 	For i As Integer = 0 To 2
 	Next
+	
+End Sub
+
+Sub SceneCopy( _
+		ByVal pScene As Scene Ptr, _
+		ByVal hDCDestination As hDC, _
+		ByVal pRectangle As RECT Ptr _
+	)
+	
+	BitBlt( _
+		hDCDestination, _
+		pRectangle->left, pRectangle->top, pRectangle->right, pRectangle->bottom, _
+		pScene->DeviceContext, _
+		pRectangle->left, pRectangle->top, _
+		SRCCOPY _
+	)
 	
 End Sub
 
@@ -255,7 +298,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim gsi As GdiPlus.GdiplusStartupInput = Any
 			ZeroMemory(@gsi, SizeOf(GdiPlus.GdiplusStartupInput))
 			gsi.GdiplusVersion = 1
-			Dim st As GdiPlus.GpStatus = GdiPlus.GdiplusStartup(@g_token, @gsi, NULL)
+			Dim st As GdiPlus.GpStatus = GdiPlus.GdiplusStartup(@GdiplusToken, @gsi, NULL)
 			If st <> GdiPlus.Ok Then
 				DisplayError(st, __TEXT("GdiplusStartup"))
 			End If
@@ -289,8 +332,6 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			If wParam <> SIZE_MINIMIZED Then
 				Dim nWidth As UINT = LOWORD(lParam)
 				Dim nHeight As UINT = HIWORD(lParam)
-				SceneWidth = nWidth
-				SceneHeight = nHeight
 				
 				'Scale = max(nHeight \ 480, 1)
 				Dim CellWidth As UINT = max(40, (nHeight - 100) \ 9)
@@ -324,13 +365,13 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					Next
 				Next
 				
-				' Контекст устройства в памяти
-				If MemoryDC <> NULL Then
-					DestroyMemoryDC(MemoryDC)
+				' Пересоздать сцену с новым размером
+				If ColorLinesScene <> NULL Then
+					DestroyScene(ColorLinesScene)
 				End If
-				MemoryDC = CreateMemoryDC(hWin, nWidth, nHeight)
+				ColorLinesScene = CreateScene(hWin, nWidth, nHeight)
 				
-				Render(MemoryDC)
+				SceneRender(ColorLinesScene)
 			End If
 			
 		Case WM_ERASEBKGND
@@ -340,13 +381,14 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim ps As PAINTSTRUCT = Any
 			Dim hDC As HDC = BeginPaint(hWin, @ps)
 			
-			BitBlt( _
-				hDC, _
-				ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom, _
-				MemoryDC, _
-				ps.rcPaint.left, ps.rcPaint.top, _
-				SRCCOPY _
-			)
+			' BitBlt( _
+				' hDC, _
+				' ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom, _
+				' ColorLinesScene->DeviceContext, _
+				' ps.rcPaint.left, ps.rcPaint.top, _
+				' SRCCOPY _
+			' )
+			SceneCopy(ColorLinesScene, hDC, @ps.rcPaint)
 			
 			EndPaint(hWin, @ps)
 			
@@ -361,9 +403,12 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			DeleteObject(GrayBrush)
 			DeleteObject(GreenPen)
 			DeleteObject(DarkGrayPen)
-			DestroyMemoryDC(MemoryDC)
+			
+			DestroyScene(ColorLinesScene)
+			
 			' GDI+ Uninitialize
-			GdiPlus.GdiplusShutdown(g_token)
+			GdiPlus.GdiplusShutdown(GdiplusToken)
+			
 			PostQuitMessage(0)
 			
 		/'
