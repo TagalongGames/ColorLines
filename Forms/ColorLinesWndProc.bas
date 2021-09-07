@@ -42,6 +42,12 @@ Type Cell
 	Exist As Boolean
 End Type
 
+Type Stage
+	Lines(0 To 8, 0 To 8) As Cell
+	Tablo(0 To 2) As Cell
+	MovedBall As Cell
+End Type
+
 Type Scene
 	DeviceContext As HDC
 	Bitmap As HBITMAP
@@ -61,20 +67,15 @@ Declare Sub DestroyScene( _
 )
 
 Declare Sub SceneRender( _
-	ByVal pScene As Scene Ptr _
+	ByVal pScene As Scene Ptr, _
+	ByVal pStage As Stage Ptr _
 )
 
 Declare Sub SceneCopyRectangle( _
 	ByVal pScene As Scene Ptr, _
-	ByVal hDCDestination As hDC, _
+	ByVal hDCDestination As HDC, _
 	ByVal pRectangle As RECT Ptr _
 )
-
-Type Stage
-	Lines(0 To 8, 0 To 8) As Cell
-	Tablo(0 To 2) As Cell
-	MovedBall As Cell
-End Type
 
 ' Сцена
 Dim Shared ColorLinesScene As Scene Ptr
@@ -149,7 +150,8 @@ Sub DestroyScene( _
 End Sub
 
 Sub SceneRender( _
-		ByVal pScene As Scene Ptr _
+		ByVal pScene As Scene Ptr, _
+		ByVal pStage As Stage Ptr _
 	)
 	
 	Dim OldPen As HGDIOBJ = Any
@@ -169,7 +171,7 @@ Sub SceneRender( _
 	OldBrush = SelectObject(pScene->DeviceContext, GrayBrush)
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			Rectangle(pScene->DeviceContext, ColorLinesStage.Lines(j, i).CellRectangle.left, ColorLinesStage.Lines(j, i).CellRectangle.top, ColorLinesStage.Lines(j, i).CellRectangle.right, ColorLinesStage.Lines(j, i).CellRectangle.bottom)
+			Rectangle(pScene->DeviceContext, pStage->Lines(j, i).CellRectangle.left, pStage->Lines(j, i).CellRectangle.top, pStage->Lines(j, i).CellRectangle.right, pStage->Lines(j, i).CellRectangle.bottom)
 		Next
 	Next
 	SelectObject(pScene->DeviceContext, OldBrush)
@@ -179,9 +181,9 @@ Sub SceneRender( _
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			
-			If ColorLinesStage.Lines(j, i).Exist Then
+			If pStage->Lines(j, i).Exist Then
 				
-				Select Case ColorLinesStage.Lines(j, i).Color
+				Select Case pStage->Lines(j, i).Color
 					
 					Case BallColor.Red
 						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
@@ -213,7 +215,7 @@ Sub SceneRender( _
 						
 				End Select
 				
-				Ellipse(pScene->DeviceContext, ColorLinesStage.Lines(j, i).BallRectangle.left, ColorLinesStage.Lines(j, i).BallRectangle.top, ColorLinesStage.Lines(j, i).BallRectangle.right, ColorLinesStage.Lines(j, i).BallRectangle.bottom)
+				Ellipse(pScene->DeviceContext, pStage->Lines(j, i).BallRectangle.left, pStage->Lines(j, i).BallRectangle.top, pStage->Lines(j, i).BallRectangle.right, pStage->Lines(j, i).BallRectangle.bottom)
 				
 				SelectObject(pScene->DeviceContext, OldBrush)
 				' SelectObject(pScene->DeviceContext, OldPen)
@@ -227,7 +229,7 @@ Sub SceneRender( _
 	' - прыжки при выборе мышью (от 0 до 5 и обратно)
 	' - уничтожение, рассыпался в прах (от 9 до 0)
 	' координаты
-	If ColorLinesStage.MovedBall.Exist Then
+	If pStage->MovedBall.Exist Then
 	End If
 	
 	' Табло с тремя новыми шарами
@@ -366,7 +368,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				End If
 				ColorLinesScene = CreateScene(hWin, nWidth, nHeight)
 				
-				SceneRender(ColorLinesScene)
+				SceneRender(ColorLinesScene, @ColorLinesStage)
 			End If
 			
 		Case WM_ERASEBKGND
@@ -420,25 +422,25 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					' Переместить объект
 					OffsetRect(@CellRectangle, -MOVE_DX, 0)
 					' Визуализация
-					Render(MemoryDC)
+					SceneRender(ColorLinesScene, @ColorLinesStage)
 					
 				Case VK_UP
 					' Переместить объект
 					OffsetRect(@CellRectangle, 0, -MOVE_DY)
 					' Визуализация
-					Render(MemoryDC)
+					SceneRender(ColorLinesScene, @ColorLinesStage)
 					
 				Case VK_RIGHT
 					' Переместить объект
 					OffsetRect(@CellRectangle, MOVE_DX, 0)
 					' Визуализация
-					Render(MemoryDC)
+					SceneRender(ColorLinesScene, @ColorLinesStage)
 					
 				Case VK_DOWN
 					' Переместить объект
 					OffsetRect(@CellRectangle, 0, MOVE_DY)
 					' Визуализация
-					Render(MemoryDC)
+					SceneRender(ColorLinesScene, @ColorLinesStage)
 					
 				Case VK_ESCAPE
 					DestroyWindow(hWin)
