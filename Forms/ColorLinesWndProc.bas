@@ -9,29 +9,8 @@
 ' Сцена
 Dim Shared ColorLinesScene As Scene Ptr
 
-' Игровое поле 9x9
-Dim Shared ColorLinesStage As Stage
-
-Function GetRandomBoolean()As Boolean
-	
-	Dim RndValue As Long = rand()
-	
-	If RndValue > RAND_MAX \ 2 Then
-		Return True
-	End If
-	
-	Return False
-	
-End Function
-
-Function GetRandomBallColor()As BallColors
-	
-	Const SevenPart As Long = RAND_MAX \ 7
-	Dim RndValue As Long = rand()
-	
-	Return Cast(BallColors, RndValue Mod 7)
-	
-End Function
+' Игровое поле
+Dim Shared ColorLinesStage As Stage Ptr
 
 Sub Visualisation()
 	' Вычислить прямоугольник для старого положения объекта
@@ -58,18 +37,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 	Select Case wMsg
 		
 		Case WM_CREATE
-			' Игровое поле
-			For j As Integer = 0 To 8
-				For i As Integer = 0 To 8
-					' Dim RndExists As Boolean = GetRandomBoolean()
-					ColorLinesStage.Lines(j, i).Ball.Exist = True 'RndExists
-					
-					Dim RndColor As BallColors = GetRandomBallColor()
-					ColorLinesStage.Lines(j, i).Ball.Color = RndColor
-				Next
-			Next
-			
-			' Три случайных цвета
+			ColorLinesStage = CreateStage(0)
 			
 		Case WM_SIZE
 			If wParam <> SIZE_MINIMIZED Then
@@ -87,7 +55,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				' Ячейка
 				For j As Integer = 0 To 8
 					For i As Integer = 0 To 8
-						SetRect(@ColorLinesStage.Lines(j, i).CellRectangle, _
+						SetRect(@ColorLinesStage->Lines(j, i).CellRectangle, _
 							i * CellWidth, _
 							j * CellHeight, _
 							i * CellWidth + CellWidth, _
@@ -99,7 +67,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				' Шар
 				For j As Integer = 0 To 8
 					For i As Integer = 0 To 8
-						SetRect(@ColorLinesStage.Lines(j, i).Ball.BallRectangle, _
+						SetRect(@ColorLinesStage->Lines(j, i).Ball.BallRectangle, _
 							i * CellWidth + BallMarginWidth, _
 							j * CellHeight + BallMarginHeight, _
 							i * CellWidth + CellWidth - BallMarginWidth, _
@@ -114,7 +82,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				End If
 				ColorLinesScene = CreateScene(hWin, nWidth, nHeight)
 				
-				SceneRender(ColorLinesScene, @ColorLinesStage)
+				SceneRender(ColorLinesScene, ColorLinesStage)
 			End If
 			
 		Case WM_ERASEBKGND
@@ -129,6 +97,9 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			EndPaint(hWin, @ps)
 			
 		Case WM_DESTROY
+			If ColorLinesStage <> NULL Then
+				DestroyStage(ColorLinesStage)
+			End If
 			If ColorLinesScene <> NULL Then
 				DestroyScene(ColorLinesScene)
 			End If
