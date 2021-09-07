@@ -64,15 +64,20 @@ Declare Sub SceneRender( _
 	ByVal pScene As Scene Ptr _
 )
 
-Declare Sub SceneCopy( _
+Declare Sub SceneCopyRectangle( _
 	ByVal pScene As Scene Ptr, _
 	ByVal hDCDestination As hDC, _
 	ByVal pRectangle As RECT Ptr _
 )
 
+Type Stage
+	Lines(0 To 8, 0 To 8) As Cell
+	Tablo(0 To 2) As Cell
+	MovedBall As Cell
+End Type
+
 ' Сцена
 Dim Shared ColorLinesScene As Scene Ptr
-Dim Shared GdiplusToken As ULONG_PTR
 
 ' Кисти и перья
 Dim Shared GreenPen As HPEN
@@ -88,11 +93,7 @@ Dim Shared CyanBrush As HBRUSH
 Dim Shared GrayBrush As HBRUSH
 
 ' Игровое поле 9x9
-Dim Shared ColorLinesStage(0 To 8, 0 To 8) As Cell
-' Табло
-Dim Shared ColorLinesTablo(0 To 2) As Cell
-' Двигающийся шар
-Dim Shared MovedBall As Cell
+Dim Shared ColorLinesStage As Stage
 
 ' Масштаб игрового поля
 ' Dim Shared Scale As UINT
@@ -139,9 +140,12 @@ End Function
 Sub DestroyScene( _
 		ByVal pScene As Scene Ptr _
 	)
+	
 	SelectObject(pScene->DeviceContext, pScene->OldBitmap)
 	DeleteObject(pScene->Bitmap)
 	DeleteDC(pScene->DeviceContext)
+	Deallocate(pScene)
+	
 End Sub
 
 Sub SceneRender( _
@@ -165,7 +169,7 @@ Sub SceneRender( _
 	OldBrush = SelectObject(pScene->DeviceContext, GrayBrush)
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			Rectangle(pScene->DeviceContext, ColorLinesStage(j, i).CellRectangle.left, ColorLinesStage(j, i).CellRectangle.top, ColorLinesStage(j, i).CellRectangle.right, ColorLinesStage(j, i).CellRectangle.bottom)
+			Rectangle(pScene->DeviceContext, ColorLinesStage.Lines(j, i).CellRectangle.left, ColorLinesStage.Lines(j, i).CellRectangle.top, ColorLinesStage.Lines(j, i).CellRectangle.right, ColorLinesStage.Lines(j, i).CellRectangle.bottom)
 		Next
 	Next
 	SelectObject(pScene->DeviceContext, OldBrush)
@@ -175,9 +179,9 @@ Sub SceneRender( _
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			
-			If ColorLinesStage(j, i).Exist Then
+			If ColorLinesStage.Lines(j, i).Exist Then
 				
-				Select Case ColorLinesStage(j, i).Color
+				Select Case ColorLinesStage.Lines(j, i).Color
 					
 					Case BallColor.Red
 						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
@@ -209,7 +213,7 @@ Sub SceneRender( _
 						
 				End Select
 				
-				Ellipse(pScene->DeviceContext, ColorLinesStage(j, i).BallRectangle.left, ColorLinesStage(j, i).BallRectangle.top, ColorLinesStage(j, i).BallRectangle.right, ColorLinesStage(j, i).BallRectangle.bottom)
+				Ellipse(pScene->DeviceContext, ColorLinesStage.Lines(j, i).BallRectangle.left, ColorLinesStage.Lines(j, i).BallRectangle.top, ColorLinesStage.Lines(j, i).BallRectangle.right, ColorLinesStage.Lines(j, i).BallRectangle.bottom)
 				
 				SelectObject(pScene->DeviceContext, OldBrush)
 				' SelectObject(pScene->DeviceContext, OldPen)
@@ -223,7 +227,7 @@ Sub SceneRender( _
 	' - прыжки при выборе мышью (от 0 до 5 и обратно)
 	' - уничтожение, рассыпался в прах (от 9 до 0)
 	' координаты
-	If MovedBall.Exist Then
+	If ColorLinesStage.MovedBall.Exist Then
 	End If
 	
 	' Табло с тремя новыми шарами
@@ -232,7 +236,7 @@ Sub SceneRender( _
 	
 End Sub
 
-Sub SceneCopy( _
+Sub SceneCopyRectangle( _
 		ByVal pScene As Scene Ptr, _
 		ByVal hDCDestination As hDC, _
 		ByVal pRectangle As RECT Ptr _
@@ -294,15 +298,6 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 	Select Case wMsg
 		
 		Case WM_CREATE
-			' GDI+ Initialize
-			Dim gsi As GdiPlus.GdiplusStartupInput = Any
-			ZeroMemory(@gsi, SizeOf(GdiPlus.GdiplusStartupInput))
-			gsi.GdiplusVersion = 1
-			Dim st As GdiPlus.GpStatus = GdiPlus.GdiplusStartup(@GdiplusToken, @gsi, NULL)
-			If st <> GdiPlus.Ok Then
-				DisplayError(st, __TEXT("GdiplusStartup"))
-			End If
-			
 			' Перья и кисти
 			GreenPen = CreatePen(PS_SOLID, 2, rgbGreen)
 			DarkGrayPen = CreatePen(PS_SOLID, 2, rgbDarkGray)
@@ -319,10 +314,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			For j As Integer = 0 To 8
 				For i As Integer = 0 To 8
 					' Dim RndExists As Boolean = GetRandomBoolean()
-					ColorLinesStage(j, i).Exist = True 'RndExists
+					ColorLinesStage.Lines(j, i).Exist = True 'RndExists
 					
 					Dim RndColor As BallColor = GetRandomBallColor()
-					ColorLinesStage(j, i).Color = RndColor
+					ColorLinesStage.Lines(j, i).Color = RndColor
 				Next
 			Next
 			
@@ -344,7 +339,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				' Ячейка
 				For j As Integer = 0 To 8
 					For i As Integer = 0 To 8
-						SetRect(@ColorLinesStage(j, i).CellRectangle, _
+						SetRect(@ColorLinesStage.Lines(j, i).CellRectangle, _
 							i * CellWidth, _
 							j * CellHeight, _
 							i * CellWidth + CellWidth, _
@@ -356,7 +351,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				' Шар
 				For j As Integer = 0 To 8
 					For i As Integer = 0 To 8
-						SetRect(@ColorLinesStage(j, i).BallRectangle, _
+						SetRect(@ColorLinesStage.Lines(j, i).BallRectangle, _
 							i * CellWidth + BallMarginWidth, _
 							j * CellHeight + BallMarginHeight, _
 							i * CellWidth + CellWidth - BallMarginWidth, _
@@ -388,7 +383,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				' ps.rcPaint.left, ps.rcPaint.top, _
 				' SRCCOPY _
 			' )
-			SceneCopy(ColorLinesScene, hDC, @ps.rcPaint)
+			SceneCopyRectangle(ColorLinesScene, hDC, @ps.rcPaint)
 			
 			EndPaint(hWin, @ps)
 			
@@ -404,10 +399,9 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			DeleteObject(GreenPen)
 			DeleteObject(DarkGrayPen)
 			
-			DestroyScene(ColorLinesScene)
-			
-			' GDI+ Uninitialize
-			GdiPlus.GdiplusShutdown(GdiplusToken)
+			If ColorLinesScene <> NULL Then
+				DestroyScene(ColorLinesScene)
+			End If
 			
 			PostQuitMessage(0)
 			

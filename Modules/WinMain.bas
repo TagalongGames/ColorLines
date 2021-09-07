@@ -1,5 +1,6 @@
 #include once "WinMain.bi"
 #include once "win\commctrl.bi"
+#include once "win\GdiPlus.bi"
 #include once "ColorLinesWndProc.bi"
 #include once "Resources.RH"
 #include once "DisplayError.bi"
@@ -10,6 +11,7 @@ Const COMMONCONTROLS_ERRORSTRING = __TEXT("Failed to register Common Controls")
 Const REGISTERWINDOWCLASS_ERRORSTRING = __TEXT("Failed to register WNDCLASSEX")
 Const CREATEWINDOW_ERRORSTRING = __TEXT("Failed to create Main Window")
 Const GETMESSAGE_ERRORSTRING = __TEXT("Error in GetMessage")
+Const GDIPLUS_ERRORSTRING = __TEXT("Failed to initialize GDIPlus")
 
 Function wWinMain( _
 		Byval hInst As HINSTANCE, _
@@ -17,6 +19,17 @@ Function wWinMain( _
 		ByVal lpCmdLine As LPWSTR, _
 		ByVal iCmdShow As Long _
 	)As Long
+	
+	' GDI+ Initialize
+	Dim gsi As GdiPlus.GdiplusStartupInput = Any
+	ZeroMemory(@gsi, SizeOf(GdiPlus.GdiplusStartupInput))
+	gsi.GdiplusVersion = 1
+	Dim GdiplusToken As ULONG_PTR = Any
+	Dim st As GdiPlus.GpStatus = GdiPlus.GdiplusStartup(@GdiplusToken, @gsi, NULL)
+	If st <> GdiPlus.Ok Then
+		DisplayError(st, GDIPLUS_ERRORSTRING)
+		Return 1
+	End If
 	
 	Scope
 		Dim icc As INITCOMMONCONTROLSEX = Any
@@ -122,6 +135,9 @@ Function wWinMain( _
 			GetMessageResult = GetMessage(@wMsg, NULL, 0, 0)
 			
 		Loop
+		
+		' GDI+ Uninitialize
+		GdiPlus.GdiplusShutdown(GdiplusToken)
 		
 		Return wMsg.WPARAM
 	End Scope
