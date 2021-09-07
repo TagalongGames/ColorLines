@@ -25,7 +25,7 @@ End Enum
 
 Type RgbColors As COLORREF
 
-Enum BallColor
+Enum BallColors
 	Red
 	Green
 	Blue
@@ -35,17 +35,23 @@ Enum BallColor
 	Cyan
 End Enum
 
-Type Cell
-	Color As BallColor
-	CellRectangle As RECT
+Type ColorBall
+	Color As BallColors
 	BallRectangle As RECT
 	Exist As Boolean
+End Type
+
+Type Cell
+	CellRectangle As RECT
+	Ball As ColorBall
 End Type
 
 Type Stage
 	Lines(0 To 8, 0 To 8) As Cell
 	Tablo(0 To 2) As Cell
-	MovedBall As Cell
+	MovedBall As ColorBall
+	Score As Integer
+	HiScore As Integer
 End Type
 
 Type Scene
@@ -181,41 +187,41 @@ Sub SceneRender( _
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			
-			If pStage->Lines(j, i).Exist Then
+			If pStage->Lines(j, i).Ball.Exist Then
 				
-				Select Case pStage->Lines(j, i).Color
+				Select Case pStage->Lines(j, i).Ball.Color
 					
-					Case BallColor.Red
+					Case BallColors.Red
 						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
 						OldBrush = SelectObject(pScene->DeviceContext, RedBrush)
 						
-					Case BallColor.Green
+					Case BallColors.Green
 						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
 						OldBrush = SelectObject(pScene->DeviceContext, GreenBrush)
 						
-					Case BallColor.Blue
+					Case BallColors.Blue
 						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
 						OldBrush = SelectObject(pScene->DeviceContext, BlueBrush)
 						
-					Case BallColor.Yellow
+					Case BallColors.Yellow
 						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
 						OldBrush = SelectObject(pScene->DeviceContext, YellowBrush)
 						
-					Case BallColor.Magenta
+					Case BallColors.Magenta
 						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
 						OldBrush = SelectObject(pScene->DeviceContext, MagentaBrush)
 						
-					Case BallColor.DarkRed
+					Case BallColors.DarkRed
 						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
 						OldBrush = SelectObject(pScene->DeviceContext, DarkRedBrush)
 						
-					Case BallColor.Cyan
+					Case BallColors.Cyan
 						' OldPen = SelectObject(pScene->DeviceContext, GreenPen)
 						OldBrush = SelectObject(pScene->DeviceContext, CyanBrush)
 						
 				End Select
 				
-				Ellipse(pScene->DeviceContext, pStage->Lines(j, i).BallRectangle.left, pStage->Lines(j, i).BallRectangle.top, pStage->Lines(j, i).BallRectangle.right, pStage->Lines(j, i).BallRectangle.bottom)
+				Ellipse(pScene->DeviceContext, pStage->Lines(j, i).Ball.BallRectangle.left, pStage->Lines(j, i).Ball.BallRectangle.top, pStage->Lines(j, i).Ball.BallRectangle.right, pStage->Lines(j, i).Ball.BallRectangle.bottom)
 				
 				SelectObject(pScene->DeviceContext, OldBrush)
 				' SelectObject(pScene->DeviceContext, OldPen)
@@ -266,12 +272,12 @@ Function GetRandomBoolean()As Boolean
 	
 End Function
 
-Function GetRandomBallColor()As BallColor
+Function GetRandomBallColor()As BallColors
 	
 	Const SevenPart As Long = RAND_MAX \ 7
 	Dim RndValue As Long = rand()
 	
-	Return Cast(BallColor, RndValue Mod 7)
+	Return Cast(BallColors, RndValue Mod 7)
 	
 End Function
 
@@ -316,10 +322,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			For j As Integer = 0 To 8
 				For i As Integer = 0 To 8
 					' Dim RndExists As Boolean = GetRandomBoolean()
-					ColorLinesStage.Lines(j, i).Exist = True 'RndExists
+					ColorLinesStage.Lines(j, i).Ball.Exist = True 'RndExists
 					
-					Dim RndColor As BallColor = GetRandomBallColor()
-					ColorLinesStage.Lines(j, i).Color = RndColor
+					Dim RndColor As BallColors = GetRandomBallColor()
+					ColorLinesStage.Lines(j, i).Ball.Color = RndColor
 				Next
 			Next
 			
@@ -353,7 +359,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				' Øàð
 				For j As Integer = 0 To 8
 					For i As Integer = 0 To 8
-						SetRect(@ColorLinesStage.Lines(j, i).BallRectangle, _
+						SetRect(@ColorLinesStage.Lines(j, i).Ball.BallRectangle, _
 							i * CellWidth + BallMarginWidth, _
 							j * CellHeight + BallMarginHeight, _
 							i * CellWidth + CellWidth - BallMarginWidth, _
