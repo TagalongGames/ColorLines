@@ -7,8 +7,8 @@ Type Scene As _Scene
 
 Declare Function CreateScene( _
 	ByVal hWin As HWND, _
-	ByVal nWidth As UINT, _
-	ByVal nHeight As UINT _
+	ByVal SceneWidth As UINT, _
+	ByVal SceneHeight As UINT _
 )As Scene Ptr
 
 Declare Sub DestroyScene( _

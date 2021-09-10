@@ -40,4 +40,16 @@ Declare Sub DestroyStage( _
 	ByVal pStage As Stage Ptr _
 )
 
+Declare Sub StageRecalculateSizes( _
+	ByVal pStage As Stage Ptr, _
+	ByVal SceneWidth As UINT, _
+	ByVal SceneHeight As UINT _
+)
+
+Declare Function StageGetCellFromPoint( _
+	ByVal pStage As Stage Ptr, _
+	ByVal pp As POINT Ptr, _
+	ByVal pCell As POINT Ptr _
+)As Boolean
+
 #endif

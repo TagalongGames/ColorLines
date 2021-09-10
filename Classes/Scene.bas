@@ -19,7 +19,7 @@ Enum
 	rgbWhite =       &h00FFFFFF
 End Enum
 
-Type RgbColors As COLORREF
+' Type RgbColors As COLORREF
 
 ' Масштаб игрового поля
 ' Dim Shared Scale As UINT
@@ -52,12 +52,13 @@ Type _Scene
 	
 	Width As UINT
 	Height As UINT
+	
 End Type
 
 Function CreateScene( _
 		ByVal hWin As HWND, _
-		ByVal nWidth As UINT, _
-		ByVal nHeight As UINT _
+		ByVal SceneWidth As UINT, _
+		ByVal SceneHeight As UINT _
 	)As Scene Ptr
 	
 	Dim pScene As Scene Ptr = Allocate(SizeOf(Scene))
@@ -83,12 +84,12 @@ Function CreateScene( _
 	pScene->DeviceContext = CreateCompatibleDC(WindowDC)
 	
 	' Цветной рисунок на основе окна
-	pScene->Bitmap = CreateCompatibleBitmap(WindowDC, nWidth, nHeight)
+	pScene->Bitmap = CreateCompatibleBitmap(WindowDC, SceneWidth, SceneHeight)
 	' Выбираем цветной рисунок, сохраняя старый
 	pScene->OldBitmap = SelectObject(pScene->DeviceContext, pScene->Bitmap)
 	
-	pScene->Width = nWidth
-	pScene->Height = nHeight
+	pScene->Width = SceneWidth
+	pScene->Height = SceneHeight
 	
 	ReleaseDC(hWin, WindowDC)
 	
@@ -114,6 +115,7 @@ Sub DestroyScene( _
 	SelectObject(pScene->DeviceContext, pScene->OldBitmap)
 	DeleteObject(pScene->Bitmap)
 	DeleteDC(pScene->DeviceContext)
+	
 	Deallocate(pScene)
 	
 End Sub
