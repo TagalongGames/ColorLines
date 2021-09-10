@@ -62,7 +62,6 @@ Function wWinMain( _
 		Dim wcls As WNDCLASSEX = Any
 		With wcls
 			.cbSize        = SizeOf(WNDCLASSEX)
-			' .style         = 0
 			.style         = CS_HREDRAW Or CS_VREDRAW
 			.lpfnWndProc   = @MainFormWndProc
 			.cbClsExtra    = 0
@@ -70,9 +69,8 @@ Function wWinMain( _
 			.hInstance     = hInst
 			.hIcon         = LoadIcon(hInst, Cast(TCHAR Ptr, IDI_MAIN))
 			.hCursor       = LoadCursor(NULL, IDC_ARROW)
-			' .hbrBackground = Cast(HBRUSH, GetStockObject(BLACK_BRUSH))
 			.hbrBackground = NULL
-			.lpszMenuName  = NULL
+			.lpszMenuName  = Cast(LPTSTR, IDM_MENU)
 			.lpszClassName = @MainWindowClassName
 			.hIconSm       = NULL
 		End With
