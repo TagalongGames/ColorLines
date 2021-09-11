@@ -36,41 +36,19 @@
 #define IDM_MENU                     01000
 
 #define IDM_GAME_NEW                 01001
-#define IDM_GAME_NEW_NETWORK         01002
-#define IDM_GAME_NEW_AI              01003
-#define IDM_GAME_UNDO                01004
-#define IDM_FILE_EXIT                01005
-#define IDM_GAME_STATISTICS          01006
-#define IDM_GAME_SETTINGS            01007
+#define IDM_GAME_UNDO                01002
+#define IDM_GAME_STATISTICS          01003
+#define IDM_GAME_SETTINGS            01004
+#define IDM_GAME_EXIT                01005
 #define IDM_HELP_CONTENTS            01101
 #define IDM_HELP_ABOUT               01102
 
 #define ID_ACCEL                     02000
 
 #define IDM_GAME_NEW_ACS             02001
-#define IDM_GAME_NEW_AI_ACS          02002
+#define IDM_GAME_UNDO_ACS            02002
 #define IDM_GAME_STATISTICS_ACS      02003
 #define IDM_GAME_SETTINGS_ACS        02004
-#define IDM_GAME_NEW_NETWORK_ACS     02005
-#define IDM_GAME_UNDO_ACS            02006
-
-#define IDD_DLG_INPUTDATA            10000
-#define IDC_STC_DESCRIPTION          10001
-#define IDC_BTN_INPUTDATA            10002
-#define IDC_STC_COEFFICIENTA         10003
-#define IDC_EDT_COEFFICIENTA         10004
-#define IDC_UPD_COEFFICIENTA         10005
-#define IDC_STC_COEFFICIENTB         10006
-#define IDC_EDT_COEFFICIENTB         10007
-#define IDC_UPD_COEFFICIENTB         10008
-#define IDC_STC_COEFFICIENTC         10009
-#define IDC_EDT_COEFFICIENTC         10010
-#define IDC_UPD_COEFFICIENTC         10011
-#define IDC_BTN_OUTPUTDATA           10012
-#define IDC_STC_ROOTX1               10013
-#define IDC_EDT_ROOTX1               10014
-#define IDC_STC_ROOTX2               10015
-#define IDC_EDT_ROOTX2               10016
 
 #define IDS_WINDOWTITLE              20001
 

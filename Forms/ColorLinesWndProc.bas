@@ -6,38 +6,40 @@
 #include once "DisplayError.bi"
 #include once "Resources.RH"
 
+Type UpdateContext
+	hWin As HWND
+End Type
+
 ' Сцена
 Dim Shared ColorLinesScene As Scene Ptr
 
 ' Игровое поле
 Dim Shared ColorLinesStage As Stage Ptr
 
-Sub Visualisation()
-	' Вычислить прямоугольник для старого положения объекта
-	' Dim OldRect As RECT
+Function ColorLinesStageUpdateFunction( _
+		ByVal Context As Any Ptr, _
+		ByVal pUpdateRectangle As RECT Ptr _
+	)As Integer
 	
-	' Переместить объект
-	' object.Move
+	Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, Context)
 	
-	' Вычислить прямоугольник для нового положения объекта
-	' Dim NewRect As RECT
+	InvalidateRect(pUpdateContext->hWin, pUpdateRectangle, FALSE)
 	
-	' Объединить оба прямоугольника
-	' Dim UnionRect As RECT
+	Return 0
 	
-	' Отрендерить сцену в буфер
-	' Render(hDC)
-	
-	' Вывести в окно объединённый прямоугольник
-	' InvalidateRect(hWin, @UnionRect, FALSE)
-End Sub
+End Function
 
 Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As WPARAM, ByVal lParam As LPARAM) As LRESULT
 	
 	Select Case wMsg
 		
 		Case WM_CREATE
-			ColorLinesStage = CreateStage(0)
+			Dim Context As UpdateContext Ptr = Allocate(SizeOf(UpdateContext))
+			If Context = NULL Then
+				
+			End If
+			Context->hWin = hWin
+			ColorLinesStage = CreateStage(0, @ColorLinesStageUpdateFunction, Context)
 			
 		Case WM_SIZE
 			If wParam <> SIZE_MINIMIZED Then
@@ -64,11 +66,8 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 						Case IDM_GAME_NEW
 							' MainFormMenuNewGame_Click(hWin)
 							
-						Case IDM_GAME_NEW_AI
-							' MainFormMenuNewAIGame_Click(hWin)
-							
-						Case IDM_GAME_NEW_NETWORK
-							' MainFormMenuNewNetworkGame_Click(hWin)
+						Case IDM_GAME_UNDO
+							'
 							
 						Case IDM_GAME_STATISTICS
 							' MainFormMenuStatistics_Click(hWin)
@@ -76,10 +75,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 						Case IDM_GAME_SETTINGS
 							'
 							
-						Case IDM_GAME_UNDO
-							'
-							
-						Case IDM_FILE_EXIT
+						Case IDM_GAME_EXIT
 							DestroyWindow(hWin)
 							
 						Case IDM_HELP_CONTENTS
@@ -97,19 +93,13 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 						Case IDM_GAME_NEW_ACS
 							' MainFormMenuNewGame_Click(hWin)
 							
-						Case IDM_GAME_NEW_AI_ACS
-							' MainFormMenuNewAIGame_Click(hWin)
-							
-						Case IDM_GAME_NEW_NETWORK_ACS
-							' MainFormMenuNewNetworkGame_Click(hWin)
+						Case IDM_GAME_UNDO_ACS
+							'
 							
 						Case IDM_GAME_STATISTICS_ACS
 							' MainFormMenuStatistics_Click(hWin)
 							
 						Case IDM_GAME_SETTINGS_ACS
-							'
-							
-						Case IDM_GAME_UNDO_ACS
 							'
 							
 					End Select
@@ -143,19 +133,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim pt As POINT = Any
 			pt.x = GET_X_LPARAM(lParam)
 			pt.y = GET_Y_LPARAM(lParam)
-			
-			' Если мы можем тыкать — то получить координаты ячейки
-			Dim CellCoord As POINT = Any
-			Dim b As Boolean = StageGetCellFromPoint( _
-				ColorLinesStage, _
-				@pt, _
-				@CellCoord _
-			)
-			If b Then
-				' Получить ячейку
-				' Если она существует, то если шар был выбран — развыбрать и выбрать новый шар
-				' Если не существует и шар выбран — найти путь для перемещения и переместить
-			End If
+			StageClick(ColorLinesStage, @pt)
 			
 		/'
 		Case WM_KEYDOWN
@@ -184,7 +162,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					' Прямоугольник предварительного выделения
 					
 				Case VK_ESCAPE
-					' Снять прямоугольник предварительного выделения
+					' Снять выбор шара
 					
 			End Select
 		'/

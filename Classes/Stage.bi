@@ -24,16 +24,25 @@ Type Cell
 	Ball As ColorBall
 End Type
 
+Type StageUpdateFunction As Function( _
+	ByVal Context As Any Ptr, _
+	ByVal pUpdateRectangle As RECT Ptr _
+)As Integer
+
 Type Stage
 	Lines(0 To 8, 0 To 8) As Cell
 	Tablo(0 To 2) As Cell
 	MovedBall As ColorBall
+	lpfnUpdateFunction As StageUpdateFunction
+	Context As Any Ptr
 	Score As Integer
 	HiScore As Integer
 End Type
 
 Declare Function CreateStage( _
-	ByVal HiScore As Integer _
+	ByVal HiScore As Integer, _
+	ByVal UpdateFunction As StageUpdateFunction, _
+	ByVal Context As Any Ptr _
 )As Stage Ptr
 
 Declare Sub DestroyStage( _
@@ -51,5 +60,10 @@ Declare Function StageGetCellFromPoint( _
 	ByVal pp As POINT Ptr, _
 	ByVal pCell As POINT Ptr _
 )As Boolean
+
+Declare Sub StageClick( _
+	ByVal pStage As Stage Ptr, _
+	ByVal pp As POINT Ptr _
+)
 
 #endif

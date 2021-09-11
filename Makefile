@@ -207,7 +207,8 @@ FREEBASIC_PARAMETERS_DEBUG_TEST=     $(FREEBASIC_PARAMETERS_DEBUG)   -s console 
 # -Wno-format
 # -Wextra
 GCC_COMPILER_WARNINGS=-Wall -Werror -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Wno-main -Werror-implicit-function-declaration
-GCC_COMPILER_OPTIMIZATIONS=-fdata-sections -ffunction-sections -mno-stack-arg-probe -fno-stack-check -fno-stack-protector -fno-unwind-tables -fno-asynchronous-unwind-tables
+# -fdata-sections
+GCC_COMPILER_OPTIMIZATIONS=-ffunction-sections -mno-stack-arg-probe -fno-stack-check -fno-stack-protector -fno-unwind-tables -fno-asynchronous-unwind-tables
 GCC_COMPILER_PARAMETERS_BASE=$(GCC_COMPILER_WARNINGS) -nostdlib -nostdinc -fno-strict-aliasing -frounding-math -fno-math-errno -fno-exceptions -fno-ident
 GCC_COMPILER_PARAMETERS_RELEASE_03=$(GCC_COMPILER_PARAMETERS_BASE) $(GCC_ARCHITECTURE) $(GCC_COMPILER_OPTIMIZATIONS) -masm=intel -S -Ofast
 GCC_COMPILER_PARAMETERS_RELEASE_O0=$(GCC_COMPILER_PARAMETERS_BASE) $(GCC_ARCHITECTURE) $(GCC_COMPILER_OPTIMIZATIONS) -masm=intel -S -O0

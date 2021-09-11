@@ -21,8 +21,32 @@ Function GetRandomBallColor()As BallColors
 	
 End Function
 
+Sub Visualisation( _
+		ByVal pStage As Stage Ptr _
+	)
+	' Вычислить прямоугольник для старого положения объекта
+	' Dim OldRect As RECT
+	
+	' Переместить объект
+	' object.Move
+	
+	' Вычислить прямоугольник для нового положения объекта
+	' Dim NewRect As RECT
+	
+	' Объединить оба прямоугольника
+	' Dim UnionRect As RECT
+	
+	' Отрендерить сцену в буфер
+	' Render(hDC)
+	
+	' Вывести в окно объединённый прямоугольник
+	' InvalidateRect(hWin, @UnionRect, FALSE)
+End Sub
+
 Function CreateStage( _
-		ByVal HiScore As Integer _
+		ByVal HiScore As Integer, _
+		ByVal UpdateFunction As StageUpdateFunction, _
+		ByVal Context As Any Ptr _
 	)As Stage Ptr
 	
 	Dim pStage As Stage Ptr = Allocate(SizeOf(Stage))
@@ -40,8 +64,15 @@ Function CreateStage( _
 		Next
 	Next
 	
-	' Три случайных цвета
+	For i As Integer = 0 To 2
+		pStage->Tablo(i).Ball.Exist = False
+	Next
 	
+	pStage->MovedBall.Exist = False
+	pStage->lpfnUpdateFunction = UpdateFunction
+	pStage->Context = Context
+	pStage->Score = 0
+	pStage->HiScore = HiScore
 	
 	Return pStage
 	
@@ -61,18 +92,24 @@ Sub StageRecalculateSizes( _
 		ByVal SceneHeight As UINT _
 	)
 	
-	'Scale = max(nHeight \ 480, 1)
+	Const DefaultCellWidth As UINT = 40
+	Const DefaultCellHeight As UINT = 40
+	
+	Const DefaultBallWidth As UINT = 36
+	Const DefaultBallHeight As UINT = 36
+	
+	Const SquareMargin As UINT = 100
 	
 	Dim SquareLength As UINT = min(SceneWidth, SceneHeight)
 	
-	Dim CellWidth As UINT = max(40, (SquareLength - 100) \ 9)
-	Dim CellHeight As UINT = max(40, (SquareLength - 100) \ 9)
+	Dim CellWidth As UINT = max(DefaultCellWidth, (SquareLength - SquareMargin) \ 9)
+	Dim CellHeight As UINT = max(DefaultCellHeight, (SquareLength - SquareMargin) \ 9)
 	
-	Dim BallMarginWidth As UINT = max(2, CellWidth \ 20)
-	Dim BallMarginHeight As UINT = max(2, CellHeight \ 20)
+	Dim BallWidth As UINT = (CellWidth \ 10) * 9
+	Dim BallHeight As UINT = (CellHeight \ 10) * 9
 	
-	Dim BallWidth As UINT = CellWidth - BallMarginWidth
-	Dim BallHeight As UINT = CellHeight - BallMarginHeight
+	Dim BallMarginWidth As UINT = (CellWidth - BallWidth) \ 2
+	Dim BallMarginHeight As UINT = (CellHeight - BallHeight) \ 2
 	
 	' Ячейка
 	For j As Integer = 0 To 8
@@ -122,3 +159,23 @@ Function StageGetCellFromPoint( _
 	Return False
 	
 End Function
+
+Sub StageClick( _
+		ByVal pStage As Stage Ptr, _
+		ByVal pp As POINT Ptr _
+	)
+	
+	' Если мы можем тыкать — то получить координаты ячейки
+	Dim CellCoord As POINT = Any
+	Dim b As Boolean = StageGetCellFromPoint( _
+		pStage, _
+		pp, _
+		@CellCoord _
+	)
+	If b Then
+		' Получить ячейку
+		' Если она существует, то если шар был выбран — развыбрать и выбрать новый шар
+		' Если не существует и шар выбран — найти путь для перемещения и переместить
+	End If
+	
+End Sub
