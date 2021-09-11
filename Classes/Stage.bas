@@ -45,7 +45,7 @@ End Sub
 
 Function CreateStage( _
 		ByVal HiScore As Integer, _
-		ByVal UpdateFunction As StageUpdateFunction, _
+		ByVal CallBacks As StageCallBacks Ptr, _
 		ByVal Context As Any Ptr _
 	)As Stage Ptr
 	
@@ -69,7 +69,7 @@ Function CreateStage( _
 	Next
 	
 	pStage->MovedBall.Exist = False
-	pStage->lpfnUpdateFunction = UpdateFunction
+	pStage->CallBacks = *CallBacks
 	pStage->Context = Context
 	pStage->Score = 0
 	pStage->HiScore = HiScore
@@ -86,6 +86,34 @@ Sub DestroyStage( _
 	
 End Sub
 
+Sub StageNewGame( _
+		ByVal pStage As Stage Ptr _
+	)
+	
+	For j As Integer = 0 To 8
+		For i As Integer = 0 To 8
+			pStage->Lines(j, i).Ball.State = BallState.Stopped
+			pStage->Lines(j, i).Ball.Exist = False
+		Next
+	Next
+	
+	For i As Integer = 0 To 2
+		pStage->Tablo(i).Ball.State = BallState.Stopped
+		pStage->Tablo(i).Ball.Exist = False
+	Next
+	
+	pStage->MovedBall.State = BallState.Stopped
+	pStage->MovedBall.Exist = False
+	
+	pStage->Score = 0
+	
+	pStage->CallBacks.UpdateFunction( _
+		pStage->Context, _
+		NULL _
+	)
+	
+End Sub
+
 Sub StageRecalculateSizes( _
 		ByVal pStage As Stage Ptr, _
 		ByVal SceneWidth As UINT, _
@@ -98,7 +126,7 @@ Sub StageRecalculateSizes( _
 	Const DefaultBallWidth As UINT = 36
 	Const DefaultBallHeight As UINT = 36
 	
-	Const SquareMargin As UINT = 100
+	Const SquareMargin As UINT = 0
 	
 	Dim SquareLength As UINT = min(SceneWidth, SceneHeight)
 	
@@ -114,7 +142,7 @@ Sub StageRecalculateSizes( _
 	' Ячейка
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			SetRect(@pStage->Lines(j, i).CellRectangle, _
+			SetRect(@pStage->Lines(j, i).Rectangle, _
 				i * CellWidth, _
 				j * CellHeight, _
 				i * CellWidth + CellWidth, _
@@ -126,13 +154,29 @@ Sub StageRecalculateSizes( _
 	' Шар
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			SetRect(@pStage->Lines(j, i).Ball.BallRectangle, _
+			SetRect(@pStage->Lines(j, i).Ball.Rectangle, _
 				i * CellWidth + BallMarginWidth, _
 				j * CellHeight + BallMarginHeight, _
-				i * CellWidth + BallWidth, _
-				j * CellHeight + BallHeight _
+				i * CellWidth + CellWidth - BallMarginWidth, _
+				j * CellHeight + CellHeight - BallMarginHeight _
 			)
 		Next
+	Next
+	
+	' Табло
+	For i As Integer = 0 To 2
+		SetRect(@pStage->Tablo(i).Rectangle, _
+			i * CellWidth, _
+			0 * CellHeight, _
+			i * CellWidth + CellWidth, _
+			0 * CellHeight + CellHeight _
+		)
+		SetRect(@pStage->Tablo(i).Ball.Rectangle, _
+			i * CellWidth + BallMarginWidth, _
+			0 * CellHeight + BallMarginHeight, _
+			i * CellWidth + CellWidth - BallMarginWidth, _
+			0 * CellHeight + CellHeight - BallMarginHeight _
+		)
 	Next
 	
 End Sub
@@ -145,7 +189,7 @@ Function StageGetCellFromPoint( _
 	
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			If PtInRect(@pStage->Lines(j, i).CellRectangle, *pp) Then
+			If PtInRect(@pStage->Lines(j, i).Rectangle, *pp) Then
 				pCell->x = i
 				pCell->y = j
 				Return True
@@ -179,3 +223,18 @@ Sub StageClick( _
 	End If
 	
 End Sub
+
+Sub StageKeyPress( _
+		ByVal pStage As Stage Ptr, _
+		ByVal Key As StageKeys _
+	)
+	
+End Sub
+
+Function StageTick( _
+		ByVal pStage As Stage Ptr _
+	)As Boolean
+	
+	Return False
+	
+End Function

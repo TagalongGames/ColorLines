@@ -1,4 +1,5 @@
 #include once "Scene.bi"
+#include once "win\GdiPlus.bi"
 
 Enum
 	rgbBlack =       &h00000000
@@ -38,9 +39,12 @@ Type _Scene
 	Bitmap As HBITMAP
 	OldBitmap As HGDIOBJ
 	
-	GreenPen As HPEN
+	' Для ячеек
 	DarkGrayPen As HPEN
+	GrayBrush As HBRUSH
+	DarkGrayBrush As HBRUSH
 	
+	' Для шаров
 	RedBrush As HBRUSH
 	GreenBrush As HBRUSH
 	BlueBrush As HBRUSH
@@ -48,7 +52,6 @@ Type _Scene
 	MagentaBrush As HBRUSH
 	DarkRedBrush As HBRUSH
 	CyanBrush As HBRUSH
-	GrayBrush As HBRUSH
 	
 	Width As UINT
 	Height As UINT
@@ -67,8 +70,10 @@ Function CreateScene( _
 	End If
 	
 	' Перья и кисти
-	pScene->GreenPen = CreatePen(PS_SOLID, 2, rgbGreen)
-	pScene->DarkGrayPen = CreatePen(PS_SOLID, 2, rgbDarkGray)
+	pScene->DarkGrayPen = CreatePen(PS_SOLID, 1, rgbDarkGray)
+	pScene->GrayBrush = CreateSolidBrush(rgbGray)
+	pScene->DarkGrayBrush = CreateSolidBrush(rgbDarkGray)
+	
 	pScene->RedBrush = CreateSolidBrush(rgbRed)
 	pScene->GreenBrush = CreateSolidBrush(rgbGreen)
 	pScene->BlueBrush = CreateSolidBrush(rgbBlue)
@@ -76,7 +81,6 @@ Function CreateScene( _
 	pScene->MagentaBrush = CreateSolidBrush(rgbMagenta)
 	pScene->DarkRedBrush = CreateSolidBrush(rgbDarkRed)
 	pScene->CyanBrush = CreateSolidBrush(rgbCyan)
-	pScene->GrayBrush = CreateSolidBrush(rgbGray)
 	
 	Dim WindowDC As HDC = GetDC(hWin)
 	
@@ -101,6 +105,10 @@ Sub DestroyScene( _
 		ByVal pScene As Scene Ptr _
 	)
 	
+	DeleteObject(pScene->DarkGrayPen)
+	DeleteObject(pScene->GrayBrush)
+	DeleteObject(pScene->DarkGrayBrush)
+	
 	DeleteObject(pScene->RedBrush)
 	DeleteObject(pScene->GreenBrush)
 	DeleteObject(pScene->BlueBrush)
@@ -108,9 +116,6 @@ Sub DestroyScene( _
 	DeleteObject(pScene->MagentaBrush)
 	DeleteObject(pScene->DarkRedBrush)
 	DeleteObject(pScene->CyanBrush)
-	DeleteObject(pScene->GrayBrush)
-	DeleteObject(pScene->GreenPen)
-	DeleteObject(pScene->DarkGrayPen)
 	
 	SelectObject(pScene->DeviceContext, pScene->OldBitmap)
 	DeleteObject(pScene->Bitmap)
@@ -125,6 +130,12 @@ Sub SceneRender( _
 		ByVal pStage As Stage Ptr _
 	)
 	
+	Scope
+		Dim pGraphics As GdiPlus.GpGraphics Ptr = Any
+		GdiPlus.GdipCreateFromHDC(pScene->DeviceContext, @pGraphics)
+		GdiPlus.GdipDeleteGraphics(pGraphics) 
+	End Scope
+	
 	Dim OldPen As HGDIOBJ = Any
 	Dim OldBrush As HGDIOBJ = Any
 	
@@ -136,17 +147,32 @@ Sub SceneRender( _
 	FillRect(pScene->DeviceContext, @MemoryBMRectangle, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
 	
 	' Рисуем
+	OldPen = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(NULL_PEN)))
 	
 	' Ячейки
-	OldPen = SelectObject(pScene->DeviceContext, pScene->DarkGrayPen)
-	OldBrush = SelectObject(pScene->DeviceContext, pScene->GrayBrush)
+			OldBrush = SelectObject(pScene->DeviceContext, pScene->DarkGrayBrush)
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			Rectangle(pScene->DeviceContext, pStage->Lines(j, i).CellRectangle.left, pStage->Lines(j, i).CellRectangle.top, pStage->Lines(j, i).CellRectangle.right, pStage->Lines(j, i).CellRectangle.bottom)
+			Rectangle( _
+				pScene->DeviceContext, _
+				pStage->Lines(j, i).Rectangle.left, _
+				pStage->Lines(j, i).Rectangle.top, _
+				pStage->Lines(j, i).Rectangle.right, _
+				pStage->Lines(j, i).Rectangle.bottom _
+			)
+			
+			' OldBrush = SelectObject(pScene->DeviceContext, pScene->GrayBrush)
+			Rectangle( _
+				pScene->DeviceContext, _
+				pStage->Lines(j, i).Ball.Rectangle.left, _
+				pStage->Lines(j, i).Ball.Rectangle.top, _
+				pStage->Lines(j, i).Ball.Rectangle.right, _
+				pStage->Lines(j, i).Ball.Rectangle.bottom _
+			)
+			' SelectObject(pScene->DeviceContext, OldBrush)
 		Next
 	Next
-	SelectObject(pScene->DeviceContext, OldBrush)
-	SelectObject(pScene->DeviceContext, OldPen)
+			SelectObject(pScene->DeviceContext, OldBrush)
 	
 	' Стоящие шары
 	For j As Integer = 0 To 8
@@ -186,7 +212,13 @@ Sub SceneRender( _
 						
 				End Select
 				
-				Ellipse(pScene->DeviceContext, pStage->Lines(j, i).Ball.BallRectangle.left, pStage->Lines(j, i).Ball.BallRectangle.top, pStage->Lines(j, i).Ball.BallRectangle.right, pStage->Lines(j, i).Ball.BallRectangle.bottom)
+				Ellipse( _
+					pScene->DeviceContext, _
+					pStage->Lines(j, i).Ball.Rectangle.left, _
+					pStage->Lines(j, i).Ball.Rectangle.top, _
+					pStage->Lines(j, i).Ball.Rectangle.right, _
+					pStage->Lines(j, i).Ball.Rectangle.bottom _
+				)
 				
 				' SelectObject(pScene->DeviceContext, OldPen)
 				SelectObject(pScene->DeviceContext, OldBrush)
@@ -206,6 +238,8 @@ Sub SceneRender( _
 	' Табло с тремя новыми шарами
 	For i As Integer = 0 To 2
 	Next
+	
+	SelectObject(pScene->DeviceContext, OldPen)
 	
 End Sub
 

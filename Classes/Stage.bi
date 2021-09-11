@@ -3,6 +3,16 @@
 
 #include once "windows.bi"
 
+Enum StageKeys
+	Tab
+	KeyReturn
+	Left
+	Up
+	Right
+	Down
+	Escape
+End Enum
+
 Enum BallColors
 	Red
 	Green
@@ -13,27 +23,59 @@ Enum BallColors
 	Cyan
 End Enum
 
+Enum BallState
+	Stopped
+	' Появление: от 0 до 7
+	Birth0
+	Birth1
+	Birth2
+	Birth3
+	Birth4
+	Birth5
+	Birth6
+	Birth7
+	' Смерть: от 0 до 7
+	Death0
+	Death1
+	Death2
+	Death3
+	Death4
+	Death5
+	Death6
+	Death7
+	' Подпрыгивание: от 0 до 7 и обратно
+	Bouncing0
+	Bouncing1
+	Bouncing2
+	Bouncing3
+	Bouncing4
+	Bouncing5
+	Bouncing6
+	Bouncing7
+End Enum
+
 Type ColorBall
 	Color As BallColors
-	BallRectangle As RECT
+	State As BallState
+	Rectangle As RECT
 	Exist As Boolean
 End Type
 
 Type Cell
-	CellRectangle As RECT
+	Rectangle As RECT
 	Ball As ColorBall
 End Type
 
-Type StageUpdateFunction As Function( _
-	ByVal Context As Any Ptr, _
-	ByVal pUpdateRectangle As RECT Ptr _
-)As Integer
+Type StageCallBacks
+	UpdateFunction As Function(ByVal Context As Any Ptr, ByVal pUpdateRectangle As RECT Ptr)As Integer
+	AnimateFunction As Function(ByVal Context As Any Ptr)As Integer
+End Type
 
 Type Stage
 	Lines(0 To 8, 0 To 8) As Cell
 	Tablo(0 To 2) As Cell
 	MovedBall As ColorBall
-	lpfnUpdateFunction As StageUpdateFunction
+	CallBacks As StageCallBacks
 	Context As Any Ptr
 	Score As Integer
 	HiScore As Integer
@@ -41,11 +83,15 @@ End Type
 
 Declare Function CreateStage( _
 	ByVal HiScore As Integer, _
-	ByVal UpdateFunction As StageUpdateFunction, _
+	ByVal CallBacks As StageCallBacks Ptr, _
 	ByVal Context As Any Ptr _
 )As Stage Ptr
 
 Declare Sub DestroyStage( _
+	ByVal pStage As Stage Ptr _
+)
+
+Declare Sub StageNewGame( _
 	ByVal pStage As Stage Ptr _
 )
 
@@ -65,5 +111,14 @@ Declare Sub StageClick( _
 	ByVal pStage As Stage Ptr, _
 	ByVal pp As POINT Ptr _
 )
+
+Declare Sub StageKeyPress( _
+	ByVal pStage As Stage Ptr, _
+	ByVal Key As StageKeys _
+)
+
+Declare Function StageTick( _
+	ByVal pStage As Stage Ptr _
+)As Boolean
 
 #endif
