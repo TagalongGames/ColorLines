@@ -12,6 +12,7 @@ Const REGISTERWINDOWCLASS_ERRORSTRING = __TEXT("Failed to register WNDCLASSEX")
 Const CREATEWINDOW_ERRORSTRING = __TEXT("Failed to create Main Window")
 Const GETMESSAGE_ERRORSTRING = __TEXT("Error in GetMessage")
 Const GDIPLUS_ERRORSTRING = __TEXT("Failed to initialize GDIPlus")
+Const ACCELERATOR_ERRORSTRING = __TEXT("Failed to load Accelerators")
 
 Function wWinMain( _
 		Byval hInst As HINSTANCE, _
@@ -82,6 +83,12 @@ Function wWinMain( _
 	End Scope
 	
 	Scope
+		Dim hAccel As HACCEL = LoadAccelerators(hInst, Cast(TCHAR Ptr, ID_ACCEL))
+		If hAccel = NULL Then
+			DisplayError(GetLastError(), ACCELERATOR_ERRORSTRING)
+			Return 1
+		End If
+		
 		Dim WindowWidth As Long = 640
 		Dim WindowHeight As Long = 480
 		
@@ -114,9 +121,7 @@ Function wWinMain( _
 		
 		ShowWindow(hWndMain, iCmdShow)
 		UpdateWindow(hWndMain)
-	End Scope
-	
-	Scope
+		
 		Dim wMsg As MSG = Any
 		Dim GetMessageResult As Integer = GetMessage(@wMsg, NULL, 0, 0)
 		
@@ -127,8 +132,10 @@ Function wWinMain( _
 				Return 1
 			End If
 			
-			TranslateMessage(@wMsg)
-			DispatchMessage(@wMsg)
+			If TranslateAccelerator(hWndMain, hAccel, @wMsg) = 0 Then
+				TranslateMessage(@wMsg)
+				DispatchMessage(@wMsg)
+			End If
 			
 			GetMessageResult = GetMessage(@wMsg, NULL, 0, 0)
 			
