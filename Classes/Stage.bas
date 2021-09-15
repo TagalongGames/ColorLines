@@ -1,5 +1,13 @@
 #include once "Stage.bi"
 
+Const DefaultCellWidth As UINT = 40
+Const DefaultCellHeight As UINT = 40
+
+Const DefaultBallWidth As UINT = 36
+Const DefaultBallHeight As UINT = 36
+
+Const SquareMargin As UINT = 0
+
 Function GetRandomBoolean()As Boolean
 	
 	Dim RndValue As Long = rand()
@@ -92,22 +100,22 @@ Sub StageNewGame( _
 	
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			pStage->Lines(j, i).Ball.State = BallState.Stopped
+			pStage->Lines(j, i).Ball.State = BallStates.Stopped
 			pStage->Lines(j, i).Ball.Exist = False
 		Next
 	Next
 	
 	For i As Integer = 0 To 2
-		pStage->Tablo(i).Ball.State = BallState.Stopped
+		pStage->Tablo(i).Ball.State = BallStates.Stopped
 		pStage->Tablo(i).Ball.Exist = False
 	Next
 	
-	pStage->MovedBall.State = BallState.Stopped
+	pStage->MovedBall.State = BallStates.Stopped
 	pStage->MovedBall.Exist = False
 	
 	pStage->Score = 0
 	
-	pStage->CallBacks.UpdateFunction( _
+	pStage->CallBacks.Render( _
 		pStage->Context, _
 		NULL _
 	)
@@ -120,15 +128,7 @@ Sub StageRecalculateSizes( _
 		ByVal SceneHeight As UINT _
 	)
 	
-	Const DefaultCellWidth As UINT = 40
-	Const DefaultCellHeight As UINT = 40
-	
-	Const DefaultBallWidth As UINT = 36
-	Const DefaultBallHeight As UINT = 36
-	
-	Const SquareMargin As UINT = 0
-	
-	Dim SquareLength As UINT = min(SceneWidth, SceneHeight)
+	Dim SquareLength As UINT = 40 ' min(SceneWidth, SceneHeight)
 	
 	Dim CellWidth As UINT = max(DefaultCellWidth, (SquareLength - SquareMargin) \ 9)
 	Dim CellHeight As UINT = max(DefaultCellHeight, (SquareLength - SquareMargin) \ 9)
@@ -236,5 +236,30 @@ Function StageTick( _
 	)As Boolean
 	
 	Return False
+	
+End Function
+
+Function StageCommand( _
+		ByVal pStage As Stage Ptr, _
+		ByVal cmd As StageCommands _
+	)As Boolean
+	
+	Return False
+	
+End Function
+
+Function StageGetWidth( _
+		ByVal pStage As Stage Ptr _
+	)As UINT
+	
+	Return DefaultCellWidth * 9
+	
+End Function
+
+Function StageGetHeight( _
+		ByVal pStage As Stage Ptr _
+	)As UINT
+	
+	Return DefaultCellHeight * 9
 	
 End Function

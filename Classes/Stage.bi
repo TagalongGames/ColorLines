@@ -13,6 +13,10 @@ Enum StageKeys
 	Escape
 End Enum
 
+Enum StageCommands
+	Undo
+End Enum
+
 Enum BallColors
 	Red
 	Green
@@ -23,7 +27,7 @@ Enum BallColors
 	Cyan
 End Enum
 
-Enum BallState
+Enum BallStates
 	Stopped
 	' Появление: от 0 до 7
 	Birth0
@@ -56,7 +60,7 @@ End Enum
 
 Type ColorBall
 	Color As BallColors
-	State As BallState
+	State As BallStates
 	Rectangle As RECT
 	Exist As Boolean
 End Type
@@ -67,7 +71,7 @@ Type Cell
 End Type
 
 Type StageCallBacks
-	UpdateFunction As Function(ByVal Context As Any Ptr, ByVal pUpdateRectangle As RECT Ptr)As Integer
+	Render As Function(ByVal Context As Any Ptr, ByVal pRenderRectangle As RECT Ptr)As Integer
 	AnimateFunction As Function(ByVal Context As Any Ptr)As Integer
 End Type
 
@@ -120,5 +124,18 @@ Declare Sub StageKeyPress( _
 Declare Function StageTick( _
 	ByVal pStage As Stage Ptr _
 )As Boolean
+
+Declare Function StageCommand( _
+	ByVal pStage As Stage Ptr, _
+	ByVal cmd As StageCommands _
+)As Boolean
+
+Declare Function StageGetWidth( _
+	ByVal pStage As Stage Ptr _
+)As UINT
+
+Declare Function StageGetHeight( _
+	ByVal pStage As Stage Ptr _
+)As UINT
 
 #endif

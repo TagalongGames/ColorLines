@@ -19,7 +19,7 @@ Dim Shared ColorLinesScene As Scene Ptr
 ' Игровое поле
 Dim Shared ColorLinesStage As Stage Ptr
 
-Function ColorLinesStageUpdateFunction( _
+Function ColorLinesStageRenderFunction( _
 		ByVal Context As Any Ptr, _
 		ByVal pUpdateRectangle As RECT Ptr _
 	)As Integer
@@ -64,7 +64,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Context->hWin = hWin
 			
 			Dim CallBacks As StageCallBacks = Any
-			CallBacks.UpdateFunction = @ColorLinesStageUpdateFunction
+			CallBacks.Render = @ColorLinesStageRenderFunction
 			CallBacks.AnimateFunction = @ColorLinesStageAnimateFunction
 			
 			ColorLinesStage = CreateStage(0, @CallBacks, Context)
@@ -94,8 +94,8 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 						Case IDM_GAME_NEW
 							StageNewGame(ColorLinesStage)
 							
-						' Case IDM_GAME_UNDO
-							'
+						Case IDM_GAME_UNDO
+							StageCommand(ColorLinesStage, StageCommands.Undo)
 							
 						' Case IDM_GAME_STATISTICS
 							' MainFormMenuStatistics_Click(hWin)
@@ -121,8 +121,8 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 						Case IDM_GAME_NEW_ACS
 							StageNewGame(ColorLinesStage)
 							
-						' Case IDM_GAME_UNDO_ACS
-							'
+						Case IDM_GAME_UNDO_ACS
+							StageCommand(ColorLinesStage, StageCommands.Undo)
 							
 						' Case IDM_GAME_STATISTICS_ACS
 							' MainFormMenuStatistics_Click(hWin)

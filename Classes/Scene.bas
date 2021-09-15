@@ -20,27 +20,40 @@ Enum
 	rgbWhite =       &h00FFFFFF
 End Enum
 
+Enum
+	argbBlack =       &hFF000000
+	argbDarkBlue =    &hFF000080
+	argbDarkGreen =   &hFF008000
+	argbDarkCyan =    &hFF008080
+	argbDarkRed =     &hFF800000
+	argbDarkMagenta = &hFF800080
+	argbDarkYellow =  &hFF008080
+	argbGray =        &hFFC0C0C0
+	argbDarkGray =    &hFF808080
+	argbBlue =        &hFF0000FF
+	argbGreen =       &hFF00FF00
+	argbCyan =        &hFF00FFFF
+	argbRed =         &hFFFF0000
+	argbMagenta =     &hFFFF00FF
+	argbYellow =      &hFFFFFF00
+	argbWhite =       &hFFFFFFFF
+End Enum
+
 ' Type RgbColors As COLORREF
 
 ' Масштаб игрового поля
 ' Dim Shared Scale As UINT
-
-' Размер ячейки {40, 40} * множитель
-' Dim Shared CellWidth As UINT
-' Dim Shared CellHeight As UINT
-' Отступ 2 * множитель
-' Dim Shared BallMargin As UINT
-' Размер шара {CellWidth - BallMargin, CellHeight - BallMargin} * множитель
-' Dim Shared BallWidth As UINT
-' Dim Shared BallHeight As UINT
 
 Type _Scene
 	DeviceContext As HDC
 	Bitmap As HBITMAP
 	OldBitmap As HGDIOBJ
 	
+	TilesDeviceContext As HDC
+	TilesBitmap As HBITMAP
+	TilesOldBitmap As HGDIOBJ
+	
 	' Для ячеек
-	DarkGrayPen As HPEN
 	GrayBrush As HBRUSH
 	DarkGrayBrush As HBRUSH
 	
@@ -58,6 +71,112 @@ Type _Scene
 	
 End Type
 
+' Заполнение матрицы для операции масштабирования
+Sub MatrixSetScale( _
+		ByVal m As XFORM Ptr, _
+		ByVal ScaleX As Single, _
+		ByVal ScaleY As Single _
+	)
+	
+	m->eM11 = ScaleX : m->eM21 = 0.0    : m->eDx = 0.0
+	m->eM12 = 0.0    : m->eM22 = ScaleY : m->eDy = 0.0
+	' 0              : 0                : 1
+	
+End Sub
+
+' Заполнение матрицы для операции переноса
+Sub MatrixSetTranslate( _
+		ByVal m As XFORM Ptr, _
+		ByVal dx As Single, _
+		ByVal dy As Single _
+	)
+	
+	m->eM11 = 1.0 : m->eM21 = 0.0 : m->eDx = dx
+	m->eM12 = 0.0 : m->eM22 = 1.0 : m->eDy = dy
+	' 0           : 0             : 1
+	
+End Sub
+
+' Заполнение матрицы для операции поворота
+' В правосторонней системе координат
+Sub MatrixSetRRotate( _
+		ByVal m As XFORM Ptr, _
+		ByVal AngleSine As Single, _
+		ByVal AngleCosine As Single _
+	)
+	
+	m->eM11 = AngleCosine : m->eM21 = -AngleSine  : m->eDx = 0.0
+	m->eM12 = AngleSine   : m->eM22 = AngleCosine : m->eDy = 0.0
+	' 0                   : 0                     : 1
+	
+End Sub
+
+' Заполнение матрицы для операции поворота
+' В левосторонней системе координат
+Sub MatrixSetLRotate( _
+		ByVal m As XFORM Ptr, _
+		ByVal AngleSine As Single, _
+		ByVal AngleCosine As Single _
+	)
+	
+	m->eM11 = AngleCosine : m->eM21 = AngleSine   : m->eDx = 0.0
+	m->eM12 = -AngleSine  : m->eM22 = AngleCosine : m->eDy = 0.0
+	' 0                   : 0                     : 1
+	
+End Sub
+
+' Заполнение матрицы для операции отражения
+Sub MatrixSetReflect( _
+		ByVal m As XFORM Ptr, _
+		ByVal x As Boolean, _
+		ByVal y As Boolean _
+	)
+	
+	' Отражение dx и dy
+	Dim dx As Single = Any
+	If x Then
+		dx = -1.0
+	Else
+		dx = 1.0
+	End If
+	
+	Dim dy As Single = Any
+	If y Then
+		dy = -1.0
+	Else
+		dy = 1.0
+	End If
+	
+	m->eM11 = dx  : m->eM21 = 0.0 : m->eDx = 0.0
+	m->eM12 = 0.0 : m->eM22 = dy  : m->eDy = 0.0
+	' 0           : 0             : 1
+	
+End Sub	
+
+' Заполнение матрицы для операции сдвига
+Sub MatrixSetShear( _
+		ByVal m As XFORM Ptr, _
+		ByVal Horizontal As Single, _
+		ByVal Vertical As Single _
+	)
+	
+	m->eM11 = 1.0        : m->eM21 = Vertical : m->eDx = 0.0
+	m->eM12 = Horizontal : m->eM22 = 1.0      : m->eDy = 0.0
+	' 0                  : 0                  : 1
+	
+End Sub
+
+' Заполнение матрицы единичной матрицей
+Sub MatrixSetIdentity( _
+		ByVal m As XFORM Ptr _
+	)
+	
+	m->eM11 = 1.0 : m->eM21 = 0.0 : m->eDx = 0.0
+	m->eM12 = 0.0 : m->eM22 = 1.0 : m->eDy = 0.0
+	' 0           : 0             : 1
+	
+End Sub
+
 Function CreateScene( _
 		ByVal hWin As HWND, _
 		ByVal SceneWidth As UINT, _
@@ -70,7 +189,6 @@ Function CreateScene( _
 	End If
 	
 	' Перья и кисти
-	pScene->DarkGrayPen = CreatePen(PS_SOLID, 1, rgbDarkGray)
 	pScene->GrayBrush = CreateSolidBrush(rgbGray)
 	pScene->DarkGrayBrush = CreateSolidBrush(rgbDarkGray)
 	
@@ -82,20 +200,21 @@ Function CreateScene( _
 	pScene->DarkRedBrush = CreateSolidBrush(rgbDarkRed)
 	pScene->CyanBrush = CreateSolidBrush(rgbCyan)
 	
-	Dim WindowDC As HDC = GetDC(hWin)
+	Scope
+		Dim WindowDC As HDC = GetDC(hWin)
+		pScene->DeviceContext = CreateCompatibleDC(WindowDC)
+		pScene->Bitmap = CreateCompatibleBitmap(WindowDC, SceneWidth, SceneHeight)
+		ReleaseDC(hWin, WindowDC)
+	End Scope
 	
-	' Контекст устройства в памяти
-	pScene->DeviceContext = CreateCompatibleDC(WindowDC)
-	
-	' Цветной рисунок на основе окна
-	pScene->Bitmap = CreateCompatibleBitmap(WindowDC, SceneWidth, SceneHeight)
 	' Выбираем цветной рисунок, сохраняя старый
 	pScene->OldBitmap = SelectObject(pScene->DeviceContext, pScene->Bitmap)
 	
 	pScene->Width = SceneWidth
 	pScene->Height = SceneHeight
 	
-	ReleaseDC(hWin, WindowDC)
+	
+	SetGraphicsMode(pScene->DeviceContext, GM_ADVANCED)
 	
 	Return pScene
 	
@@ -105,7 +224,6 @@ Sub DestroyScene( _
 		ByVal pScene As Scene Ptr _
 	)
 	
-	DeleteObject(pScene->DarkGrayPen)
 	DeleteObject(pScene->GrayBrush)
 	DeleteObject(pScene->DarkGrayBrush)
 	
@@ -130,11 +248,232 @@ Sub SceneRender( _
 		ByVal pStage As Stage Ptr _
 	)
 	
+	/'
 	Scope
+		// Создайте путь, состоящий из одного эллипса.
+		GraphicsPath path;
+		path.AddEllipse(0, 0, 200, 100);
+		
+		// Создайте кисть градиента контура на основе эллиптического контура.
+		PathGradientBrush pthGrBrush(&path);
+		pthGrBrush.SetGammaCorrection(TRUE);
+		
+		// Установите цвет по всей границе на синий.
+		Color color(Color(255, 0, 0, 255));
+		INT num = 1;
+		pthGrBrush.SetSurroundColors(&color, &num);
+		
+		// Установите для центрального цвета значение aqua.
+		pthGrBrush.SetCenterColor(Color(255, 0, 255, 255));
+		
+		// Используйте кисть градиента контура, чтобы заполнить эллипс. 
+		graphics.FillPath(&pthGrBrush, &path);
+		
+		// Установите масштаб фокусировки для кисти градиента контура.
+		pthGrBrush.SetFocusScales(0.3f, 0.8f);
+		
+		// Используйте кисть градиента контура, чтобы снова заполнить эллипс.
+		// Покажите этот заполненный эллипс справа от первого заполненного эллипса.
+		graphics.TranslateTransform(220.0f, 0.0f);
+		graphics.FillPath(&pthGrBrush, &path);		
+	End Scope
+	'/
+	
+	/'
+	Scope
+		' declare function GdipSetWorldTransform(byval as GpGraphics ptr, byval as GpMatrix ptr) as GpStatus
+		' declare function GdipResetWorldTransform(byval as GpGraphics ptr) as GpStatus
+		' declare function GdipMultiplyWorldTransform(byval as GpGraphics ptr, byval as const GpMatrix ptr, byval as GpMatrixOrder) as GpStatus
+		' declare function GdipTranslateWorldTransform(byval as GpGraphics ptr, byval as REAL, byval as REAL, byval as GpMatrixOrder) as GpStatus
+		' declare function GdipScaleWorldTransform(byval as GpGraphics ptr, byval as REAL, byval as REAL, byval as GpMatrixOrder) as GpStatus
+		' declare function GdipRotateWorldTransform(byval as GpGraphics ptr, byval as REAL, byval as GpMatrixOrder) as GpStatus
+		' declare function GdipGetWorldTransform(byval as GpGraphics ptr, byval as GpMatrix ptr) as GpStatus
+		
 		Dim pGraphics As GdiPlus.GpGraphics Ptr = Any
 		GdiPlus.GdipCreateFromHDC(pScene->DeviceContext, @pGraphics)
+		
+		Scope
+			Dim pPath As GdiPlus.GpPath Ptr = Any
+			GdiPlus.GdipCreatePath( _
+				GdiPlus.FillModeAlternate, _
+				@pPath _
+			)
+			GdiPlus.FillModeWinding
+			
+			GdiPlus.GdipAddPathEllipseI(pPath, 100, 100, 40, 40)
+			
+			Scope
+				Dim pBrush As GdiPlus.GpPathGradient Ptr = Any
+				GdiPlus.GdipCreatePathGradientFromPath( _
+					pPath, _
+					@pBrush _
+				)
+				
+				GdiPlus.GdipSetPathGradientGammaCorrection(pBrush, TRUE)
+				
+				Dim argbColor As GdiPlus.ARGB = argbBlue
+				Dim count As INT_ = 1
+				GdiPlus.GdipSetPathGradientSurroundColorsWithCount( _
+					pBrush, _
+					@argbColor, _
+					@count _
+				)
+				
+				Const argbLightBlue = &hFF8080FF
+				GdiPlus.GdipSetPathGradientCenterColor( _
+					pBrush, _
+					argbLightBlue _
+				)
+				
+				GdiPlus.GdipFillPath( _
+					pGraphics, _
+					pBrush, _
+					pPath _
+				)
+				
+				
+				
+				
+				GdiPlus.GdipTranslateWorldTransform( _
+					pGraphics, 40.0, 0.0, GdiPlus.MatrixOrderPrepend)
+				
+				GdiPlus.GdipFillPath( _
+					pGraphics, _
+					pBrush, _
+					pPath _
+				)
+				
+				GdiPlus.GdipTranslateWorldTransform( _
+					pGraphics, 40.0, 0.0, GdiPlus.MatrixOrderPrepend)
+				
+				GdiPlus.GdipFillPath( _
+					pGraphics, _
+					pBrush, _
+					pPath _
+				)
+				
+				GdiPlus.GdipTranslateWorldTransform( _
+					pGraphics, 40.0, 0.0, GdiPlus.MatrixOrderPrepend)
+				
+				GdiPlus.GdipFillPath( _
+					pGraphics, _
+					pBrush, _
+					pPath _
+				)
+				
+				
+				
+				
+				
+				
+				' GdiPlus.GdipResetPath(pPath)
+				' GdiPlus.GdipAddPathEllipseI(pPath, 200, 200, 100, 100)
+				' GdiPlus.GdipSetPathGradientPath(pBrush, pPath)
+				
+				' argbColor = argbRed
+				' count = 1
+				' GdiPlus.GdipSetPathGradientSurroundColorsWithCount( _
+					' pBrush, _
+					' @argbColor, _
+					' @count _
+				' )
+				
+				' Const argbLightRed = &hFFFF8080
+				' GdiPlus.GdipSetPathGradientCenterColor( _
+					' pBrush, _
+					' argbLightRed _
+				' )
+				
+				' GdiPlus.GdipFillPath( _
+					' pGraphics, _
+					' pBrush, _
+					' pPath _
+				' )
+				
+				
+				
+				
+				
+				
+				
+				GdiPlus.GdipDeleteBrush(pBrush)
+				
+			End Scope
+			
+			GdiPlus.GdipDeletePath(pPath)
+			
+		End Scope
+		
 		GdiPlus.GdipDeleteGraphics(pGraphics) 
 	End Scope
+	'/
+	/'
+	Scope
+		
+		Dim pGraphics As GdiPlus.GpGraphics Ptr = Any
+		GdiPlus.GdipCreateFromHDC(pScene->DeviceContext, @pGraphics)
+		
+		Dim rc As GdiPlus.GpRect = Any
+		rc.X = 0
+		rc.Y = 0
+		rc.Width = 100
+		rc.Height = 100
+		
+		Dim pBrush As GdiPlus.GpLineGradient Ptr = Any
+		GdiPlus.GdipCreateLineBrushFromRectI( _
+			@rc, _
+			argbWhite, _
+			argbRed, _
+			GdiPlus.LinearGradientModeForwardDiagonal, _
+			GdiPlus.WrapModeTile, _
+			@pBrush _
+		) ' as GdiPlus.GpStatus
+		
+		'' draw an ellipse
+		GdiPlus.GdipFillEllipseI(pGraphics, pBrush, rc.X, rc.Y, rc.Width, rc.Height)
+		
+		'' destroy the brush
+		GdiPlus.GdipDeleteBrush(pBrush)
+		
+		GdiPlus.GdipDeleteGraphics(pGraphics) 
+	End Scope
+	'/
+	
+	' declare function CombineTransform(byval lpxfOut as LPXFORM, byval lpxf1 as const XFORM ptr, byval lpxf2 as const XFORM ptr) as WINBOOL
+	
+	/'
+	Dim oldMode As Long = GetMapMode(pScene->DeviceContext)
+	SetMapMode(pScene->DeviceContext, MM_ISOTROPIC)
+	
+	' установка логической системы координат
+	' сx, сy - новые значения размеров по осям
+	Dim oldWindowExt As SIZE = Any
+	SetWindowExtEx(pScene->DeviceContext, pScene->Width, pScene->Height, @oldWindowExt)
+	
+	' осуществляет настройку размеров физической области вывода
+	' Если изначально система координат была установлена таким образом
+	' что ось y направлена вниз, можно "перевернуть" ее, задав отрицательное значение по оси y
+	' сx, сy - новые значения размеров по осям.
+	Dim oldViewportExt As SIZE = Any
+	SetViewportExtEx(pScene->DeviceContext, pScene->Width, -1 * pScene->Height, @oldViewportExt)
+	
+	' перенос начала координат физической области вывода
+	' (x, y) - физические координаты точки, которую нужно сделать началом координат
+	Dim oldViewportOrg As POINT = Any
+	SetViewportOrgEx(pScene->DeviceContext, pScene->Width \ 2, pScene->Height \ 2, @oldViewportOrg)
+	'/
+	
+	' Старая матрица
+	Dim saved_xform As XFORM = Any
+	GetWorldTransform(pScene->DeviceContext, @saved_xform)
+	
+	Dim ScaleX As Single = max(1.0, CSng(pScene->Width) / CSng(StageGetWidth(pStage)))
+	Dim ScaleY As Single = max(1.0, CSng(pScene->Height) / CSng(StageGetHeight(pStage)))
+	Dim Scale As Single = min(ScaleX, ScaleY)
+	
+	Dim newxform As XFORM = Any
+	MatrixSetScale(@newxform, Scale, Scale)
+	SetWorldTransform(pScene->DeviceContext, @newxform)
 	
 	Dim OldPen As HGDIOBJ = Any
 	Dim OldBrush As HGDIOBJ = Any
@@ -240,6 +579,15 @@ Sub SceneRender( _
 	Next
 	
 	SelectObject(pScene->DeviceContext, OldPen)
+	
+	SetWorldTransform(pScene->DeviceContext, @saved_xform)
+	
+	/'
+	SetViewportOrgEx(pScene->DeviceContext, oldViewportOrg.x, oldViewportOrg.y, NULL)
+	SetViewportExtEx(pScene->DeviceContext, oldViewportExt.cx, oldViewportExt.cy, NULL)
+	SetWindowExtEx(pScene->DeviceContext, oldWindowExt.cx, oldWindowExt.cy, NULL)
+	SetMapMode(pScene->DeviceContext, oldMode)
+	'/
 	
 End Sub
 
