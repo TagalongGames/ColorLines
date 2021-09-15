@@ -39,19 +39,7 @@ Enum
 	argbWhite =       &hFFFFFFFF
 End Enum
 
-' Type RgbColors As COLORREF
-
-' Масштаб игрового поля
-' Dim Shared Scale As UINT
-
-Type _Scene
-	DeviceContext As HDC
-	Bitmap As HBITMAP
-	OldBitmap As HGDIOBJ
-	
-	TilesDeviceContext As HDC
-	TilesBitmap As HBITMAP
-	TilesOldBitmap As HGDIOBJ
+Type SceneBrushes
 	
 	' Для ячеек
 	GrayBrush As HBRUSH
@@ -65,6 +53,19 @@ Type _Scene
 	MagentaBrush As HBRUSH
 	DarkRedBrush As HBRUSH
 	CyanBrush As HBRUSH
+	
+End Type
+
+Type _Scene
+	DeviceContext As HDC
+	Bitmap As HBITMAP
+	OldBitmap As HGDIOBJ
+	
+	TilesDeviceContext As HDC
+	TilesBitmap As HBITMAP
+	TilesOldBitmap As HGDIOBJ
+	
+	Brushes As SceneBrushes
 	
 	Width As UINT
 	Height As UINT
@@ -177,6 +178,119 @@ Sub MatrixSetIdentity( _
 	
 End Sub
 
+Sub DrawBall( _
+		ByVal hDC As HDC, _
+		ByVal pBrushes As SceneBrushes Ptr, _
+		ByVal pBall As ColorBall Ptr _
+	)
+	
+	Dim OldBrush As HGDIOBJ = Any
+	
+	If pBall->Exist Then
+		
+		Select Case CInt(pBall->Color)
+			
+			Case BallColors.Red
+				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
+				OldBrush = SelectObject(hDC, pBrushes->RedBrush)
+				
+			Case BallColors.Green
+				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
+				OldBrush = SelectObject(hDC, pBrushes->GreenBrush)
+				
+			Case BallColors.Blue
+				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
+				OldBrush = SelectObject(hDC, pBrushes->BlueBrush)
+				
+			Case BallColors.Yellow
+				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
+				OldBrush = SelectObject(hDC, pBrushes->YellowBrush)
+				
+			Case BallColors.Magenta
+				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
+				OldBrush = SelectObject(hDC, pBrushes->MagentaBrush)
+				
+			Case BallColors.DarkRed
+				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
+				OldBrush = SelectObject(hDC, pBrushes->DarkRedBrush)
+				
+			Case Else ' BallColors.Cyan
+				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
+				OldBrush = SelectObject(hDC, pBrushes->CyanBrush)
+				
+		End Select
+		
+		Ellipse( _
+			hDC, _
+			pBall->Rectangle.left, _
+			pBall->Rectangle.top, _
+			pBall->Rectangle.right, _
+			pBall->Rectangle.bottom _
+		)
+		
+		' SelectObject(hDC, OldPen)
+		SelectObject(hDC, OldBrush)
+	End If
+End Sub
+
+Sub DrawCell( _
+		ByVal hDC As HDC, _
+		ByVal pBrushes As SceneBrushes Ptr, _
+		ByVal pCell As Cell Ptr _
+	)
+	
+	Dim OldPen As HGDIOBJ = Any
+	Dim OldBrush As HGDIOBJ = Any
+	
+	OldPen = SelectObject(hDC, Cast(HPEN, GetStockObject(NULL_PEN)))
+	
+	' Тёмно-серый прямоугольник
+	OldBrush = SelectObject(hDC, Cast(HBRUSH, GetStockObject(DKGRAY_BRUSH)))
+	Rectangle( _
+		hDC, _
+		pCell->Rectangle.left, _
+		pCell->Rectangle.top, _
+		pCell->Rectangle.right, _
+		pCell->Rectangle.bottom _
+	)
+	
+	' Белый прямоугольник
+	SelectObject(hDC, Cast(HBRUSH, GetStockObject(WHITE_BRUSH)))
+	Rectangle( _
+		hDC, _
+		pCell->Rectangle.left, _
+		pCell->Rectangle.top, _
+		pCell->Rectangle.right - 1, _
+		pCell->Rectangle.bottom - 1 _
+	)
+	
+	' Серый прямоугольник
+	SelectObject(hDC, Cast(HBRUSH, GetStockObject(GRAY_BRUSH)))
+	Rectangle( _
+		hDC, _
+		pCell->Rectangle.left + 1, _
+		pCell->Rectangle.top + 1, _
+		pCell->Rectangle.right - 2, _
+		pCell->Rectangle.bottom - 2 _
+	)
+	
+	' Серый прямоугольник
+	SelectObject(hDC, Cast(HBRUSH, GetStockObject(LTGRAY_BRUSH)))
+	Rectangle( _
+		hDC, _
+		pCell->Rectangle.left + 1, _
+		pCell->Rectangle.top + 1, _
+		pCell->Rectangle.right - 3, _
+		pCell->Rectangle.bottom - 3 _
+	)
+	
+	DrawBall(hDC, pBrushes, @pCell->Ball)
+	
+	SelectObject(hDC, OldBrush)
+	SelectObject(hDC, OldPen)
+	
+End Sub
+
 Function CreateScene( _
 		ByVal hWin As HWND, _
 		ByVal SceneWidth As UINT, _
@@ -189,16 +303,16 @@ Function CreateScene( _
 	End If
 	
 	' Перья и кисти
-	pScene->GrayBrush = CreateSolidBrush(rgbGray)
-	pScene->DarkGrayBrush = CreateSolidBrush(rgbDarkGray)
+	pScene->Brushes.GrayBrush = CreateSolidBrush(rgbGray)
+	pScene->Brushes.DarkGrayBrush = CreateSolidBrush(rgbDarkGray)
 	
-	pScene->RedBrush = CreateSolidBrush(rgbRed)
-	pScene->GreenBrush = CreateSolidBrush(rgbGreen)
-	pScene->BlueBrush = CreateSolidBrush(rgbBlue)
-	pScene->YellowBrush = CreateSolidBrush(rgbYellow)
-	pScene->MagentaBrush = CreateSolidBrush(rgbMagenta)
-	pScene->DarkRedBrush = CreateSolidBrush(rgbDarkRed)
-	pScene->CyanBrush = CreateSolidBrush(rgbCyan)
+	pScene->Brushes.RedBrush = CreateSolidBrush(rgbRed)
+	pScene->Brushes.GreenBrush = CreateSolidBrush(rgbGreen)
+	pScene->Brushes.BlueBrush = CreateSolidBrush(rgbBlue)
+	pScene->Brushes.YellowBrush = CreateSolidBrush(rgbYellow)
+	pScene->Brushes.MagentaBrush = CreateSolidBrush(rgbMagenta)
+	pScene->Brushes.DarkRedBrush = CreateSolidBrush(rgbDarkRed)
+	pScene->Brushes.CyanBrush = CreateSolidBrush(rgbCyan)
 	
 	Scope
 		Dim WindowDC As HDC = GetDC(hWin)
@@ -224,16 +338,16 @@ Sub DestroyScene( _
 		ByVal pScene As Scene Ptr _
 	)
 	
-	DeleteObject(pScene->GrayBrush)
-	DeleteObject(pScene->DarkGrayBrush)
+	DeleteObject(pScene->Brushes.GrayBrush)
+	DeleteObject(pScene->Brushes.DarkGrayBrush)
 	
-	DeleteObject(pScene->RedBrush)
-	DeleteObject(pScene->GreenBrush)
-	DeleteObject(pScene->BlueBrush)
-	DeleteObject(pScene->YellowBrush)
-	DeleteObject(pScene->MagentaBrush)
-	DeleteObject(pScene->DarkRedBrush)
-	DeleteObject(pScene->CyanBrush)
+	DeleteObject(pScene->Brushes.RedBrush)
+	DeleteObject(pScene->Brushes.GreenBrush)
+	DeleteObject(pScene->Brushes.BlueBrush)
+	DeleteObject(pScene->Brushes.YellowBrush)
+	DeleteObject(pScene->Brushes.MagentaBrush)
+	DeleteObject(pScene->Brushes.DarkRedBrush)
+	DeleteObject(pScene->Brushes.CyanBrush)
 	
 	SelectObject(pScene->DeviceContext, pScene->OldBitmap)
 	DeleteObject(pScene->Bitmap)
@@ -464,19 +578,19 @@ Sub SceneRender( _
 	'/
 	
 	' Старая матрица
-	Dim saved_xform As XFORM = Any
-	GetWorldTransform(pScene->DeviceContext, @saved_xform)
+	Dim OldMatrix As XFORM = Any
+	GetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
-	Dim ScaleX As Single = max(1.0, CSng(pScene->Width) / CSng(StageGetWidth(pStage)))
-	Dim ScaleY As Single = max(1.0, CSng(pScene->Height) / CSng(StageGetHeight(pStage)))
+	Dim ScaleX As Single = max(1.0, CSng(pScene->Width) / CSng(pStage->Lines(0, 0).Rectangle.left + pStage->Lines(0, 8).Rectangle.right))
+	Dim ScaleY As Single = max(1.0, CSng(pScene->Height) / CSng(pStage->Lines(0, 0).Rectangle.top + pStage->Lines(8, 8).Rectangle.bottom))
 	Dim Scale As Single = min(ScaleX, ScaleY)
 	
-	Dim newxform As XFORM = Any
-	MatrixSetScale(@newxform, Scale, Scale)
-	SetWorldTransform(pScene->DeviceContext, @newxform)
+	Dim StretchingMatrix As XFORM = Any
+	MatrixSetScale(@StretchingMatrix, Scale, Scale)
+	SetWorldTransform(pScene->DeviceContext, @StretchingMatrix)
 	
 	Dim OldPen As HGDIOBJ = Any
-	Dim OldBrush As HGDIOBJ = Any
+	' Dim OldBrush As HGDIOBJ = Any
 	
 	' Прямоугольник обновления
 	Dim MemoryBMRectangle As RECT = Any
@@ -486,84 +600,20 @@ Sub SceneRender( _
 	FillRect(pScene->DeviceContext, @MemoryBMRectangle, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
 	
 	' Рисуем
-	OldPen = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(NULL_PEN)))
+	OldPen = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(WHITE_PEN)))
 	
 	' Ячейки
-			OldBrush = SelectObject(pScene->DeviceContext, pScene->DarkGrayBrush)
+			' OldBrush = SelectObject(pScene->DeviceContext, pScene->DarkGrayBrush)
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			Rectangle( _
+			DrawCell( _
 				pScene->DeviceContext, _
-				pStage->Lines(j, i).Rectangle.left, _
-				pStage->Lines(j, i).Rectangle.top, _
-				pStage->Lines(j, i).Rectangle.right, _
-				pStage->Lines(j, i).Rectangle.bottom _
+				@pScene->Brushes, _
+				@pStage->Lines(j, i) _
 			)
-			
-			' OldBrush = SelectObject(pScene->DeviceContext, pScene->GrayBrush)
-			Rectangle( _
-				pScene->DeviceContext, _
-				pStage->Lines(j, i).Ball.Rectangle.left, _
-				pStage->Lines(j, i).Ball.Rectangle.top, _
-				pStage->Lines(j, i).Ball.Rectangle.right, _
-				pStage->Lines(j, i).Ball.Rectangle.bottom _
-			)
+		Next
+	Next
 			' SelectObject(pScene->DeviceContext, OldBrush)
-		Next
-	Next
-			SelectObject(pScene->DeviceContext, OldBrush)
-	
-	' Стоящие шары
-	For j As Integer = 0 To 8
-		For i As Integer = 0 To 8
-			
-			If pStage->Lines(j, i).Ball.Exist Then
-				
-				Select Case pStage->Lines(j, i).Ball.Color
-					
-					Case BallColors.Red
-						' OldPen = SelectObject(pScene->DeviceContext, pScene->GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, pScene->RedBrush)
-						
-					Case BallColors.Green
-						' OldPen = SelectObject(pScene->DeviceContext, pScene->GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, pScene->GreenBrush)
-						
-					Case BallColors.Blue
-						' OldPen = SelectObject(pScene->DeviceContext, pScene->GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, pScene->BlueBrush)
-						
-					Case BallColors.Yellow
-						' OldPen = SelectObject(pScene->DeviceContext, pScene->GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, pScene->YellowBrush)
-						
-					Case BallColors.Magenta
-						' OldPen = SelectObject(pScene->DeviceContext, pScene->GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, pScene->MagentaBrush)
-						
-					Case BallColors.DarkRed
-						' OldPen = SelectObject(pScene->DeviceContext, pScene->GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, pScene->DarkRedBrush)
-						
-					Case BallColors.Cyan
-						' OldPen = SelectObject(pScene->DeviceContext, pScene->GreenPen)
-						OldBrush = SelectObject(pScene->DeviceContext, pScene->CyanBrush)
-						
-				End Select
-				
-				Ellipse( _
-					pScene->DeviceContext, _
-					pStage->Lines(j, i).Ball.Rectangle.left, _
-					pStage->Lines(j, i).Ball.Rectangle.top, _
-					pStage->Lines(j, i).Ball.Rectangle.right, _
-					pStage->Lines(j, i).Ball.Rectangle.bottom _
-				)
-				
-				' SelectObject(pScene->DeviceContext, OldPen)
-				SelectObject(pScene->DeviceContext, OldBrush)
-			End If
-		Next
-	Next
 	
 	' Двигающийся шар
 	' тип движения:
@@ -576,11 +626,16 @@ Sub SceneRender( _
 	
 	' Табло с тремя новыми шарами
 	For i As Integer = 0 To 2
+		DrawCell( _
+			pScene->DeviceContext, _
+			@pScene->Brushes, _
+			@pStage->Tablo(i) _
+		)
 	Next
 	
 	SelectObject(pScene->DeviceContext, OldPen)
 	
-	SetWorldTransform(pScene->DeviceContext, @saved_xform)
+	SetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
 	/'
 	SetViewportOrgEx(pScene->DeviceContext, oldViewportOrg.x, oldViewportOrg.y, NULL)

@@ -27,7 +27,7 @@ Enum BallColors
 	Cyan
 End Enum
 
-Enum BallStates
+Enum AnimationFrames
 	Stopped
 	' Появление: от 0 до 7
 	Birth0
@@ -60,7 +60,7 @@ End Enum
 
 Type ColorBall
 	Color As BallColors
-	State As BallStates
+	Frame As AnimationFrames
 	Rectangle As RECT
 	Exist As Boolean
 End Type
@@ -68,6 +68,7 @@ End Type
 Type Cell
 	Rectangle As RECT
 	Ball As ColorBall
+	Selected As Boolean
 End Type
 
 Type StageCallBacks
@@ -99,12 +100,6 @@ Declare Sub StageNewGame( _
 	ByVal pStage As Stage Ptr _
 )
 
-Declare Sub StageRecalculateSizes( _
-	ByVal pStage As Stage Ptr, _
-	ByVal SceneWidth As UINT, _
-	ByVal SceneHeight As UINT _
-)
-
 Declare Function StageGetCellFromPoint( _
 	ByVal pStage As Stage Ptr, _
 	ByVal pp As POINT Ptr, _
@@ -129,13 +124,5 @@ Declare Function StageCommand( _
 	ByVal pStage As Stage Ptr, _
 	ByVal cmd As StageCommands _
 )As Boolean
-
-Declare Function StageGetWidth( _
-	ByVal pStage As Stage Ptr _
-)As UINT
-
-Declare Function StageGetHeight( _
-	ByVal pStage As Stage Ptr _
-)As UINT
 
 #endif

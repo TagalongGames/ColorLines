@@ -1,12 +1,11 @@
 #include once "Stage.bi"
 
-Const DefaultCellWidth As UINT = 40
-Const DefaultCellHeight As UINT = 40
-
-Const DefaultBallWidth As UINT = 36
-Const DefaultBallHeight As UINT = 36
-
-Const SquareMargin As UINT = 0
+Const CellWidth As UINT = 40
+Const CellHeight As UINT = 40
+Const BallWidth As UINT = 30
+Const BallHeight As UINT = 30
+Const BallMarginWidth As UINT = (CellWidth - BallWidth) \ 2
+Const BallMarginHeight As UINT = (CellHeight - BallHeight) \ 2
 
 Function GetRandomBoolean()As Boolean
 	
@@ -22,10 +21,25 @@ End Function
 
 Function GetRandomBallColor()As BallColors
 	
-	Const SevenPart As Long = RAND_MAX \ 7
 	Dim RndValue As Long = rand()
 	
 	Return Cast(BallColors, RndValue Mod 7)
+	
+End Function
+
+Function GetRandomStageX()As Integer
+	
+	Dim RndValue As Long = rand()
+	
+	Return CInt(RndValue Mod 9)
+	
+End Function
+
+Function GetRandomStageY()As Integer
+	
+	Dim RndValue As Long = rand()
+	
+	Return CInt(RndValue Mod 9)
 	
 End Function
 
@@ -64,19 +78,50 @@ Function CreateStage( _
 	
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			' Dim RndExists As Boolean = GetRandomBoolean()
-			pStage->Lines(j, i).Ball.Exist = True 'RndExists
+			SetRect(@pStage->Lines(j, i).Rectangle, _
+				i * CellWidth, _
+				j * CellHeight, _
+				i * CellWidth + CellWidth, _
+				j * CellHeight + CellHeight _
+			)
 			
-			Dim RndColor As BallColors = GetRandomBallColor()
-			pStage->Lines(j, i).Ball.Color = RndColor
+			Scope
+				' pStage->Lines(j, i).Ball.Color = BallColors.Red
+				pStage->Lines(j, i).Ball.Frame = AnimationFrames.Stopped
+				
+				SetRect(@pStage->Lines(j, i).Ball.Rectangle, _
+					i * CellWidth + BallMarginWidth, _
+					j * CellHeight + BallMarginHeight, _
+					i * CellWidth + CellWidth - BallMarginWidth, _
+					j * CellHeight + CellHeight - BallMarginHeight _
+				)
+				' pStage->Lines(j, i).Ball.Exist = True
+			End Scope
+			
+			pStage->Lines(j, i).Selected = False
+			
 		Next
 	Next
 	
-	For i As Integer = 0 To 2
-		pStage->Tablo(i).Ball.Exist = False
+	pStage->Lines(0, 0).Selected = True
+	
+	For j As Integer = 0 To 2
+		
+		CopyRect(@pStage->Tablo(j).Rectangle, @pStage->Lines(j + 1, 8).Rectangle)
+		OffsetRect(@pStage->Tablo(j).Rectangle, 2 * CellWidth, 0)
+		
+		CopyRect(@pStage->Tablo(j).Ball.Rectangle, @pStage->Lines(j + 1, 8).Ball.Rectangle)
+		OffsetRect(@pStage->Tablo(j).Ball.Rectangle, 2 * CellWidth, 0)
+		
+		pStage->Tablo(j).Selected = False
+		
 	Next
 	
+	' pStage->MovedBall.Color = BallColors.Red
+	pStage->MovedBall.Frame = AnimationFrames.Stopped
+	' pStage->MovedBall.Rectangle = False
 	pStage->MovedBall.Exist = False
+	
 	pStage->CallBacks = *CallBacks
 	pStage->Context = Context
 	pStage->Score = 0
@@ -98,86 +143,55 @@ Sub StageNewGame( _
 		ByVal pStage As Stage Ptr _
 	)
 	
+	' Обнуление
+	
+	pStage->Score = 0
+	
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			pStage->Lines(j, i).Ball.State = BallStates.Stopped
+			pStage->Lines(j, i).Ball.Frame = AnimationFrames.Stopped
 			pStage->Lines(j, i).Ball.Exist = False
 		Next
 	Next
 	
 	For i As Integer = 0 To 2
-		pStage->Tablo(i).Ball.State = BallStates.Stopped
+		pStage->Tablo(i).Ball.Frame = AnimationFrames.Stopped
 		pStage->Tablo(i).Ball.Exist = False
 	Next
 	
-	pStage->MovedBall.State = BallStates.Stopped
+	pStage->MovedBall.Frame = AnimationFrames.Stopped
 	pStage->MovedBall.Exist = False
 	
-	pStage->Score = 0
+	' pStage->CallBacks.Render( _
+		' pStage->Context, _
+		' NULL _
+	' )
+	
+	For i As Integer = 0 To 2
+		' Выбрать случайные координаты
+		Dim x As Integer = GetRandomStageX()
+		Dim y As Integer = GetRandomStageY()
+		' Выбрать случайные цвета
+		Dim RandomColor As BallColors = GetRandomBallColor()
+		' Поместить на игровое поле
+		pStage->Lines(y, x).Ball.Color = RandomColor
+		pStage->Lines(y, x).Ball.Frame = AnimationFrames.Birth0
+		pStage->Lines(y, x).Ball.Exist = True
+	Next
+	
+	For i As Integer = 0 To 2
+		' Выбрать случайные цвета
+		' Поместить в табло
+		Dim RandomColor As BallColors = GetRandomBallColor()
+		pStage->Tablo(i).Ball.Color = RandomColor
+		pStage->Tablo(i).Ball.Frame = AnimationFrames.Stopped
+		pStage->Tablo(i).Ball.Exist = True
+	Next
 	
 	pStage->CallBacks.Render( _
 		pStage->Context, _
 		NULL _
 	)
-	
-End Sub
-
-Sub StageRecalculateSizes( _
-		ByVal pStage As Stage Ptr, _
-		ByVal SceneWidth As UINT, _
-		ByVal SceneHeight As UINT _
-	)
-	
-	Dim SquareLength As UINT = 40 ' min(SceneWidth, SceneHeight)
-	
-	Dim CellWidth As UINT = max(DefaultCellWidth, (SquareLength - SquareMargin) \ 9)
-	Dim CellHeight As UINT = max(DefaultCellHeight, (SquareLength - SquareMargin) \ 9)
-	
-	Dim BallWidth As UINT = (CellWidth \ 10) * 9
-	Dim BallHeight As UINT = (CellHeight \ 10) * 9
-	
-	Dim BallMarginWidth As UINT = (CellWidth - BallWidth) \ 2
-	Dim BallMarginHeight As UINT = (CellHeight - BallHeight) \ 2
-	
-	' Ячейка
-	For j As Integer = 0 To 8
-		For i As Integer = 0 To 8
-			SetRect(@pStage->Lines(j, i).Rectangle, _
-				i * CellWidth, _
-				j * CellHeight, _
-				i * CellWidth + CellWidth, _
-				j * CellHeight + CellHeight _
-			)
-		Next
-	Next
-	
-	' Шар
-	For j As Integer = 0 To 8
-		For i As Integer = 0 To 8
-			SetRect(@pStage->Lines(j, i).Ball.Rectangle, _
-				i * CellWidth + BallMarginWidth, _
-				j * CellHeight + BallMarginHeight, _
-				i * CellWidth + CellWidth - BallMarginWidth, _
-				j * CellHeight + CellHeight - BallMarginHeight _
-			)
-		Next
-	Next
-	
-	' Табло
-	For i As Integer = 0 To 2
-		SetRect(@pStage->Tablo(i).Rectangle, _
-			i * CellWidth, _
-			0 * CellHeight, _
-			i * CellWidth + CellWidth, _
-			0 * CellHeight + CellHeight _
-		)
-		SetRect(@pStage->Tablo(i).Ball.Rectangle, _
-			i * CellWidth + BallMarginWidth, _
-			0 * CellHeight + BallMarginHeight, _
-			i * CellWidth + CellWidth - BallMarginWidth, _
-			0 * CellHeight + CellHeight - BallMarginHeight _
-		)
-	Next
 	
 End Sub
 
@@ -245,21 +259,5 @@ Function StageCommand( _
 	)As Boolean
 	
 	Return False
-	
-End Function
-
-Function StageGetWidth( _
-		ByVal pStage As Stage Ptr _
-	)As UINT
-	
-	Return DefaultCellWidth * 9
-	
-End Function
-
-Function StageGetHeight( _
-		ByVal pStage As Stage Ptr _
-	)As UINT
-	
-	Return DefaultCellHeight * 9
 	
 End Function

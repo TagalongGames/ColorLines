@@ -74,8 +74,6 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				Dim ClientAreaWidth As UINT = LOWORD(lParam)
 				Dim ClientAreaHeight As UINT = HIWORD(lParam)
 				
-				StageRecalculateSizes(ColorLinesStage, ClientAreaWidth, ClientAreaHeight)
-				
 				If ColorLinesScene <> NULL Then
 					DestroyScene(ColorLinesScene)
 				End If
