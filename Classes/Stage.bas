@@ -1,5 +1,5 @@
 #include once "Stage.bi"
-
+#include once "crt.bi"
 Const CellWidth As UINT = 40
 Const CellHeight As UINT = 40
 Const BallWidth As UINT = 30
@@ -168,11 +168,19 @@ Sub StageNewGame( _
 	' )
 	
 	For i As Integer = 0 To 2
-		' Выбрать случайные координаты
+		' Выбрать случайные координаты и цвет
 		Dim x As Integer = GetRandomStageX()
 		Dim y As Integer = GetRandomStageY()
-		' Выбрать случайные цвета
 		Dim RandomColor As BallColors = GetRandomBallColor()
+		
+		/'
+		Dim buffer As WString * (255 + 1) = Any
+		Const ffFormat = WStr("{%d, %d}, %d")
+		swprintf(@buffer, @ffFormat, x, y, RandomColor)
+		buffer[255] = 0
+		MessageBoxW(NULL, @buffer, NULL, MB_OK)
+		'/
+		
 		' Поместить на игровое поле
 		pStage->Lines(y, x).Ball.Color = RandomColor
 		pStage->Lines(y, x).Ball.Frame = AnimationFrames.Birth0

@@ -44,6 +44,7 @@ Type SceneBrushes
 	' Для ячеек
 	GrayBrush As HBRUSH
 	DarkGrayBrush As HBRUSH
+	DashPen As HPEN
 	
 	' Для шаров
 	RedBrush As HBRUSH
@@ -239,50 +240,82 @@ Sub DrawCell( _
 		ByVal pCell As Cell Ptr _
 	)
 	
-	Dim OldPen As HGDIOBJ = Any
+	Dim OldPen As HGDIOBJ = SelectObject(hDC, Cast(HPEN, GetStockObject(NULL_PEN)))
 	Dim OldBrush As HGDIOBJ = Any
 	
-	OldPen = SelectObject(hDC, Cast(HPEN, GetStockObject(NULL_PEN)))
+	Dim dx As UINT = 0
+	Dim dy As UINT = 0
+	
+	If pCell->Selected Then
+		OldBrush = SelectObject(hDC, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
+		
+		' Чёрный прямоугольник
+		Rectangle( _
+			hDC, _
+			pCell->Rectangle.left, _
+			pCell->Rectangle.top, _
+			pCell->Rectangle.right, _
+			pCell->Rectangle.bottom _
+		)
+		SelectObject(hDC, OldBrush)
+		dx = 1
+		dy = 1
+	End If
 	
 	' Тёмно-серый прямоугольник
 	OldBrush = SelectObject(hDC, Cast(HBRUSH, GetStockObject(DKGRAY_BRUSH)))
 	Rectangle( _
 		hDC, _
-		pCell->Rectangle.left, _
-		pCell->Rectangle.top, _
-		pCell->Rectangle.right, _
-		pCell->Rectangle.bottom _
+		pCell->Rectangle.left + dx, _
+		pCell->Rectangle.top + dy, _
+		pCell->Rectangle.right - dx, _
+		pCell->Rectangle.bottom - dy _
 	)
 	
 	' Белый прямоугольник
 	SelectObject(hDC, Cast(HBRUSH, GetStockObject(WHITE_BRUSH)))
 	Rectangle( _
 		hDC, _
-		pCell->Rectangle.left, _
-		pCell->Rectangle.top, _
-		pCell->Rectangle.right - 1, _
-		pCell->Rectangle.bottom - 1 _
+		pCell->Rectangle.left + dx, _
+		pCell->Rectangle.top + dy, _
+		pCell->Rectangle.right - 1 - dx, _
+		pCell->Rectangle.bottom - 1 - dy _
 	)
 	
 	' Серый прямоугольник
 	SelectObject(hDC, Cast(HBRUSH, GetStockObject(GRAY_BRUSH)))
 	Rectangle( _
 		hDC, _
-		pCell->Rectangle.left + 1, _
-		pCell->Rectangle.top + 1, _
-		pCell->Rectangle.right - 2, _
-		pCell->Rectangle.bottom - 2 _
+		pCell->Rectangle.left + 1 + dx, _
+		pCell->Rectangle.top + 1 + dy, _
+		pCell->Rectangle.right - 1 - dx, _
+		pCell->Rectangle.bottom - 1 - dy _
 	)
 	
-	' Серый прямоугольник
+	' Светло-серый прямоугольник
 	SelectObject(hDC, Cast(HBRUSH, GetStockObject(LTGRAY_BRUSH)))
 	Rectangle( _
 		hDC, _
-		pCell->Rectangle.left + 1, _
-		pCell->Rectangle.top + 1, _
-		pCell->Rectangle.right - 3, _
-		pCell->Rectangle.bottom - 3 _
+		pCell->Rectangle.left + 1 + dx, _
+		pCell->Rectangle.top + 1 + dy, _
+		pCell->Rectangle.right - 2 - dx, _
+		pCell->Rectangle.bottom - 2 - dy _
 	)
+	
+	If pCell->Selected Then
+		SelectObject(hDC, Cast(HBRUSH, GetStockObject(HOLLOW_BRUSH)))
+		Dim OldOldPen As HGDIOBJ = SelectObject(hDC, pBrushes->DashPen)
+		dx += 4
+		dy += 4
+		Rectangle( _
+			hDC, _
+			pCell->Rectangle.left + dx, _
+			pCell->Rectangle.top + dy, _
+			pCell->Rectangle.right - dx, _
+			pCell->Rectangle.bottom - dy _
+		)
+		SelectObject(hDC, OldOldPen)
+	End If
 	
 	DrawBall(hDC, pBrushes, @pCell->Ball)
 	
@@ -302,10 +335,9 @@ Function CreateScene( _
 		Return NULL
 	End If
 	
-	' Перья и кисти
 	pScene->Brushes.GrayBrush = CreateSolidBrush(rgbGray)
 	pScene->Brushes.DarkGrayBrush = CreateSolidBrush(rgbDarkGray)
-	
+	pScene->Brushes.DashPen = CreatePen(PS_DOT, 1, rgbBlack)
 	pScene->Brushes.RedBrush = CreateSolidBrush(rgbRed)
 	pScene->Brushes.GreenBrush = CreateSolidBrush(rgbGreen)
 	pScene->Brushes.BlueBrush = CreateSolidBrush(rgbBlue)
@@ -321,12 +353,10 @@ Function CreateScene( _
 		ReleaseDC(hWin, WindowDC)
 	End Scope
 	
-	' Выбираем цветной рисунок, сохраняя старый
 	pScene->OldBitmap = SelectObject(pScene->DeviceContext, pScene->Bitmap)
 	
 	pScene->Width = SceneWidth
 	pScene->Height = SceneHeight
-	
 	
 	SetGraphicsMode(pScene->DeviceContext, GM_ADVANCED)
 	
@@ -340,7 +370,7 @@ Sub DestroyScene( _
 	
 	DeleteObject(pScene->Brushes.GrayBrush)
 	DeleteObject(pScene->Brushes.DarkGrayBrush)
-	
+	DeleteObject(pScene->Brushes.DashPen)
 	DeleteObject(pScene->Brushes.RedBrush)
 	DeleteObject(pScene->Brushes.GreenBrush)
 	DeleteObject(pScene->Brushes.BlueBrush)
