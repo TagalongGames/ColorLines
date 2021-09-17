@@ -185,6 +185,12 @@ Sub DrawBall( _
 		ByVal pBall As ColorBall Ptr _
 	)
 	
+	' тип движения:
+	' - появление из точки в нормальный размер (от 0 до 9)
+	' - прыжки при выборе мышью (от 0 до 5 и обратно)
+	' - уничтожение, рассыпался в прах (от 9 до 0)
+	' координаты
+	
 	Dim OldBrush As HGDIOBJ = Any
 	
 	If pBall->Exist Then
@@ -337,6 +343,16 @@ Sub SceneClear( _
 End Sub
 
 Sub SceneSetWorldMatrix( _
+		ByVal pScene As Scene Ptr _
+	)
+	
+	Dim WorldMatrix As XFORM = Any
+	MatrixSetIdentity(@WorldMatrix)
+	ModifyWorldTransform(pScene->DeviceContext, @WorldMatrix, MWT_LEFTMULTIPLY)
+	
+End Sub
+
+Sub SceneSetViewMatrix( _
 		ByVal pScene As Scene Ptr _
 	)
 	
@@ -651,19 +667,24 @@ Sub SceneRender( _
 	Dim OldMatrix As XFORM = Any
 	GetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
+	' Проекция из камеры на экран
 	SceneSetProjectionMatrix( _
 		pScene, _
 		pStage->Lines(0, 0).Rectangle.left + pStage->Lines(0, 8).Rectangle.right, _
 		pStage->Lines(0, 0).Rectangle.top + pStage->Lines(8, 8).Rectangle.bottom _
 	)
 	
+	' Проекция из сцены на камеру
+	SceneSetViewMatrix(pScene)
+	
+	' Проекция объекта на сцену
 	SceneSetWorldMatrix(pScene)
 	
-	Dim OldPen As HGDIOBJ = Any
+	' Dim OldPen As HGDIOBJ = Any
 	' Dim OldBrush As HGDIOBJ = Any
 	
 	' Рисуем
-	OldPen = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(WHITE_PEN)))
+	' OldPen = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(WHITE_PEN)))
 	
 	' Ячейки
 			' OldBrush = SelectObject(pScene->DeviceContext, pScene->DarkGrayBrush)
@@ -679,13 +700,11 @@ Sub SceneRender( _
 			' SelectObject(pScene->DeviceContext, OldBrush)
 	
 	' Двигающийся шар
-	' тип движения:
-	' - появление из точки в нормальный размер (от 0 до 9)
-	' - прыжки при выборе мышью (от 0 до 5 и обратно)
-	' - уничтожение, рассыпался в прах (от 9 до 0)
-	' координаты
-	If pStage->MovedBall.Exist Then
-	End If
+	DrawBall( _
+		pScene->DeviceContext, _
+		@pScene->Brushes, _
+		@pStage->MovedBall _
+	)
 	
 	' Табло с тремя новыми шарами
 	For i As Integer = 0 To 2
@@ -696,7 +715,7 @@ Sub SceneRender( _
 		)
 	Next
 	
-	SelectObject(pScene->DeviceContext, OldPen)
+	' SelectObject(pScene->DeviceContext, OldPen)
 	
 	SetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
