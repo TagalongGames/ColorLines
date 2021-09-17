@@ -162,11 +162,6 @@ Sub StageNewGame( _
 	pStage->MovedBall.Frame = AnimationFrames.Stopped
 	pStage->MovedBall.Exist = False
 	
-	' pStage->CallBacks.Render( _
-		' pStage->Context, _
-		' NULL _
-	' )
-	
 	For i As Integer = 0 To 2
 		' Выбрать случайные координаты и цвет
 		Dim x As Integer = GetRandomStageX()

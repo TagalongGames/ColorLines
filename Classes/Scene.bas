@@ -324,6 +324,44 @@ Sub DrawCell( _
 	
 End Sub
 
+Sub SceneClear( _
+		ByVal pScene As Scene Ptr _
+	)
+	
+	' Прямоугольник обновления
+	Dim SceneRectangle As RECT = Any
+	SetRect(@SceneRectangle, 0, 0, pScene->Width, pScene->Height)
+	
+	FillRect(pScene->DeviceContext, @SceneRectangle, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
+	
+End Sub
+
+Sub SceneSetWorldMatrix( _
+		ByVal pScene As Scene Ptr _
+	)
+	
+	Dim WorldMatrix As XFORM = Any
+	MatrixSetIdentity(@WorldMatrix)
+	ModifyWorldTransform(pScene->DeviceContext, @WorldMatrix, MWT_LEFTMULTIPLY)
+	
+End Sub
+
+Sub SceneSetProjectionMatrix( _
+		ByVal pScene As Scene Ptr, _
+		ByVal StageWidth As Integer, _
+		ByVal StageHeight As Integer _
+	)
+	
+	Dim ScaleX As Single = max(1.0, CSng(pScene->Width) / CSng(StageWidth))
+	Dim ScaleY As Single = max(1.0, CSng(pScene->Height) / CSng(StageHeight))
+	Dim Scale As Single = min(ScaleX, ScaleY)
+	
+	Dim ProjectionMatrix As XFORM = Any
+	MatrixSetScale(@ProjectionMatrix, Scale, Scale)
+	ModifyWorldTransform(pScene->DeviceContext, @ProjectionMatrix, MWT_LEFTMULTIPLY)
+	
+End Sub
+
 Function CreateScene( _
 		ByVal hWin As HWND, _
 		ByVal SceneWidth As UINT, _
@@ -583,8 +621,6 @@ Sub SceneRender( _
 	End Scope
 	'/
 	
-	' declare function CombineTransform(byval lpxfOut as LPXFORM, byval lpxf1 as const XFORM ptr, byval lpxf2 as const XFORM ptr) as WINBOOL
-	
 	/'
 	Dim oldMode As Long = GetMapMode(pScene->DeviceContext)
 	SetMapMode(pScene->DeviceContext, MM_ISOTROPIC)
@@ -607,27 +643,24 @@ Sub SceneRender( _
 	SetViewportOrgEx(pScene->DeviceContext, pScene->Width \ 2, pScene->Height \ 2, @oldViewportOrg)
 	'/
 	
+	' declare function CombineTransform(byval lpxfOut as LPXFORM, byval lpxf1 as const XFORM ptr, byval lpxf2 as const XFORM ptr) as WINBOOL
+	
+	SceneClear(pScene)
+	
 	' Старая матрица
 	Dim OldMatrix As XFORM = Any
 	GetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
-	Dim ScaleX As Single = max(1.0, CSng(pScene->Width) / CSng(pStage->Lines(0, 0).Rectangle.left + pStage->Lines(0, 8).Rectangle.right))
-	Dim ScaleY As Single = max(1.0, CSng(pScene->Height) / CSng(pStage->Lines(0, 0).Rectangle.top + pStage->Lines(8, 8).Rectangle.bottom))
-	Dim Scale As Single = min(ScaleX, ScaleY)
+	SceneSetProjectionMatrix( _
+		pScene, _
+		pStage->Lines(0, 0).Rectangle.left + pStage->Lines(0, 8).Rectangle.right, _
+		pStage->Lines(0, 0).Rectangle.top + pStage->Lines(8, 8).Rectangle.bottom _
+	)
 	
-	Dim StretchingMatrix As XFORM = Any
-	MatrixSetScale(@StretchingMatrix, Scale, Scale)
-	SetWorldTransform(pScene->DeviceContext, @StretchingMatrix)
+	SceneSetWorldMatrix(pScene)
 	
 	Dim OldPen As HGDIOBJ = Any
 	' Dim OldBrush As HGDIOBJ = Any
-	
-	' Прямоугольник обновления
-	Dim MemoryBMRectangle As RECT = Any
-	SetRect(@MemoryBMRectangle, 0, 0, pScene->Width, pScene->Height)
-	
-	' Очистка
-	FillRect(pScene->DeviceContext, @MemoryBMRectangle, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
 	
 	' Рисуем
 	OldPen = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(WHITE_PEN)))
