@@ -342,39 +342,41 @@ Sub SceneClear( _
 	
 End Sub
 
-Sub SceneSetWorldMatrix( _
-		ByVal pScene As Scene Ptr _
+Sub SetProjectionMatrix( _
+		ByVal hDC As HDC, _
+		ByVal ScreenWidth As Integer, _
+		ByVal ScreenHeight As Integer, _
+		ByVal SceneWidth As Integer, _
+		ByVal SceneHeight As Integer _
 	)
 	
-	Dim WorldMatrix As XFORM = Any
-	MatrixSetIdentity(@WorldMatrix)
-	ModifyWorldTransform(pScene->DeviceContext, @WorldMatrix, MWT_LEFTMULTIPLY)
-	
-End Sub
-
-Sub SceneSetViewMatrix( _
-		ByVal pScene As Scene Ptr _
-	)
-	
-	Dim WorldMatrix As XFORM = Any
-	MatrixSetIdentity(@WorldMatrix)
-	ModifyWorldTransform(pScene->DeviceContext, @WorldMatrix, MWT_LEFTMULTIPLY)
-	
-End Sub
-
-Sub SceneSetProjectionMatrix( _
-		ByVal pScene As Scene Ptr, _
-		ByVal StageWidth As Integer, _
-		ByVal StageHeight As Integer _
-	)
-	
-	Dim ScaleX As Single = max(1.0, CSng(pScene->Width) / CSng(StageWidth))
-	Dim ScaleY As Single = max(1.0, CSng(pScene->Height) / CSng(StageHeight))
+	Dim ScaleX As Single = max(1.0, CSng(ScreenWidth) / CSng(SceneWidth))
+	Dim ScaleY As Single = max(1.0, CSng(ScreenHeight) / CSng(SceneHeight))
 	Dim Scale As Single = min(ScaleX, ScaleY)
 	
 	Dim ProjectionMatrix As XFORM = Any
 	MatrixSetScale(@ProjectionMatrix, Scale, Scale)
-	ModifyWorldTransform(pScene->DeviceContext, @ProjectionMatrix, MWT_LEFTMULTIPLY)
+	ModifyWorldTransform(hDC, @ProjectionMatrix, MWT_LEFTMULTIPLY)
+	
+End Sub
+
+Sub SetViewMatrix( _
+		ByVal hDC As HDC _
+	)
+	
+	Dim WorldMatrix As XFORM = Any
+	MatrixSetIdentity(@WorldMatrix)
+	ModifyWorldTransform(hDC, @WorldMatrix, MWT_LEFTMULTIPLY)
+	
+End Sub
+
+Sub SetWorldMatrix( _
+		ByVal hDC As HDC _
+	)
+	
+	Dim WorldMatrix As XFORM = Any
+	MatrixSetIdentity(@WorldMatrix)
+	ModifyWorldTransform(hDC, @WorldMatrix, MWT_LEFTMULTIPLY)
 	
 End Sub
 
@@ -667,18 +669,24 @@ Sub SceneRender( _
 	Dim OldMatrix As XFORM = Any
 	GetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
-	' Проекция из камеры на экран
-	SceneSetProjectionMatrix( _
-		pScene, _
+	' Проекция из камеры на экран, размеры экрана = размерам камеры
+	SetProjectionMatrix( _
+		pScene->DeviceContext, _
+		pScene->Width, _
+		pScene->Height, _
 		pStage->Lines(0, 0).Rectangle.left + pStage->Lines(0, 8).Rectangle.right, _
 		pStage->Lines(0, 0).Rectangle.top + pStage->Lines(8, 8).Rectangle.bottom _
 	)
 	
 	' Проекция из сцены на камеру
-	SceneSetViewMatrix(pScene)
+	SetViewMatrix( _
+		pScene->DeviceContext _
+	)
 	
 	' Проекция объекта на сцену
-	SceneSetWorldMatrix(pScene)
+	SetWorldMatrix( _
+		pScene->DeviceContext _
+	)
 	
 	' Dim OldPen As HGDIOBJ = Any
 	' Dim OldBrush As HGDIOBJ = Any
