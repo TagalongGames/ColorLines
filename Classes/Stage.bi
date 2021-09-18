@@ -72,7 +72,7 @@ Type Cell
 End Type
 
 Type StageCallBacks
-	Render As Function(ByVal Context As Any Ptr, ByVal pRenderRectangle As RECT Ptr)As Integer
+	Render As Function(ByVal Context As Any Ptr, ByVal pRenderRectangles As RECT Ptr, ByVal Count As Integer)As Integer
 	AnimateFunction As Function(ByVal Context As Any Ptr)As Integer
 End Type
 
@@ -124,5 +124,13 @@ Declare Function StageCommand( _
 	ByVal pStage As Stage Ptr, _
 	ByVal cmd As StageCommands _
 )As Boolean
+
+Declare Function StageGetWidth( _
+	ByVal pStage As Stage Ptr _
+)As Integer
+
+Declare Function StageGetHeight( _
+	ByVal pStage As Stage Ptr _
+)As Integer
 
 #endif

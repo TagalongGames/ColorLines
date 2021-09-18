@@ -21,14 +21,28 @@ Dim Shared ColorLinesStage As Stage Ptr
 
 Function ColorLinesStageRenderFunction( _
 		ByVal Context As Any Ptr, _
-		ByVal pUpdateRectangle As RECT Ptr _
+		ByVal pRenderRectangles As RECT Ptr, _
+		ByVal Count As Integer _
 	)As Integer
 	
 	Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, Context)
 	
-	SceneRender(ColorLinesScene, ColorLinesStage)
+	SceneRender( _
+		ColorLinesScene, _
+		ColorLinesStage _
+	)
 	
-	InvalidateRect(pUpdateContext->hWin, pUpdateRectangle, FALSE)
+	For i As Integer = 0 To Count - 1
+		Dim ScreenRectangle As RECT = Any
+		SceneTranslateRectangle( _
+			ColorLinesScene, _
+			ColorLinesStage, _
+			@pRenderRectangles[i], _
+			@ScreenRectangle _
+		)
+		
+		InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
+	Next
 	
 	Return 0
 	
@@ -40,7 +54,6 @@ Function ColorLinesStageAnimateFunction( _
 	
 	Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, Context)
 	
-	' ¬ключить таймер анимации
 	SetTimer( _
 		pUpdateContext->hWin, _
 		ANIMATION_TIMER_ID, _
@@ -79,7 +92,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				End If
 				ColorLinesScene = CreateScene(hWin, ClientAreaWidth, ClientAreaHeight)
 				
-				SceneRender(ColorLinesScene, ColorLinesStage)
+				SceneRender( _
+					ColorLinesScene, _
+					ColorLinesStage _
+				)
 			End If
 			
 		Case WM_COMMAND

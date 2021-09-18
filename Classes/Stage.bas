@@ -1,5 +1,6 @@
 #include once "Stage.bi"
 #include once "crt.bi"
+
 Const CellWidth As UINT = 40
 Const CellHeight As UINT = 40
 Const BallWidth As UINT = 30
@@ -42,28 +43,6 @@ Function GetRandomStageY()As Integer
 	Return CInt(RndValue Mod 9)
 	
 End Function
-
-Sub Visualisation( _
-		ByVal pStage As Stage Ptr _
-	)
-	' Вычислить прямоугольник для старого положения объекта
-	' Dim OldRect As RECT
-	
-	' Переместить объект
-	' object.Move
-	
-	' Вычислить прямоугольник для нового положения объекта
-	' Dim NewRect As RECT
-	
-	' Объединить оба прямоугольника
-	' Dim UnionRect As RECT
-	
-	' Отрендерить сцену в буфер
-	' Render(hDC)
-	
-	' Вывести в окно объединённый прямоугольник
-	' InvalidateRect(hWin, @UnionRect, FALSE)
-End Sub
 
 Function CreateStage( _
 		ByVal HiScore As Integer, _
@@ -191,9 +170,23 @@ Sub StageNewGame( _
 		pStage->Tablo(i).Ball.Exist = True
 	Next
 	
+	Dim UpdateRectangle(1) As RECT = Any
+	SetRect(@UpdateRectangle(0), _
+		pStage->Lines(0, 0).Rectangle.left, _
+		pStage->Lines(0, 0).Rectangle.top, _
+		pStage->Lines(8, 8).Rectangle.right, _
+		pStage->Lines(8, 8).Rectangle.bottom _
+	)
+	SetRect(@UpdateRectangle(1), _
+		pStage->Tablo(0).Rectangle.left, _
+		pStage->Tablo(0).Rectangle.top, _
+		pStage->Tablo(2).Rectangle.right, _
+		pStage->Tablo(2).Rectangle.bottom _
+	)
 	pStage->CallBacks.Render( _
 		pStage->Context, _
-		NULL _
+		@UpdateRectangle(0), _
+		2 _
 	)
 	
 End Sub
@@ -262,5 +255,21 @@ Function StageCommand( _
 	)As Boolean
 	
 	Return False
+	
+End Function
+
+Function StageGetWidth( _
+		ByVal pStage As Stage Ptr _
+	)As Integer
+	
+	Return pStage->Lines(0, 0).Rectangle.left + pStage->Tablo(0).Rectangle.right
+	
+End Function
+
+Function StageGetHeight( _
+		ByVal pStage As Stage Ptr _
+	)As Integer
+	
+	Return pStage->Lines(0, 0).Rectangle.top + pStage->Lines(8, 0).Rectangle.bottom
 	
 End Function

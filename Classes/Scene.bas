@@ -1,5 +1,9 @@
 #include once "Scene.bi"
+#include once "windows.bi"
+#include once "win\ole2.bi"
 #include once "win\GdiPlus.bi"
+#include once "win\oleauto.bi"
+#include once "crt.bi"
 
 Enum
 	rgbBlack =       &h00000000
@@ -107,9 +111,9 @@ Sub MatrixSetRRotate( _
 		ByVal AngleCosine As Single _
 	)
 	
-	m->eM11 = AngleCosine : m->eM21 = -AngleSine  : m->eDx = 0.0
-	m->eM12 = AngleSine   : m->eM22 = AngleCosine : m->eDy = 0.0
-	' 0                   : 0                     : 1
+	m->eM11 = AngleCosine : m->eM21 = -1.0 * AngleSine : m->eDx = 0.0
+	m->eM12 = AngleSine   : m->eM22 = AngleCosine      : m->eDy = 0.0
+	' 0                   : 0                          : 1
 	
 End Sub
 
@@ -121,9 +125,9 @@ Sub MatrixSetLRotate( _
 		ByVal AngleCosine As Single _
 	)
 	
-	m->eM11 = AngleCosine : m->eM21 = AngleSine   : m->eDx = 0.0
-	m->eM12 = -AngleSine  : m->eM22 = AngleCosine : m->eDy = 0.0
-	' 0                   : 0                     : 1
+	m->eM11 = AngleCosine      : m->eM21 = AngleSine   : m->eDx = 0.0
+	m->eM12 = -1.0 * AngleSine : m->eM22 = AngleCosine : m->eDy = 0.0
+	' 0                        : 0                     : 1
 	
 End Sub
 
@@ -238,6 +242,7 @@ Sub DrawBall( _
 		' SelectObject(hDC, OldPen)
 		SelectObject(hDC, OldBrush)
 	End If
+	
 End Sub
 
 Sub DrawCell( _
@@ -344,39 +349,28 @@ End Sub
 
 Sub SetProjectionMatrix( _
 		ByVal hDC As HDC, _
-		ByVal ScreenWidth As Integer, _
-		ByVal ScreenHeight As Integer, _
-		ByVal SceneWidth As Integer, _
-		ByVal SceneHeight As Integer _
+		ByVal pProjectionMatrix As XFORM Ptr _
 	)
 	
-	Dim ScaleX As Single = max(1.0, CSng(ScreenWidth) / CSng(SceneWidth))
-	Dim ScaleY As Single = max(1.0, CSng(ScreenHeight) / CSng(SceneHeight))
-	Dim Scale As Single = min(ScaleX, ScaleY)
-	
-	Dim ProjectionMatrix As XFORM = Any
-	MatrixSetScale(@ProjectionMatrix, Scale, Scale)
-	ModifyWorldTransform(hDC, @ProjectionMatrix, MWT_LEFTMULTIPLY)
+	ModifyWorldTransform(hDC, pProjectionMatrix, MWT_LEFTMULTIPLY)
 	
 End Sub
 
 Sub SetViewMatrix( _
-		ByVal hDC As HDC _
+		ByVal hDC As HDC, _
+		ByVal pViewMatrix As XFORM Ptr _
 	)
 	
-	Dim WorldMatrix As XFORM = Any
-	MatrixSetIdentity(@WorldMatrix)
-	ModifyWorldTransform(hDC, @WorldMatrix, MWT_LEFTMULTIPLY)
+	ModifyWorldTransform(hDC, pViewMatrix, MWT_LEFTMULTIPLY)
 	
 End Sub
 
 Sub SetWorldMatrix( _
-		ByVal hDC As HDC _
+		ByVal hDC As HDC, _
+		ByVal pWorldMatrix As XFORM Ptr _
 	)
 	
-	Dim WorldMatrix As XFORM = Any
-	MatrixSetIdentity(@WorldMatrix)
-	ModifyWorldTransform(hDC, @WorldMatrix, MWT_LEFTMULTIPLY)
+	ModifyWorldTransform(hDC, pWorldMatrix, MWT_LEFTMULTIPLY)
 	
 End Sub
 
@@ -648,9 +642,10 @@ Sub SceneRender( _
 	Dim oldWindowExt As SIZE = Any
 	SetWindowExtEx(pScene->DeviceContext, pScene->Width, pScene->Height, @oldWindowExt)
 	
-	' осуществляет настройку размеров физической области вывода
-	' Если изначально система координат была установлена таким образом
-	' что ось y направлена вниз, можно "перевернуть" ее, задав отрицательное значение по оси y
+	' Настраивает размеры физической области вывода
+	' Если изначально система координат установлена таким образом
+	' что ось y направлена вниз, можно "перевернуть" её
+	' задав отрицательное значение по оси y
 	' сx, сy - новые значения размеров по осям.
 	Dim oldViewportExt As SIZE = Any
 	SetViewportExtEx(pScene->DeviceContext, pScene->Width, -1 * pScene->Height, @oldViewportExt)
@@ -661,69 +656,91 @@ Sub SceneRender( _
 	SetViewportOrgEx(pScene->DeviceContext, pScene->Width \ 2, pScene->Height \ 2, @oldViewportOrg)
 	'/
 	
-	' declare function CombineTransform(byval lpxfOut as LPXFORM, byval lpxf1 as const XFORM ptr, byval lpxf2 as const XFORM ptr) as WINBOOL
-	
 	SceneClear(pScene)
 	
 	' Старая матрица
 	Dim OldMatrix As XFORM = Any
 	GetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
-	' Проекция из камеры на экран, размеры экрана = размерам камеры
-	SetProjectionMatrix( _
-		pScene->DeviceContext, _
-		pScene->Width, _
-		pScene->Height, _
-		pStage->Lines(0, 0).Rectangle.left + pStage->Lines(0, 8).Rectangle.right, _
-		pStage->Lines(0, 0).Rectangle.top + pStage->Lines(8, 8).Rectangle.bottom _
-	)
+	' Проекция камеры на экран, размеры экрана = размерам камеры
+	Scope
+		Dim ScaleX As Single = max(1.0, CSng(pScene->Width) / CSng(StageGetWidth(pStage)))
+		Dim ScaleY As Single = max(1.0, CSng(pScene->Height) / CSng(StageGetHeight(pStage)))
+		Dim Scale As Single = min(ScaleX, ScaleY)
+		
+		Dim ProjectionMatrix As XFORM = Any
+		MatrixSetScale(@ProjectionMatrix, Scale, Scale)
+		SetProjectionMatrix( _
+			pScene->DeviceContext, _
+			@ProjectionMatrix _
+		)
+	End Scope
 	
-	' Проекция из сцены на камеру
-	SetViewMatrix( _
-		pScene->DeviceContext _
-	)
+	' Проекция сцены на камеру
+	Scope
+		Dim ViewMatrix As XFORM = Any
+		MatrixSetIdentity(@ViewMatrix)
+		SetViewMatrix( _
+			pScene->DeviceContext, _
+			@ViewMatrix _
+		)
+	End Scope
 	
 	' Проекция объекта на сцену
-	SetWorldMatrix( _
-		pScene->DeviceContext _
-	)
-	
-	' Dim OldPen As HGDIOBJ = Any
-	' Dim OldBrush As HGDIOBJ = Any
+	Scope
+		Dim WorldMatrix As XFORM = Any
+		MatrixSetIdentity(@WorldMatrix)
+		SetWorldMatrix( _
+			pScene->DeviceContext, _
+			@WorldMatrix _
+		)
+	End Scope
 	
 	' Рисуем
-	' OldPen = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(WHITE_PEN)))
 	
 	' Ячейки
-			' OldBrush = SelectObject(pScene->DeviceContext, pScene->DarkGrayBrush)
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
+			Dim OldWorldMatrix As XFORM = Any
+			GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+			
 			DrawCell( _
 				pScene->DeviceContext, _
 				@pScene->Brushes, _
 				@pStage->Lines(j, i) _
 			)
+			
+			SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 		Next
 	Next
-			' SelectObject(pScene->DeviceContext, OldBrush)
 	
-	' Двигающийся шар
-	DrawBall( _
-		pScene->DeviceContext, _
-		@pScene->Brushes, _
-		@pStage->MovedBall _
-	)
+	Scope
+		Dim OldWorldMatrix As XFORM = Any
+		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+		
+		' Двигающийся шар
+		DrawBall( _
+			pScene->DeviceContext, _
+			@pScene->Brushes, _
+			@pStage->MovedBall _
+		)
+		
+		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+	End Scope
 	
 	' Табло с тремя новыми шарами
 	For i As Integer = 0 To 2
+		Dim OldWorldMatrix As XFORM = Any
+		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+		
 		DrawCell( _
 			pScene->DeviceContext, _
 			@pScene->Brushes, _
 			@pStage->Tablo(i) _
 		)
+		
+		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 	Next
-	
-	' SelectObject(pScene->DeviceContext, OldPen)
 	
 	SetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
@@ -733,6 +750,95 @@ Sub SceneRender( _
 	SetWindowExtEx(pScene->DeviceContext, oldWindowExt.cx, oldWindowExt.cy, NULL)
 	SetMapMode(pScene->DeviceContext, oldMode)
 	'/
+	
+End Sub
+
+Sub SceneTranslateRectangle( _
+		ByVal pScene As Scene Ptr, _
+		ByVal pStage As Stage Ptr, _
+		ByVal pRectangle As RECT Ptr, _
+		ByVal pTranslatedRectangle As RECT Ptr _
+	)
+	
+	
+	' declare function CombineTransform(byval lpxfOut as LPXFORM, byval lpxf1 as const XFORM ptr, byval lpxf2 as const XFORM ptr) as WINBOOL
+	
+	' Матрица
+	Dim OutMatrix As XFORM = Any
+	
+	' Матрица проекции
+	' Матрица камеры
+	' Мировая матрица
+	' Вектор
+	' Проекция камеры на экран, размеры экрана = размерам камеры
+	Dim ScaleX As Single = max(1.0, CSng(pScene->Width) / CSng(StageGetWidth(pStage)))
+	Dim ScaleY As Single = max(1.0, CSng(pScene->Height) / CSng(StageGetHeight(pStage)))
+	Dim Scale As Single = min(ScaleX, ScaleY)
+	
+	Dim ProjectionMatrix As XFORM = Any
+	MatrixSetScale(@ProjectionMatrix, Scale, Scale)
+	
+	' Проекция сцены на камеру
+	Dim ViewMatrix As XFORM = Any
+	MatrixSetIdentity(@ViewMatrix)
+	
+	' Проекция объекта на сцену
+	Dim WorldMatrix As XFORM = Any
+	MatrixSetIdentity(@WorldMatrix)
+	
+	CombineTransform(@OutMatrix, @ProjectionMatrix, @ViewMatrix)
+	
+	Dim OutMatrix2 As XFORM = Any
+	CombineTransform(@OutMatrix2, @OutMatrix, @WorldMatrix)
+	
+	' Dim OutMatrix3 As XFORM = Any
+	' CombineTransform(@OutMatrix3, @OutMatrix2, @pRectangle)
+	
+	Dim fLeft As VARIANT = Any
+	fLeft.vt = VT_R4
+	fLeft.fltVal = CSng(pRectangle->left) * OutMatrix2.eM11 + CSng(pRectangle->top) * OutMatrix2.eM21 + OutMatrix2.eDx
+	Dim nLeft As VARIANT = Any
+	VariantInit(@nLeft)
+	VariantChangeType(@nLeft, @fLeft, 0, VT_I4)
+	
+	Dim fTop As VARIANT = Any
+	fTop.vt = VT_R4
+	fTop.fltVal = CSng(pRectangle->left) * OutMatrix2.eM12 + CSng(pRectangle->top) * OutMatrix2.eM22 + OutMatrix2.eDy
+	Dim nTop As VARIANT = Any
+	VariantInit(@nTop)
+	VariantChangeType(@nTop, @fTop, 0, VT_I4)
+	
+	Dim fRight As VARIANT = Any
+	fRight.vt = VT_R4
+	fRight.fltVal = CSng(pRectangle->right) * OutMatrix2.eM11 + CSng(pRectangle->bottom) * OutMatrix2.eM21 + OutMatrix2.eDx
+	Dim nRight As VARIANT = Any
+	VariantInit(@nRight)
+	VariantChangeType(@nRight, @fRight, 0, VT_I4)
+	
+	Dim fBottom As VARIANT = Any
+	fBottom.vt = VT_R4
+	fBottom.fltVal = CSng(pRectangle->right) * OutMatrix2.eM12 + CSng(pRectangle->bottom) * OutMatrix2.eM22 + OutMatrix2.eDy
+	Dim nBottom As VARIANT = Any
+	VariantInit(@nBottom)
+	VariantChangeType(@nBottom, @fBottom, 0, VT_I4)
+	
+	' pTranslatedRectangle->left = nLeft - 1
+	' pTranslatedRectangle->top =  - 1
+	' pTranslatedRectangle->right =  + 1
+	' pTranslatedRectangle->bottom =  + 1
+	
+	SetRect(pTranslatedRectangle, _
+		nLeft.lVal, _
+		nTop.lVal, _
+		nRight.lVal, _
+		nBottom.lVal _
+	)
+	
+	Dim buffer As WString * (512 + 1) = Any
+	Const ffFormat = WStr("{%d, %d, %d, %d} = {%d, %d, %d, %d}")
+	swprintf(@buffer, @ffFormat, pRectangle->left, pRectangle->top, pRectangle->right, pRectangle->bottom, pTranslatedRectangle->left, pTranslatedRectangle->top, pTranslatedRectangle->right, pTranslatedRectangle->bottom)
+	buffer[255] = 0
+	MessageBoxW(NULL, @buffer, NULL, MB_OK)
 	
 End Sub
 
