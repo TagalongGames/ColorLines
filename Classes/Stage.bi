@@ -5,6 +5,7 @@
 
 Enum StageKeys
 	Tab
+	ShiftTab
 	KeyReturn
 	Left
 	Up
@@ -78,6 +79,8 @@ End Type
 
 Type Stage
 	Lines(0 To 8, 0 To 8) As Cell
+	SelectedCellX As Integer
+	SelectedCellY As Integer
 	Tablo(0 To 2) As Cell
 	MovedBall As ColorBall
 	CallBacks As StageCallBacks

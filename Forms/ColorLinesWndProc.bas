@@ -181,40 +181,31 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Select Case wParam
 				
 				Case VK_TAB
-					' Прыжок на следующий шар
-					' Если Shift+TAB то на предыдущий шар
 					StageKeyPress(ColorLinesStage, StageKeys.Tab)
 					
 				Case VK_SPACE
-					' Выбор шара, аналогично щелчку мыши
 					StageKeyPress(ColorLinesStage, StageKeys.KeyReturn)
 					
 				Case VK_RETURN
-					' Выбор шара, аналогично щелчку мыши
 					StageKeyPress(ColorLinesStage, StageKeys.KeyReturn)
 					
 				Case VK_LEFT
-					' Прямоугольник предварительного выделения
 					StageKeyPress(ColorLinesStage, StageKeys.Left)
 					
 				Case VK_UP
-					' Прямоугольник предварительного выделения
 					StageKeyPress(ColorLinesStage, StageKeys.Up)
 					
 				Case VK_RIGHT
-					' Прямоугольник предварительного выделения
 					StageKeyPress(ColorLinesStage, StageKeys.Right)
 					
 				Case VK_DOWN
-					' Прямоугольник предварительного выделения
 					StageKeyPress(ColorLinesStage, StageKeys.Down)
 					
 				Case VK_ESCAPE
-					' Снять выбор шара
 					StageKeyPress(ColorLinesStage, StageKeys.Escape)
 					
 			End Select
-		
+			
 		Case WM_TIMER
 			Select Case wParam
 				
@@ -225,7 +216,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					End If
 					
 			End Select
-		
+			
 		Case Else
 			Return DefWindowProc(hWin, wMsg, wParam, lParam)
 			

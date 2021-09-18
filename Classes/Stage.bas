@@ -83,6 +83,8 @@ Function CreateStage( _
 	Next
 	
 	pStage->Lines(0, 0).Selected = True
+	pStage->SelectedCellX = 0
+	pStage->SelectedCellY = 0
 	
 	For j As Integer = 0 To 2
 		
@@ -238,6 +240,101 @@ Sub StageKeyPress( _
 		ByVal pStage As Stage Ptr, _
 		ByVal Key As StageKeys _
 	)
+	
+	Select Case Key
+		Case StageKeys.Tab
+			' Прыжок на следующий шар
+		Case StageKeys.ShiftTab
+			' Если Shift+TAB то на предыдущий шар
+		Case StageKeys.KeyReturn
+			' Выбор шара, аналогично щелчку мыши
+		Case StageKeys.Left
+			' Прямоугольник предварительного выделения
+			' Убрать выделение
+			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
+			pStage->CallBacks.Render( _
+				pStage->Context, _
+				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
+				1 _
+			)
+			' Сменить координаты
+			pStage->SelectedCellX -= 1
+			If pStage->SelectedCellX < 0 Then
+				pStage->SelectedCellX = 8
+			End If
+			' Перерисовать прямоугольник
+			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
+			pStage->CallBacks.Render( _
+				pStage->Context, _
+				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
+				1 _
+			)
+		Case StageKeys.Up
+			' Прямоугольник предварительного выделения
+			' Убрать выделение
+			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
+			pStage->CallBacks.Render( _
+				pStage->Context, _
+				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
+				1 _
+			)
+			' Сменить координаты
+			pStage->SelectedCellY -= 1
+			If pStage->SelectedCellY < 0 Then
+				pStage->SelectedCellY = 8
+			End If
+			' Перерисовать прямоугольник
+			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
+			pStage->CallBacks.Render( _
+				pStage->Context, _
+				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
+				1 _
+			)
+		Case StageKeys.Right
+			' Прямоугольник предварительного выделения
+			' Убрать выделение
+			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
+			pStage->CallBacks.Render( _
+				pStage->Context, _
+				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
+				1 _
+			)
+			' Сменить координаты
+			pStage->SelectedCellX += 1
+			If pStage->SelectedCellX > 8 Then
+				pStage->SelectedCellX = 0
+			End If
+			' Перерисовать прямоугольник
+			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
+			pStage->CallBacks.Render( _
+				pStage->Context, _
+				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
+				1 _
+			)
+		Case StageKeys.Down
+			' Прямоугольник предварительного выделения
+			' Убрать выделение
+			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
+			pStage->CallBacks.Render( _
+				pStage->Context, _
+				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
+				1 _
+			)
+			' Сменить координаты
+			pStage->SelectedCellY += 1
+			If pStage->SelectedCellY > 8 Then
+				pStage->SelectedCellY = 0
+			End If
+			' Перерисовать прямоугольник
+			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
+			pStage->CallBacks.Render( _
+				pStage->Context, _
+				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
+				1 _
+			)
+		Case StageKeys.Escape
+			' Снять выбор шара
+	End Select
 	
 End Sub
 
