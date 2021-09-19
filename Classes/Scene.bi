@@ -33,4 +33,25 @@ Declare Sub SceneTranslateRectangle( _
 	ByVal pTranslatedRectangle As RECT Ptr _
 )
 
+Declare Sub SceneClick( _
+	ByVal pScene As Scene Ptr, _
+	ByVal pStage As Stage Ptr, _
+	ByVal pScreenPoint As POINT Ptr _
+)
+
+Declare Sub SceneSetProjectionMatrix( _
+	ByVal pScene As Scene Ptr, _
+	ByVal pProjectionMatrix As XFORM Ptr _
+)
+
+Declare Sub SceneSetViewMatrix( _
+	ByVal pScene As Scene Ptr, _
+	ByVal pViewMatrix As XFORM Ptr _
+)
+
+Declare Sub SceneSetWorldMatrix( _
+	ByVal pScene As Scene Ptr, _
+	ByVal pWorldMatrix As XFORM Ptr _
+)
+
 #endif

@@ -1,0 +1,5 @@
+#ifndef RESOURCEMANAGER_BI
+#define RESOURCEMANAGER_BI
+
+
+#endif

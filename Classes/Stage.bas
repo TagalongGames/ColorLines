@@ -1,5 +1,5 @@
 #include once "Stage.bi"
-#include once "crt.bi"
+' #include once "crt.bi"
 
 Const CellWidth As UINT = 40
 Const CellHeight As UINT = 40
@@ -41,6 +41,81 @@ Function GetRandomStageY()As Integer
 	Dim RndValue As Long = rand()
 	
 	Return CInt(RndValue Mod 9)
+	
+End Function
+
+Sub StageGenerateTablo( _
+		ByVal pStage As Stage Ptr _
+	)
+	
+	For i As Integer = 0 To 2
+		Dim RandomColor As BallColors = GetRandomBallColor()
+		pStage->Tablo(i).Ball.Color = RandomColor
+		pStage->Tablo(i).Ball.Exist = True
+	Next
+	
+	Dim UpdateRectangle As RECT = Any
+	SetRect(@UpdateRectangle, _
+		pStage->Tablo(0).Rectangle.left, _
+		pStage->Tablo(0).Rectangle.top, _
+		pStage->Tablo(2).Rectangle.right, _
+		pStage->Tablo(2).Rectangle.bottom _
+	)
+	pStage->CallBacks.Render( _
+		pStage->Context, _
+		@UpdateRectangle, _
+		1 _
+	)
+	
+End Sub
+
+Function StageExtractBalls( _
+		ByVal pStage As Stage Ptr _
+	)As Boolean
+	
+	For i As Integer = 0 To 2
+		' Выбрать случайную свободную ячейку
+		' Если пустых нет, то вернуть ошибку
+		Dim x As Integer = GetRandomStageX()
+		Dim y As Integer = GetRandomStageY()
+		
+		Dim RandomColor As BallColors = pStage->Tablo(i).Ball.Color
+		
+		/'
+		Dim buffer As WString * (255 + 1) = Any
+		Const ffFormat = WStr("{%d, %d}, %d")
+		swprintf(@buffer, @ffFormat, x, y, RandomColor)
+		buffer[255] = 0
+		MessageBoxW(NULL, @buffer, NULL, MB_OK)
+		'/
+		
+		' Поместить на игровое поле
+		pStage->Lines(y, x).Ball.Color = RandomColor
+		pStage->Lines(y, x).Ball.Frame = AnimationFrames.Birth0
+		pStage->Lines(y, x).Ball.Exist = True
+		
+		' Если нет места, то вернуть ошибку
+		
+		' Удалить 5 в ряд
+		
+		' Если было удаление, то генерировать табло не надо
+		
+	Next
+	
+	Dim UpdateRectangle As RECT = Any
+	SetRect(@UpdateRectangle, _
+		pStage->Lines(0, 0).Rectangle.left, _
+		pStage->Lines(0, 0).Rectangle.top, _
+		pStage->Lines(8, 8).Rectangle.right, _
+		pStage->Lines(8, 8).Rectangle.bottom _
+	)
+	pStage->CallBacks.Render( _
+		pStage->Context, _
+		@UpdateRectangle, _
+		1 _
+	)
+	
+	Return False
 	
 End Function
 
@@ -88,14 +163,18 @@ Function CreateStage( _
 	
 	For j As Integer = 0 To 2
 		
-		CopyRect(@pStage->Tablo(j).Rectangle, @pStage->Lines(j + 1, 8).Rectangle)
+		CopyRect(@pStage->Tablo(j).Rectangle, @pStage->Lines(j + 2, 8).Rectangle)
 		OffsetRect(@pStage->Tablo(j).Rectangle, 2 * CellWidth, 0)
 		
-		CopyRect(@pStage->Tablo(j).Ball.Rectangle, @pStage->Lines(j + 1, 8).Ball.Rectangle)
+		CopyRect(@pStage->Tablo(j).Ball.Rectangle, @pStage->Lines(j + 2, 8).Ball.Rectangle)
 		OffsetRect(@pStage->Tablo(j).Ball.Rectangle, 2 * CellWidth, 0)
 		
 		pStage->Tablo(j).Selected = False
 		
+		Dim RandomColor As BallColors = GetRandomBallColor()
+		pStage->Tablo(j).Ball.Color = RandomColor
+		pStage->Tablo(j).Ball.Exist = True
+		pStage->Tablo(j).Ball.Frame = AnimationFrames.Stopped
 	Next
 	
 	' pStage->MovedBall.Color = BallColors.Red
@@ -135,61 +214,11 @@ Sub StageNewGame( _
 		Next
 	Next
 	
-	For i As Integer = 0 To 2
-		pStage->Tablo(i).Ball.Frame = AnimationFrames.Stopped
-		pStage->Tablo(i).Ball.Exist = False
-	Next
-	
 	pStage->MovedBall.Frame = AnimationFrames.Stopped
 	pStage->MovedBall.Exist = False
 	
-	For i As Integer = 0 To 2
-		' Выбрать случайные координаты и цвет
-		Dim x As Integer = GetRandomStageX()
-		Dim y As Integer = GetRandomStageY()
-		Dim RandomColor As BallColors = GetRandomBallColor()
-		
-		/'
-		Dim buffer As WString * (255 + 1) = Any
-		Const ffFormat = WStr("{%d, %d}, %d")
-		swprintf(@buffer, @ffFormat, x, y, RandomColor)
-		buffer[255] = 0
-		MessageBoxW(NULL, @buffer, NULL, MB_OK)
-		'/
-		
-		' Поместить на игровое поле
-		pStage->Lines(y, x).Ball.Color = RandomColor
-		pStage->Lines(y, x).Ball.Frame = AnimationFrames.Birth0
-		pStage->Lines(y, x).Ball.Exist = True
-	Next
-	
-	For i As Integer = 0 To 2
-		' Выбрать случайные цвета
-		' Поместить в табло
-		Dim RandomColor As BallColors = GetRandomBallColor()
-		pStage->Tablo(i).Ball.Color = RandomColor
-		pStage->Tablo(i).Ball.Frame = AnimationFrames.Stopped
-		pStage->Tablo(i).Ball.Exist = True
-	Next
-	
-	Dim UpdateRectangle(1) As RECT = Any
-	SetRect(@UpdateRectangle(0), _
-		pStage->Lines(0, 0).Rectangle.left, _
-		pStage->Lines(0, 0).Rectangle.top, _
-		pStage->Lines(8, 8).Rectangle.right, _
-		pStage->Lines(8, 8).Rectangle.bottom _
-	)
-	SetRect(@UpdateRectangle(1), _
-		pStage->Tablo(0).Rectangle.left, _
-		pStage->Tablo(0).Rectangle.top, _
-		pStage->Tablo(2).Rectangle.right, _
-		pStage->Tablo(2).Rectangle.bottom _
-	)
-	pStage->CallBacks.Render( _
-		pStage->Context, _
-		@UpdateRectangle(0), _
-		2 _
-	)
+	StageExtractBalls(pStage)
+	StageGenerateTablo(pStage)
 	
 End Sub
 

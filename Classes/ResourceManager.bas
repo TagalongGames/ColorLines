@@ -1,0 +1,2 @@
+#include once "ResourceManager.bi"
+

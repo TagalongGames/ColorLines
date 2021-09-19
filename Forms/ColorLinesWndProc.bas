@@ -5,6 +5,7 @@
 #include once "Stage.bi"
 #include once "DisplayError.bi"
 #include once "Resources.RH"
+#include once "crt.bi"
 
 Const ANIMATION_TIMER_ID As UINT_PTR = 1
 Const ANIMATION_TIMER_INTERVAL As UINT = 1000
@@ -40,6 +41,12 @@ Function ColorLinesStageRenderFunction( _
 			@pRenderRectangles[i], _
 			@ScreenRectangle _
 		)
+		
+		Dim buffer As WString * (512 + 1) = Any
+		Const ffFormat = WStr("{%d, %d, %d, %d} = {%d, %d, %d, %d}")
+		swprintf(@buffer, @ffFormat, pRenderRectangles[i].left, pRenderRectangles[i].top, pRenderRectangles[i].right, pRenderRectangles[i].bottom, ScreenRectangle.left, ScreenRectangle.top, ScreenRectangle.right, ScreenRectangle.bottom)
+		buffer[255] = 0
+		MessageBoxW(NULL, @buffer, NULL, MB_OK)
 		
 		InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
 	Next
@@ -175,7 +182,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim pt As POINT = Any
 			pt.x = GET_X_LPARAM(lParam)
 			pt.y = GET_Y_LPARAM(lParam)
-			StageClick(ColorLinesStage, @pt)
+			SceneClick(ColorLinesScene, ColorLinesStage, @pt)
 			
 		Case WM_KEYDOWN
 			Select Case wParam

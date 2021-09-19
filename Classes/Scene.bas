@@ -1,9 +1,7 @@
 #include once "Scene.bi"
+#include once "GdiMatrix.bi"
 #include once "windows.bi"
-#include once "win\ole2.bi"
 #include once "win\GdiPlus.bi"
-#include once "win\oleauto.bi"
-#include once "crt.bi"
 
 Enum
 	rgbBlack =       &h00000000
@@ -66,122 +64,15 @@ Type _Scene
 	Bitmap As HBITMAP
 	OldBitmap As HGDIOBJ
 	
-	TilesDeviceContext As HDC
-	TilesBitmap As HBITMAP
-	TilesOldBitmap As HGDIOBJ
-	
 	Brushes As SceneBrushes
 	
 	Width As UINT
 	Height As UINT
 	
+	ProjectionMatrix As XFORM
+	ViewMatrix As XFORM
+	WorldMatrix As XFORM
 End Type
-
-' Заполнение матрицы для операции масштабирования
-Sub MatrixSetScale( _
-		ByVal m As XFORM Ptr, _
-		ByVal ScaleX As Single, _
-		ByVal ScaleY As Single _
-	)
-	
-	m->eM11 = ScaleX : m->eM21 = 0.0    : m->eDx = 0.0
-	m->eM12 = 0.0    : m->eM22 = ScaleY : m->eDy = 0.0
-	' 0              : 0                : 1
-	
-End Sub
-
-' Заполнение матрицы для операции переноса
-Sub MatrixSetTranslate( _
-		ByVal m As XFORM Ptr, _
-		ByVal dx As Single, _
-		ByVal dy As Single _
-	)
-	
-	m->eM11 = 1.0 : m->eM21 = 0.0 : m->eDx = dx
-	m->eM12 = 0.0 : m->eM22 = 1.0 : m->eDy = dy
-	' 0           : 0             : 1
-	
-End Sub
-
-' Заполнение матрицы для операции поворота
-' В правосторонней системе координат
-Sub MatrixSetRRotate( _
-		ByVal m As XFORM Ptr, _
-		ByVal AngleSine As Single, _
-		ByVal AngleCosine As Single _
-	)
-	
-	m->eM11 = AngleCosine : m->eM21 = -1.0 * AngleSine : m->eDx = 0.0
-	m->eM12 = AngleSine   : m->eM22 = AngleCosine      : m->eDy = 0.0
-	' 0                   : 0                          : 1
-	
-End Sub
-
-' Заполнение матрицы для операции поворота
-' В левосторонней системе координат
-Sub MatrixSetLRotate( _
-		ByVal m As XFORM Ptr, _
-		ByVal AngleSine As Single, _
-		ByVal AngleCosine As Single _
-	)
-	
-	m->eM11 = AngleCosine      : m->eM21 = AngleSine   : m->eDx = 0.0
-	m->eM12 = -1.0 * AngleSine : m->eM22 = AngleCosine : m->eDy = 0.0
-	' 0                        : 0                     : 1
-	
-End Sub
-
-' Заполнение матрицы для операции отражения
-Sub MatrixSetReflect( _
-		ByVal m As XFORM Ptr, _
-		ByVal x As Boolean, _
-		ByVal y As Boolean _
-	)
-	
-	' Отражение dx и dy
-	Dim dx As Single = Any
-	If x Then
-		dx = -1.0
-	Else
-		dx = 1.0
-	End If
-	
-	Dim dy As Single = Any
-	If y Then
-		dy = -1.0
-	Else
-		dy = 1.0
-	End If
-	
-	m->eM11 = dx  : m->eM21 = 0.0 : m->eDx = 0.0
-	m->eM12 = 0.0 : m->eM22 = dy  : m->eDy = 0.0
-	' 0           : 0             : 1
-	
-End Sub	
-
-' Заполнение матрицы для операции сдвига
-Sub MatrixSetShear( _
-		ByVal m As XFORM Ptr, _
-		ByVal Horizontal As Single, _
-		ByVal Vertical As Single _
-	)
-	
-	m->eM11 = 1.0        : m->eM21 = Vertical : m->eDx = 0.0
-	m->eM12 = Horizontal : m->eM22 = 1.0      : m->eDy = 0.0
-	' 0                  : 0                  : 1
-	
-End Sub
-
-' Заполнение матрицы единичной матрицей
-Sub MatrixSetIdentity( _
-		ByVal m As XFORM Ptr _
-	)
-	
-	m->eM11 = 1.0 : m->eM21 = 0.0 : m->eDx = 0.0
-	m->eM12 = 0.0 : m->eM22 = 1.0 : m->eDy = 0.0
-	' 0           : 0             : 1
-	
-End Sub
 
 Sub DrawBall( _
 		ByVal hDC As HDC, _
@@ -409,6 +300,10 @@ Function CreateScene( _
 	pScene->Height = SceneHeight
 	
 	SetGraphicsMode(pScene->DeviceContext, GM_ADVANCED)
+	
+	MatrixSetIdentity(@pScene->ProjectionMatrix)
+	MatrixSetIdentity(@pScene->ViewMatrix)
+	MatrixSetIdentity(@pScene->WorldMatrix)
 	
 	Return pScene
 	
@@ -760,16 +655,6 @@ Sub SceneTranslateRectangle( _
 		ByVal pTranslatedRectangle As RECT Ptr _
 	)
 	
-	
-	' declare function CombineTransform(byval lpxfOut as LPXFORM, byval lpxf1 as const XFORM ptr, byval lpxf2 as const XFORM ptr) as WINBOOL
-	
-	' Матрица
-	Dim OutMatrix As XFORM = Any
-	
-	' Матрица проекции
-	' Матрица камеры
-	' Мировая матрица
-	' Вектор
 	' Проекция камеры на экран, размеры экрана = размерам камеры
 	Dim ScaleX As Single = max(1.0, CSng(pScene->Width) / CSng(StageGetWidth(pStage)))
 	Dim ScaleY As Single = max(1.0, CSng(pScene->Height) / CSng(StageGetHeight(pStage)))
@@ -786,59 +671,39 @@ Sub SceneTranslateRectangle( _
 	Dim WorldMatrix As XFORM = Any
 	MatrixSetIdentity(@WorldMatrix)
 	
+	Dim OutMatrix As XFORM = Any
 	CombineTransform(@OutMatrix, @ProjectionMatrix, @ViewMatrix)
 	
 	Dim OutMatrix2 As XFORM = Any
 	CombineTransform(@OutMatrix2, @OutMatrix, @WorldMatrix)
 	
-	' Dim OutMatrix3 As XFORM = Any
-	' CombineTransform(@OutMatrix3, @OutMatrix2, @pRectangle)
+	' Вектор
+	Dim LeftTopStageVector As Vector2DF = Any
+	LeftTopStageVector.X = CSng(pRectangle->left)
+	LeftTopStageVector.Y = CSng(pRectangle->Top)
 	
-	Dim fLeft As VARIANT = Any
-	fLeft.vt = VT_R4
-	fLeft.fltVal = CSng(pRectangle->left) * OutMatrix2.eM11 + CSng(pRectangle->top) * OutMatrix2.eM21 + OutMatrix2.eDx
-	Dim nLeft As VARIANT = Any
-	VariantInit(@nLeft)
-	VariantChangeType(@nLeft, @fLeft, 0, VT_I4)
+	Dim LeftTopSceneVectorF As Vector2DF = Any
+	MultipleVector(@LeftTopSceneVectorF, @OutMatrix2, @LeftTopStageVector)
 	
-	Dim fTop As VARIANT = Any
-	fTop.vt = VT_R4
-	fTop.fltVal = CSng(pRectangle->left) * OutMatrix2.eM12 + CSng(pRectangle->top) * OutMatrix2.eM22 + OutMatrix2.eDy
-	Dim nTop As VARIANT = Any
-	VariantInit(@nTop)
-	VariantChangeType(@nTop, @fTop, 0, VT_I4)
+	Dim LeftTopSceneVectorI As Vector2DI = Any
+	ConvertVector2DFToVector2DI(@LeftTopSceneVectorI, @LeftTopSceneVectorF)
 	
-	Dim fRight As VARIANT = Any
-	fRight.vt = VT_R4
-	fRight.fltVal = CSng(pRectangle->right) * OutMatrix2.eM11 + CSng(pRectangle->bottom) * OutMatrix2.eM21 + OutMatrix2.eDx
-	Dim nRight As VARIANT = Any
-	VariantInit(@nRight)
-	VariantChangeType(@nRight, @fRight, 0, VT_I4)
+	Dim RightBottomStageVector As Vector2DF = Any
+	RightBottomStageVector.X = CSng(pRectangle->right)
+	RightBottomStageVector.Y = CSng(pRectangle->bottom)
 	
-	Dim fBottom As VARIANT = Any
-	fBottom.vt = VT_R4
-	fBottom.fltVal = CSng(pRectangle->right) * OutMatrix2.eM12 + CSng(pRectangle->bottom) * OutMatrix2.eM22 + OutMatrix2.eDy
-	Dim nBottom As VARIANT = Any
-	VariantInit(@nBottom)
-	VariantChangeType(@nBottom, @fBottom, 0, VT_I4)
+	Dim RightBottomSceneVectorF As Vector2DF = Any
+	MultipleVector(@RightBottomSceneVectorF, @OutMatrix2, @RightBottomStageVector)
 	
-	' pTranslatedRectangle->left = nLeft - 1
-	' pTranslatedRectangle->top =  - 1
-	' pTranslatedRectangle->right =  + 1
-	' pTranslatedRectangle->bottom =  + 1
+	Dim RightBottomSceneVectorI As Vector2DI = Any
+	ConvertVector2DFToVector2DI(@RightBottomSceneVectorI, @RightBottomSceneVectorF)
 	
 	SetRect(pTranslatedRectangle, _
-		nLeft.lVal, _
-		nTop.lVal, _
-		nRight.lVal, _
-		nBottom.lVal _
+		LeftTopSceneVectorI.X - 1, _
+		LeftTopSceneVectorI.Y - 1, _
+		RightBottomSceneVectorI.X + 1, _
+		RightBottomSceneVectorI.Y + 1 _
 	)
-	
-	Dim buffer As WString * (512 + 1) = Any
-	Const ffFormat = WStr("{%d, %d, %d, %d} = {%d, %d, %d, %d}")
-	swprintf(@buffer, @ffFormat, pRectangle->left, pRectangle->top, pRectangle->right, pRectangle->bottom, pTranslatedRectangle->left, pTranslatedRectangle->top, pTranslatedRectangle->right, pTranslatedRectangle->bottom)
-	buffer[255] = 0
-	MessageBoxW(NULL, @buffer, NULL, MB_OK)
 	
 End Sub
 
@@ -854,6 +719,14 @@ Sub SceneCopyRectangle( _
 		pScene->DeviceContext, _
 		pRectangle->left, pRectangle->top, _
 		SRCCOPY _
+	)
+	
+End Sub
+
+Sub SceneClick( _
+		ByVal pScene As Scene Ptr, _
+		ByVal pStage As Stage Ptr, _
+		ByVal pScreenPoint As POINT Ptr _
 	)
 	
 End Sub
