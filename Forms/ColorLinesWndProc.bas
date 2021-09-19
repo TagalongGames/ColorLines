@@ -73,6 +73,27 @@ Function ColorLinesStageAnimateFunction( _
 	
 End Function
 
+Sub SetOrthoProjection( _
+		ByVal ScreenWidth As Integer, _
+		ByVal ScreenHeight As Integer, _
+		ByVal SceneWidth As Integer, _
+		ByVal SceneHeight As Integer _
+	)
+	
+	Dim fAspectX As Single = max(1.0, CSng(ScreenWidth) / CSng(SceneWidth))
+	Dim fAspectY As Single = max(1.0, CSng(ScreenHeight) / CSng(SceneHeight))
+	Dim fIsotropicAspect As Single = min(fAspectX, fAspectY)
+	
+	Dim ProjectionMatrix As XFORM = Any
+	MatrixSetScale(@ProjectionMatrix, fIsotropicAspect, fIsotropicAspect)
+	
+	SceneSetProjectionMatrix( _
+		ColorLinesScene, _
+		@ProjectionMatrix _
+	)
+	
+End Sub
+
 Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As WPARAM, ByVal lParam As LPARAM) As LRESULT
 	
 	Select Case wMsg
@@ -100,16 +121,11 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				End If
 				ColorLinesScene = CreateScene(hWin, ClientAreaWidth, ClientAreaHeight)
 				
-				Dim fAspectX As Single = max(1.0, CSng(ClientAreaWidth) / CSng(StageGetWidth(ColorLinesStage)))
-				Dim fAspectY As Single = max(1.0, CSng(ClientAreaHeight) / CSng(StageGetHeight(ColorLinesStage)))
-				Dim fIsotropicAspect As Single = min(fAspectX, fAspectY)
-				
-				Dim ProjectionMatrix As XFORM = Any
-				MatrixSetScale(@ProjectionMatrix, fIsotropicAspect, fIsotropicAspect)
-				
-				SceneSetProjectionMatrix( _
-					ColorLinesScene, _
-					@ProjectionMatrix _
+				SetOrthoProjection( _
+					ClientAreaWidth, _
+					ClientAreaHeight, _
+					StageGetWidth(ColorLinesStage), _
+					StageGetHeight(ColorLinesStage) _
 				)
 				
 				SceneRender( _

@@ -496,6 +496,7 @@ Sub SceneRender( _
 		GdiPlus.GdipDeleteGraphics(pGraphics) 
 	End Scope
 	'/
+	
 	/'
 	Scope
 		
