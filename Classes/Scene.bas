@@ -557,39 +557,20 @@ Sub SceneRender( _
 	Dim OldMatrix As XFORM = Any
 	GetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
-	' Проекция камеры на экран, размеры экрана = размерам камеры
-	Scope
-		Dim ScaleX As Single = max(1.0, CSng(pScene->Width) / CSng(StageGetWidth(pStage)))
-		Dim ScaleY As Single = max(1.0, CSng(pScene->Height) / CSng(StageGetHeight(pStage)))
-		Dim Scale As Single = min(ScaleX, ScaleY)
-		
-		Dim ProjectionMatrix As XFORM = Any
-		MatrixSetScale(@ProjectionMatrix, Scale, Scale)
-		SetProjectionMatrix( _
-			pScene->DeviceContext, _
-			@ProjectionMatrix _
-		)
-	End Scope
+	SetProjectionMatrix( _
+		pScene->DeviceContext, _
+		@pScene->ProjectionMatrix _
+	)
 	
-	' Проекция сцены на камеру
-	Scope
-		Dim ViewMatrix As XFORM = Any
-		MatrixSetIdentity(@ViewMatrix)
-		SetViewMatrix( _
-			pScene->DeviceContext, _
-			@ViewMatrix _
-		)
-	End Scope
+	SetViewMatrix( _
+		pScene->DeviceContext, _
+		@pScene->ViewMatrix _
+	)
 	
-	' Проекция объекта на сцену
-	Scope
-		Dim WorldMatrix As XFORM = Any
-		MatrixSetIdentity(@WorldMatrix)
-		SetWorldMatrix( _
-			pScene->DeviceContext, _
-			@WorldMatrix _
-		)
-	End Scope
+	SetWorldMatrix( _
+		pScene->DeviceContext, _
+		@pScene->WorldMatrix _
+	)
 	
 	' Рисуем
 	
@@ -655,27 +636,11 @@ Sub SceneTranslateRectangle( _
 		ByVal pTranslatedRectangle As RECT Ptr _
 	)
 	
-	' Проекция камеры на экран, размеры экрана = размерам камеры
-	Dim ScaleX As Single = max(1.0, CSng(pScene->Width) / CSng(StageGetWidth(pStage)))
-	Dim ScaleY As Single = max(1.0, CSng(pScene->Height) / CSng(StageGetHeight(pStage)))
-	Dim Scale As Single = min(ScaleX, ScaleY)
-	
-	Dim ProjectionMatrix As XFORM = Any
-	MatrixSetScale(@ProjectionMatrix, Scale, Scale)
-	
-	' Проекция сцены на камеру
-	Dim ViewMatrix As XFORM = Any
-	MatrixSetIdentity(@ViewMatrix)
-	
-	' Проекция объекта на сцену
-	Dim WorldMatrix As XFORM = Any
-	MatrixSetIdentity(@WorldMatrix)
-	
 	Dim OutMatrix As XFORM = Any
-	CombineTransform(@OutMatrix, @ProjectionMatrix, @ViewMatrix)
+	CombineTransform(@OutMatrix, @pScene->ProjectionMatrix, @pScene->ViewMatrix)
 	
 	Dim OutMatrix2 As XFORM = Any
-	CombineTransform(@OutMatrix2, @OutMatrix, @WorldMatrix)
+	CombineTransform(@OutMatrix2, @OutMatrix, @pScene->WorldMatrix)
 	
 	' Вектор
 	Dim LeftTopStageVector As Vector2DF = Any
@@ -728,5 +693,32 @@ Sub SceneClick( _
 		ByVal pStage As Stage Ptr, _
 		ByVal pScreenPoint As POINT Ptr _
 	)
+	
+End Sub
+
+Sub SceneSetProjectionMatrix( _
+		ByVal pScene As Scene Ptr, _
+		ByVal pProjectionMatrix As XFORM Ptr _
+	)
+	
+	pScene->ProjectionMatrix = *pProjectionMatrix
+	
+End Sub
+
+Sub SceneSetViewMatrix( _
+		ByVal pScene As Scene Ptr, _
+		ByVal pViewMatrix As XFORM Ptr _
+	)
+	
+	pScene->ViewMatrix = *pViewMatrix
+	
+End Sub
+
+Sub SceneSetWorldMatrix( _
+		ByVal pScene As Scene Ptr, _
+		ByVal pWorldMatrix As XFORM Ptr _
+	)
+	
+	pScene->WorldMatrix = *pWorldMatrix
 	
 End Sub

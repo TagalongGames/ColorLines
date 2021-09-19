@@ -1,6 +1,7 @@
 #include once "ColorLinesWndProc.bi"
 #include once "win\windowsx.bi"
 #include once "GameModel.bi"
+#include once "GdiMatrix.bi"
 #include once "Scene.bi"
 #include once "Stage.bi"
 #include once "DisplayError.bi"
@@ -98,6 +99,18 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					DestroyScene(ColorLinesScene)
 				End If
 				ColorLinesScene = CreateScene(hWin, ClientAreaWidth, ClientAreaHeight)
+				
+				Dim fAspectX As Single = max(1.0, CSng(ClientAreaWidth) / CSng(StageGetWidth(ColorLinesStage)))
+				Dim fAspectY As Single = max(1.0, CSng(ClientAreaHeight) / CSng(StageGetHeight(ColorLinesStage)))
+				Dim fIsotropicAspect As Single = min(fAspectX, fAspectY)
+				
+				Dim ProjectionMatrix As XFORM = Any
+				MatrixSetScale(@ProjectionMatrix, fIsotropicAspect, fIsotropicAspect)
+				
+				SceneSetProjectionMatrix( _
+					ColorLinesScene, _
+					@ProjectionMatrix _
+				)
 				
 				SceneRender( _
 					ColorLinesScene, _
