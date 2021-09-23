@@ -17,6 +17,7 @@ End Type
 
 Dim Shared pScene As Scene Ptr
 Dim Shared pStage As Stage Ptr
+Dim Shared pModel As GameModel Ptr
 
 Function ColorLinesStageRenderFunction( _
 		ByVal Context As Any Ptr, _
@@ -109,6 +110,9 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			CallBacks.AnimateFunction = @ColorLinesStageAnimateFunction
 			
 			pStage = CreateStage(0, @CallBacks, Context)
+			If pStage = NULL Then
+				Return -1
+			End If
 			
 		Case WM_SIZE
 			If wParam <> SIZE_MINIMIZED Then
@@ -141,10 +145,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					Select Case LoWord(wParam)
 						
 						Case IDM_GAME_NEW
-							StageNewGame(pStage)
+							GameModelNewGame(pModel, pStage)
 							
 						Case IDM_GAME_UNDO
-							StageCommand(pStage, StageCommands.Undo)
+							GameModelCommand(pStage, StageCommands.Undo)
 							
 						' Case IDM_GAME_STATISTICS
 							' MainFormMenuStatistics_Click(hWin)
@@ -168,10 +172,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					Select Case LoWord(wParam)
 						
 						Case IDM_GAME_NEW_ACS
-							StageNewGame(pStage)
+							GameModelNewGame(pModel, pStage)
 							
 						Case IDM_GAME_UNDO_ACS
-							StageCommand(pStage, StageCommands.Undo)
+							GameModelCommand(pStage, StageCommands.Undo)
 							
 						' Case IDM_GAME_STATISTICS_ACS
 							' MainFormMenuStatistics_Click(hWin)
@@ -216,28 +220,28 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Select Case wParam
 				
 				Case VK_TAB
-					StageKeyPress(pStage, StageKeys.Tab)
+					GameModelKeyPress(pStage, StageKeys.Tab)
 					
 				Case VK_SPACE
-					StageKeyPress(pStage, StageKeys.KeyReturn)
+					GameModelKeyPress(pStage, StageKeys.KeyReturn)
 					
 				Case VK_RETURN
-					StageKeyPress(pStage, StageKeys.KeyReturn)
+					GameModelKeyPress(pStage, StageKeys.KeyReturn)
 					
 				Case VK_LEFT
-					StageKeyPress(pStage, StageKeys.Left)
+					GameModelKeyPress(pStage, StageKeys.Left)
 					
 				Case VK_UP
-					StageKeyPress(pStage, StageKeys.Up)
+					GameModelKeyPress(pStage, StageKeys.Up)
 					
 				Case VK_RIGHT
-					StageKeyPress(pStage, StageKeys.Right)
+					GameModelKeyPress(pStage, StageKeys.Right)
 					
 				Case VK_DOWN
-					StageKeyPress(pStage, StageKeys.Down)
+					GameModelKeyPress(pStage, StageKeys.Down)
 					
 				Case VK_ESCAPE
-					StageKeyPress(pStage, StageKeys.Escape)
+					GameModelKeyPress(pStage, StageKeys.Escape)
 					
 			End Select
 			
@@ -245,7 +249,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Select Case wParam
 				
 				Case ANIMATION_TIMER_ID
-					Dim AnimationNeeded As Boolean = StageTick(pStage)
+					Dim AnimationNeeded As Boolean = GameModelTick(pStage)
 					If AnimationNeeded = False Then
 						KillTimer(hWin, ANIMATION_TIMER_ID)
 					End If

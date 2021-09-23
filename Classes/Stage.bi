@@ -3,21 +3,6 @@
 
 #include once "windows.bi"
 
-Enum StageKeys
-	Tab
-	ShiftTab
-	KeyReturn
-	Left
-	Up
-	Right
-	Down
-	Escape
-End Enum
-
-Enum StageCommands
-	Undo
-End Enum
-
 Enum BallColors
 	Red
 	Green
@@ -99,33 +84,10 @@ Declare Sub DestroyStage( _
 	ByVal pStage As Stage Ptr _
 )
 
-Declare Sub StageNewGame( _
-	ByVal pStage As Stage Ptr _
-)
-
 Declare Function StageGetCellFromPoint( _
 	ByVal pStage As Stage Ptr, _
 	ByVal pp As POINT Ptr, _
 	ByVal pCell As POINT Ptr _
-)As Boolean
-
-Declare Sub StageClick( _
-	ByVal pStage As Stage Ptr, _
-	ByVal pp As POINT Ptr _
-)
-
-Declare Sub StageKeyPress( _
-	ByVal pStage As Stage Ptr, _
-	ByVal Key As StageKeys _
-)
-
-Declare Function StageTick( _
-	ByVal pStage As Stage Ptr _
-)As Boolean
-
-Declare Function StageCommand( _
-	ByVal pStage As Stage Ptr, _
-	ByVal cmd As StageCommands _
 )As Boolean
 
 Declare Function StageGetWidth( _
@@ -135,5 +97,13 @@ Declare Function StageGetWidth( _
 Declare Function StageGetHeight( _
 	ByVal pStage As Stage Ptr _
 )As Integer
+
+Declare Function GetRandomBoolean()As Boolean
+
+Declare Function GetRandomBallColor()As BallColors
+
+Declare Function GetRandomStageX()As Integer
+
+Declare Function GetRandomStageY()As Integer
 
 #endif
