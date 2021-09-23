@@ -1,9 +1,9 @@
 #include once "WinMain.bi"
 #include once "win\commctrl.bi"
 #include once "win\GdiPlus.bi"
-#include once "ColorLinesWndProc.bi"
-#include once "Resources.RH"
 #include once "DisplayError.bi"
+#include once "MainFormWndProc.bi"
+#include once "Resources.RH"
 
 Const MainWindowClassName = __TEXT("ColorLines")
 
@@ -89,26 +89,18 @@ Function wWinMain( _
 			Return 1
 		End If
 		
-		Dim WindowWidth As Long = 640
-		Dim WindowHeight As Long = 480
-		
 		Dim WindowText(255) As TCHAR = Any
 		LoadString(hInst, IDS_WINDOWTITLE, @WindowText(0), 255)
 		
-		Const WindowPositionX As Long = 0
-		Const WindowPositionY As Long = 0
-		Const StyleEx As DWORD = WS_EX_OVERLAPPEDWINDOW
-		Const Style As DWORD = WS_OVERLAPPEDWINDOW
-		
 		Dim hWndMain As HWND = CreateWindowEx( _
-			StyleEx, _
+			WS_EX_OVERLAPPEDWINDOW, _
 			@MainWindowClassName, _
 			@WindowText(0), _
-			Style, _
+			WS_OVERLAPPEDWINDOW, _
 			CW_USEDEFAULT, _
 			CW_USEDEFAULT, _
-			WindowWidth, _
-			WindowHeight, _
+			CW_USEDEFAULT, _
+			CW_USEDEFAULT, _
 			NULL, _
 			Cast(HMENU, NULL), _
 			hInst, _

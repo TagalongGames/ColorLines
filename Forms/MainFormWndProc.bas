@@ -1,12 +1,12 @@
-#include once "ColorLinesWndProc.bi"
+#include once "MainFormWndProc.bi"
 #include once "win\windowsx.bi"
+#include once "crt.bi"
+#include once "DisplayError.bi"
 #include once "GameModel.bi"
 #include once "GdiMatrix.bi"
+#include once "Resources.RH"
 #include once "Scene.bi"
 #include once "Stage.bi"
-#include once "DisplayError.bi"
-#include once "Resources.RH"
-#include once "crt.bi"
 
 Const ANIMATION_TIMER_ID As UINT_PTR = 1
 Const ANIMATION_TIMER_INTERVAL As UINT = 1000
@@ -15,11 +15,8 @@ Type UpdateContext
 	hWin As HWND
 End Type
 
-' —цена
-Dim Shared ColorLinesScene As Scene Ptr
-
-' »гровое поле
-Dim Shared ColorLinesStage As Stage Ptr
+Dim Shared pScene As Scene Ptr
+Dim Shared pStage As Stage Ptr
 
 Function ColorLinesStageRenderFunction( _
 		ByVal Context As Any Ptr, _
@@ -30,24 +27,26 @@ Function ColorLinesStageRenderFunction( _
 	Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, Context)
 	
 	SceneRender( _
-		ColorLinesScene, _
-		ColorLinesStage _
+		pScene, _
+		pStage _
 	)
 	
 	For i As Integer = 0 To Count - 1
 		Dim ScreenRectangle As RECT = Any
 		SceneTranslateRectangle( _
-			ColorLinesScene, _
-			ColorLinesStage, _
+			pScene, _
+			pStage, _
 			@pRenderRectangles[i], _
 			@ScreenRectangle _
 		)
 		
+		/'
 		Dim buffer As WString * (512 + 1) = Any
 		Const ffFormat = WStr("{%d, %d, %d, %d} = {%d, %d, %d, %d}")
 		swprintf(@buffer, @ffFormat, pRenderRectangles[i].left, pRenderRectangles[i].top, pRenderRectangles[i].right, pRenderRectangles[i].bottom, ScreenRectangle.left, ScreenRectangle.top, ScreenRectangle.right, ScreenRectangle.bottom)
 		buffer[255] = 0
 		MessageBoxW(NULL, @buffer, NULL, MB_OK)
+		'/
 		
 		InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
 	Next
@@ -88,7 +87,7 @@ Sub SetOrthoProjection( _
 	MatrixSetScale(@ProjectionMatrix, fIsotropicAspect, fIsotropicAspect)
 	
 	SceneSetProjectionMatrix( _
-		ColorLinesScene, _
+		pScene, _
 		@ProjectionMatrix _
 	)
 	
@@ -109,28 +108,28 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			CallBacks.Render = @ColorLinesStageRenderFunction
 			CallBacks.AnimateFunction = @ColorLinesStageAnimateFunction
 			
-			ColorLinesStage = CreateStage(0, @CallBacks, Context)
+			pStage = CreateStage(0, @CallBacks, Context)
 			
 		Case WM_SIZE
 			If wParam <> SIZE_MINIMIZED Then
 				Dim ClientAreaWidth As UINT = LOWORD(lParam)
 				Dim ClientAreaHeight As UINT = HIWORD(lParam)
 				
-				If ColorLinesScene <> NULL Then
-					DestroyScene(ColorLinesScene)
+				If pScene <> NULL Then
+					DestroyScene(pScene)
 				End If
-				ColorLinesScene = CreateScene(hWin, ClientAreaWidth, ClientAreaHeight)
+				pScene = CreateScene(hWin, ClientAreaWidth, ClientAreaHeight)
 				
 				SetOrthoProjection( _
 					ClientAreaWidth, _
 					ClientAreaHeight, _
-					StageGetWidth(ColorLinesStage), _
-					StageGetHeight(ColorLinesStage) _
+					StageGetWidth(pStage), _
+					StageGetHeight(pStage) _
 				)
 				
 				SceneRender( _
-					ColorLinesScene, _
-					ColorLinesStage _
+					pScene, _
+					pStage _
 				)
 			End If
 			
@@ -142,10 +141,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					Select Case LoWord(wParam)
 						
 						Case IDM_GAME_NEW
-							StageNewGame(ColorLinesStage)
+							StageNewGame(pStage)
 							
 						Case IDM_GAME_UNDO
-							StageCommand(ColorLinesStage, StageCommands.Undo)
+							StageCommand(pStage, StageCommands.Undo)
 							
 						' Case IDM_GAME_STATISTICS
 							' MainFormMenuStatistics_Click(hWin)
@@ -169,10 +168,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					Select Case LoWord(wParam)
 						
 						Case IDM_GAME_NEW_ACS
-							StageNewGame(ColorLinesStage)
+							StageNewGame(pStage)
 							
 						Case IDM_GAME_UNDO_ACS
-							StageCommand(ColorLinesStage, StageCommands.Undo)
+							StageCommand(pStage, StageCommands.Undo)
 							
 						' Case IDM_GAME_STATISTICS_ACS
 							' MainFormMenuStatistics_Click(hWin)
@@ -194,16 +193,16 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim ps As PAINTSTRUCT = Any
 			Dim hDC As HDC = BeginPaint(hWin, @ps)
 			
-			SceneCopyRectangle(ColorLinesScene, hDC, @ps.rcPaint)
+			SceneCopyRectangle(pScene, hDC, @ps.rcPaint)
 			
 			EndPaint(hWin, @ps)
 			
 		Case WM_DESTROY
-			If ColorLinesScene <> NULL Then
-				DestroyScene(ColorLinesScene)
+			If pScene <> NULL Then
+				DestroyScene(pScene)
 			End If
-			If ColorLinesStage <> NULL Then
-				DestroyStage(ColorLinesStage)
+			If pStage <> NULL Then
+				DestroyStage(pStage)
 			End If
 			PostQuitMessage(0)
 			
@@ -211,34 +210,34 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim pt As POINT = Any
 			pt.x = GET_X_LPARAM(lParam)
 			pt.y = GET_Y_LPARAM(lParam)
-			SceneClick(ColorLinesScene, ColorLinesStage, @pt)
+			SceneClick(pScene, pStage, @pt)
 			
 		Case WM_KEYDOWN
 			Select Case wParam
 				
 				Case VK_TAB
-					StageKeyPress(ColorLinesStage, StageKeys.Tab)
+					StageKeyPress(pStage, StageKeys.Tab)
 					
 				Case VK_SPACE
-					StageKeyPress(ColorLinesStage, StageKeys.KeyReturn)
+					StageKeyPress(pStage, StageKeys.KeyReturn)
 					
 				Case VK_RETURN
-					StageKeyPress(ColorLinesStage, StageKeys.KeyReturn)
+					StageKeyPress(pStage, StageKeys.KeyReturn)
 					
 				Case VK_LEFT
-					StageKeyPress(ColorLinesStage, StageKeys.Left)
+					StageKeyPress(pStage, StageKeys.Left)
 					
 				Case VK_UP
-					StageKeyPress(ColorLinesStage, StageKeys.Up)
+					StageKeyPress(pStage, StageKeys.Up)
 					
 				Case VK_RIGHT
-					StageKeyPress(ColorLinesStage, StageKeys.Right)
+					StageKeyPress(pStage, StageKeys.Right)
 					
 				Case VK_DOWN
-					StageKeyPress(ColorLinesStage, StageKeys.Down)
+					StageKeyPress(pStage, StageKeys.Down)
 					
 				Case VK_ESCAPE
-					StageKeyPress(ColorLinesStage, StageKeys.Escape)
+					StageKeyPress(pStage, StageKeys.Escape)
 					
 			End Select
 			
@@ -246,7 +245,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Select Case wParam
 				
 				Case ANIMATION_TIMER_ID
-					Dim AnimationNeeded As Boolean = StageTick(ColorLinesStage)
+					Dim AnimationNeeded As Boolean = StageTick(pStage)
 					If AnimationNeeded = False Then
 						KillTimer(hWin, ANIMATION_TIMER_ID)
 					End If

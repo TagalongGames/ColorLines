@@ -86,9 +86,8 @@ Sub DrawBall( _
 	' - уничтожение, рассыпался в прах (от 9 до 0)
 	' координаты
 	
-	Dim OldBrush As HGDIOBJ = Any
-	
 	If pBall->Exist Then
+		Dim OldBrush As HGDIOBJ = Any
 		
 		Select Case CInt(pBall->Color)
 			
@@ -133,6 +132,69 @@ Sub DrawBall( _
 		' SelectObject(hDC, OldPen)
 		SelectObject(hDC, OldBrush)
 	End If
+	
+	
+	/'
+	If pBall->Exist Then
+		' Перенос, вращение, масштабирование
+		
+		Dim TranslateMatrix As XFORM = Any
+		MatrixSetTranslate( _
+			@TranslateMatrix, _
+			pBall->Rectangle.left, _
+			pBall->Rectangle.top _
+		)
+		' ModifyWorldTransform(hDC, @TranslateMatrix, MWT_LEFTMULTIPLY)
+		
+		Const Sine45 = 0.70710678118654752440084436210485
+		Const Cosine45 = 0.70710678118654752440084436210485
+		Dim RotateMatrix As XFORM = Any ' 45 градусов
+		MatrixSetRRotate( _
+			@RotateMatrix, _
+			Sine45, _
+			Cosine45 _
+		)
+		ModifyWorldTransform(hDC, @RotateMatrix, MWT_LEFTMULTIPLY)
+		
+		' declare function GetRegionData(byval hrgn as HRGN, byval nCount as DWORD, byval lpRgnData as LPRGNDATA) as DWORD
+		' declare function ExtCreateRegion(byval lpx as const XFORM ptr, byval nCount as DWORD, byval lpData as const RGNDATA ptr) as HRGN
+		Dim elRgn As HRGN = CreateEllipticRgn(0, 0, pBall->Rectangle.right - pBall->Rectangle.left, pBall->Rectangle.bottom - pBall->Rectangle.top)
+		
+		' Create an array of TRIVERTEX structures that describe 
+		' positional and color values for each vertex. For a rectangle, 
+		' only two vertices need to be defined: upper-left and lower-right. 
+		Dim vertex(0 To 1) As TRIVERTEX = Any
+		vertex(0).x     = 0
+		vertex(0).y     = 0
+		vertex(0).Red   = &hFFFF
+		vertex(0).Green = &hFFFF
+		vertex(0).Blue  = &hFFFF
+		vertex(0).Alpha = &hFFFF
+		
+		vertex(1).x     = pBall->Rectangle.right - pBall->Rectangle.left
+		vertex(1).y     = pBall->Rectangle.bottom - pBall->Rectangle.top
+		vertex(1).Red   = &h0000
+		vertex(1).Green = &h8000
+		vertex(1).Blue  = &h8000
+		vertex(1).Alpha = &hFFFF
+		
+		' Create a GRADIENT_RECT structure that 
+		' references the TRIVERTEX vertices. 
+		Dim gRect As GRADIENT_RECT = Any
+		gRect.UpperLeft  = 0
+		gRect.LowerRight = 1
+		
+		' SelectClipRgn(hDC, elRgn)
+		
+		' Draw a shaded rectangle. 
+		GradientFill(hDC, @vertex(0), 2, @gRect, 1, GRADIENT_FILL_RECT_H)
+		
+		SelectClipRgn(hDC, NULL)
+		
+		DeleteObject(elRgn)
+		
+	End If
+	'/
 	
 End Sub
 
@@ -218,8 +280,6 @@ Sub DrawCell( _
 		)
 		SelectObject(hDC, OldOldPen)
 	End If
-	
-	DrawBall(hDC, pBrushes, @pCell->Ball)
 	
 	SelectObject(hDC, OldBrush)
 	SelectObject(hDC, OldPen)
@@ -531,6 +591,8 @@ Sub SceneRender( _
 	
 	/'
 	Dim oldMode As Long = GetMapMode(pScene->DeviceContext)
+	
+	' Изотропная система координат
 	SetMapMode(pScene->DeviceContext, MM_ISOTROPIC)
 	
 	' установка логической системы координат
@@ -575,6 +637,32 @@ Sub SceneRender( _
 	
 	' Рисуем
 	
+	Scope
+		Dim Buffer(511) As WCHAR = Any
+		_itow(pStage->HiScore, @Buffer(0), 10)
+		
+		TextOutW( _
+			pScene->DeviceContext, _
+			pStage->Tablo(0).Rectangle.left, _
+			0, _
+			@Buffer(0), _
+			lstrlenw(@Buffer(0)) _
+		)
+	End Scope
+	
+	Scope
+		Dim Buffer(511) As WCHAR = Any
+		_itow(pStage->Score, @Buffer(0), 10)
+		
+		TextOutW( _
+			pScene->DeviceContext, _
+			pStage->Tablo(0).Rectangle.left, _
+			pStage->Tablo(2).Rectangle.bottom, _
+			@Buffer(0), _
+			lstrlenw(@Buffer(0)) _
+		)
+	End Scope
+	
 	' Ячейки
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
@@ -591,11 +679,27 @@ Sub SceneRender( _
 		Next
 	Next
 	
+	' Шары
+	For j As Integer = 0 To 8
+		For i As Integer = 0 To 8
+			Dim OldWorldMatrix As XFORM = Any
+			GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+			
+			DrawBall( _
+				pScene->DeviceContext, _
+				@pScene->Brushes, _
+				@pStage->Lines(j, i).Ball _
+			)
+			
+			SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+		Next
+	Next
+	
+	' Двигающийся шар
 	Scope
 		Dim OldWorldMatrix As XFORM = Any
 		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 		
-		' Двигающийся шар
 		DrawBall( _
 			pScene->DeviceContext, _
 			@pScene->Brushes, _
@@ -605,7 +709,7 @@ Sub SceneRender( _
 		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 	End Scope
 	
-	' Табло с тремя новыми шарами
+	' Табло
 	For i As Integer = 0 To 2
 		Dim OldWorldMatrix As XFORM = Any
 		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
@@ -614,6 +718,20 @@ Sub SceneRender( _
 			pScene->DeviceContext, _
 			@pScene->Brushes, _
 			@pStage->Tablo(i) _
+		)
+		
+		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+	Next
+	
+	' Шары в табле
+	For i As Integer = 0 To 2
+		Dim OldWorldMatrix As XFORM = Any
+		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+		
+		DrawBall( _
+			pScene->DeviceContext, _
+			@pScene->Brushes, _
+			@pStage->Tablo(i).Ball _
 		)
 		
 		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
