@@ -3,17 +3,6 @@
 
 #include once "Stage.bi"
 
-Enum StageKeys
-	Tab
-	ShiftTab
-	KeyReturn
-	Left
-	Up
-	Right
-	Down
-	Escape
-End Enum
-
 Enum StageCommands
 	Undo
 End Enum
@@ -37,9 +26,14 @@ Declare Sub GameModelClick( _
 	ByVal pp As POINT Ptr _
 )
 
-Declare Sub GameModelKeyPress( _
+Declare Sub GameModelKeyDown( _
 	ByVal pStage As Stage Ptr, _
-	ByVal Key As StageKeys _
+	ByVal Key As Integer _
+)
+
+Declare Sub GameModelKeyUp( _
+	ByVal pStage As Stage Ptr, _
+	ByVal Key As Integer _
 )
 
 Declare Function GameModelTick( _

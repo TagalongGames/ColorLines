@@ -225,33 +225,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			SceneClick(pScene, pStage, @pt)
 			
 		Case WM_KEYDOWN
-			Select Case wParam
-				
-				Case VK_TAB
-					GameModelKeyPress(pStage, StageKeys.Tab)
-					
-				Case VK_SPACE
-					GameModelKeyPress(pStage, StageKeys.KeyReturn)
-					
-				Case VK_RETURN
-					GameModelKeyPress(pStage, StageKeys.KeyReturn)
-					
-				Case VK_LEFT
-					GameModelKeyPress(pStage, StageKeys.Left)
-					
-				Case VK_UP
-					GameModelKeyPress(pStage, StageKeys.Up)
-					
-				Case VK_RIGHT
-					GameModelKeyPress(pStage, StageKeys.Right)
-					
-				Case VK_DOWN
-					GameModelKeyPress(pStage, StageKeys.Down)
-					
-				Case VK_ESCAPE
-					GameModelKeyPress(pStage, StageKeys.Escape)
-					
-			End Select
+			GameModelKeyDown(pStage, wParam)
 			
 		Case WM_TIMER
 			Select Case wParam

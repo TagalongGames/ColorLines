@@ -1,5 +1,16 @@
 #include once "GameModel.bi"
 
+Enum StageKeys
+	Tab
+	ShiftTab
+	KeyReturn
+	Left
+	Up
+	Right
+	Down
+	Escape
+End Enum
+
 Type _GameModel
 	placeholder As Any Ptr
 End Type
@@ -143,19 +154,23 @@ Sub GameModelClick( _
 	
 End Sub
 
-Sub GameModelKeyPress( _
+Sub GameModelKeyDown( _
 		ByVal pStage As Stage Ptr, _
-		ByVal Key As StageKeys _
+		ByVal Key As Integer _
 	)
 	
 	Select Case Key
-		Case StageKeys.Tab
+		
+		Case VK_TAB
 			' Прыжок на следующий шар
+			
 		Case StageKeys.ShiftTab
 			' Если Shift+TAB то на предыдущий шар
-		Case StageKeys.KeyReturn
+			
+		Case VK_SPACE, VK_RETURN
 			' Выбор шара, аналогично щелчку мыши
-		Case StageKeys.Left
+			
+		Case VK_LEFT
 			' Прямоугольник предварительного выделения
 			' Убрать выделение
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
@@ -176,7 +191,8 @@ Sub GameModelKeyPress( _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _
 			)
-		Case StageKeys.Up
+			
+		Case VK_UP
 			' Прямоугольник предварительного выделения
 			' Убрать выделение
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
@@ -197,7 +213,8 @@ Sub GameModelKeyPress( _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _
 			)
-		Case StageKeys.Right
+			
+		Case VK_RIGHT
 			' Прямоугольник предварительного выделения
 			' Убрать выделение
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
@@ -218,7 +235,8 @@ Sub GameModelKeyPress( _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _
 			)
-		Case StageKeys.Down
+			
+		Case VK_DOWN
 			' Прямоугольник предварительного выделения
 			' Убрать выделение
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
@@ -239,8 +257,10 @@ Sub GameModelKeyPress( _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _
 			)
-		Case StageKeys.Escape
+			
+		Case VK_ESCAPE
 			' Снять выбор шара
+			
 	End Select
 	
 End Sub
