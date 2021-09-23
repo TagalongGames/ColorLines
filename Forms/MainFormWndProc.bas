@@ -19,7 +19,7 @@ Dim Shared pScene As Scene Ptr
 Dim Shared pStage As Stage Ptr
 Dim Shared pModel As GameModel Ptr
 
-Function ColorLinesStageRenderFunction( _
+Function ColorLinesStageChanged( _
 		ByVal Context As Any Ptr, _
 		ByVal pRenderRectangles As RECT Ptr, _
 		ByVal Count As Integer _
@@ -56,7 +56,7 @@ Function ColorLinesStageRenderFunction( _
 	
 End Function
 
-Function ColorLinesStageAnimateFunction( _
+Function ColorLinesStageAnimated( _
 		ByVal Context As Any Ptr _
 	)As Integer
 	
@@ -106,8 +106,8 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Context->hWin = hWin
 			
 			Dim CallBacks As StageCallBacks = Any
-			CallBacks.Render = @ColorLinesStageRenderFunction
-			CallBacks.AnimateFunction = @ColorLinesStageAnimateFunction
+			CallBacks.Changed = @ColorLinesStageChanged
+			CallBacks.Animated = @ColorLinesStageAnimated
 			
 			pStage = CreateStage(0, @CallBacks, Context)
 			If pStage = NULL Then

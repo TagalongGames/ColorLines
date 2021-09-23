@@ -13,12 +13,18 @@ Type Vector2DI
 	Y As Long
 End Type
 
-' Заполнение матрицы для операции масштабирования
-Declare Sub MatrixSetScale( _
-	ByVal m As XFORM Ptr, _
-	ByVal ScaleX As Single, _
-	ByVal ScaleY As Single _
-)
+Type Transformation
+	TranslateX As Single
+	TranslateY As Single
+	AngleSine As Single
+	AngleCosine As Single
+	ScaleX As Single
+	ScaleY As Single
+	ReflectX As Boolean
+	ReflectY As Boolean
+	ShearX As Single
+	ShearY As Single
+End Type
 
 ' Заполнение матрицы для операции переноса
 Declare Sub MatrixSetTranslate( _
@@ -41,6 +47,13 @@ Declare Sub MatrixSetLRotate( _
 	ByVal m As XFORM Ptr, _
 	ByVal AngleSine As Single, _
 	ByVal AngleCosine As Single _
+)
+
+' Заполнение матрицы для операции масштабирования
+Declare Sub MatrixSetScale( _
+	ByVal m As XFORM Ptr, _
+	ByVal ScaleX As Single, _
+	ByVal ScaleY As Single _
 )
 
 ' Заполнение матрицы для операции отражения

@@ -21,7 +21,7 @@ Sub GenerateTablo( _
 		pStage->Tablo(2).Rectangle.right, _
 		pStage->Tablo(2).Rectangle.bottom _
 	)
-	pStage->CallBacks.Render( _
+	pStage->CallBacks.Changed( _
 		pStage->Context, _
 		@UpdateRectangle, _
 		1 _
@@ -69,7 +69,7 @@ Function ExtractBalls( _
 		pStage->Lines(8, 8).Rectangle.right, _
 		pStage->Lines(8, 8).Rectangle.bottom _
 	)
-	pStage->CallBacks.Render( _
+	pStage->CallBacks.Changed( _
 		pStage->Context, _
 		@UpdateRectangle, _
 		1 _
@@ -159,7 +159,7 @@ Sub GameModelKeyPress( _
 			' Прямоугольник предварительного выделения
 			' Убрать выделение
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
-			pStage->CallBacks.Render( _
+			pStage->CallBacks.Changed( _
 				pStage->Context, _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _
@@ -171,7 +171,7 @@ Sub GameModelKeyPress( _
 			End If
 			' Перерисовать прямоугольник
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
-			pStage->CallBacks.Render( _
+			pStage->CallBacks.Changed( _
 				pStage->Context, _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _
@@ -180,7 +180,7 @@ Sub GameModelKeyPress( _
 			' Прямоугольник предварительного выделения
 			' Убрать выделение
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
-			pStage->CallBacks.Render( _
+			pStage->CallBacks.Changed( _
 				pStage->Context, _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _
@@ -192,7 +192,7 @@ Sub GameModelKeyPress( _
 			End If
 			' Перерисовать прямоугольник
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
-			pStage->CallBacks.Render( _
+			pStage->CallBacks.Changed( _
 				pStage->Context, _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _
@@ -201,7 +201,7 @@ Sub GameModelKeyPress( _
 			' Прямоугольник предварительного выделения
 			' Убрать выделение
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
-			pStage->CallBacks.Render( _
+			pStage->CallBacks.Changed( _
 				pStage->Context, _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _
@@ -213,7 +213,7 @@ Sub GameModelKeyPress( _
 			End If
 			' Перерисовать прямоугольник
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
-			pStage->CallBacks.Render( _
+			pStage->CallBacks.Changed( _
 				pStage->Context, _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _
@@ -222,7 +222,7 @@ Sub GameModelKeyPress( _
 			' Прямоугольник предварительного выделения
 			' Убрать выделение
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
-			pStage->CallBacks.Render( _
+			pStage->CallBacks.Changed( _
 				pStage->Context, _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _
@@ -234,7 +234,7 @@ Sub GameModelKeyPress( _
 			End If
 			' Перерисовать прямоугольник
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
-			pStage->CallBacks.Render( _
+			pStage->CallBacks.Changed( _
 				pStage->Context, _
 				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
 				1 _

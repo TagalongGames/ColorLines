@@ -58,8 +58,14 @@ Type Cell
 End Type
 
 Type StageCallBacks
-	Render As Function(ByVal Context As Any Ptr, ByVal pRenderRectangles As RECT Ptr, ByVal Count As Integer)As Integer
-	AnimateFunction As Function(ByVal Context As Any Ptr)As Integer
+	Changed As Function( _
+		ByVal Context As Any Ptr, _
+		ByVal pRenderRectangles As RECT Ptr, _
+		ByVal Count As Integer _
+	)As Integer
+	Animated As Function( _
+		ByVal Context As Any Ptr _
+	)As Integer
 End Type
 
 Type Stage
