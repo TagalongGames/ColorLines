@@ -114,6 +114,11 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				Return -1
 			End If
 			
+			pModel = CreateGameModel()
+			If pModel = NULL Then
+				Return -1
+			End If
+			
 		Case WM_SIZE
 			If wParam <> SIZE_MINIMIZED Then
 				Dim ClientAreaWidth As UINT = LOWORD(lParam)
@@ -207,6 +212,9 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			End If
 			If pStage <> NULL Then
 				DestroyStage(pStage)
+			End If
+			If pModel <> NULL Then
+				DestroyGameModel(pModel)
 			End If
 			PostQuitMessage(0)
 			

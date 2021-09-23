@@ -1,5 +1,9 @@
 #include once "GameModel.bi"
 
+Type _GameModel
+	placeholder As Any Ptr
+End Type
+
 Sub GenerateTablo( _
 		ByVal pStage As Stage Ptr _
 	)
@@ -74,6 +78,26 @@ Function ExtractBalls( _
 	Return False
 	
 End Function
+
+Function CreateGameModel( _
+	)As GameModel Ptr
+	
+	Dim pModel As GameModel Ptr = Allocate(SizeOf(GameModel))
+	If pModel = NULL Then
+		Return NULL
+	End If
+	
+	Return pModel
+	
+End Function
+
+Sub DestroyGameModel( _
+		ByVal pModel As GameModel Ptr _
+	)
+	
+	Deallocate(pModel)
+	
+End Sub
 
 Sub GameModelNewGame( _
 		ByVal pModel As GameModel Ptr, _
