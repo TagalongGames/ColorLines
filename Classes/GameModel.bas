@@ -25,17 +25,8 @@ Sub GenerateTablo( _
 		pStage->Tablo(i).Ball.Exist = True
 	Next
 	
-	Dim UpdateRectangle As RECT = Any
-	SetRect(@UpdateRectangle, _
-		pStage->Tablo(0).Rectangle.left, _
-		pStage->Tablo(0).Rectangle.top, _
-		pStage->Tablo(2).Rectangle.right, _
-		pStage->Tablo(2).Rectangle.bottom _
-	)
-	pStage->CallBacks.Changed( _
-		pStage->Context, _
-		@UpdateRectangle, _
-		1 _
+	pStage->Events.OnTabloChanged( _
+		pStage->Context _
 	)
 	
 End Sub
@@ -73,18 +64,18 @@ Function ExtractBalls( _
 		
 	Next
 	
-	Dim UpdateRectangle As RECT = Any
-	SetRect(@UpdateRectangle, _
-		pStage->Lines(0, 0).Rectangle.left, _
-		pStage->Lines(0, 0).Rectangle.top, _
-		pStage->Lines(8, 8).Rectangle.right, _
-		pStage->Lines(8, 8).Rectangle.bottom _
-	)
-	pStage->CallBacks.Changed( _
-		pStage->Context, _
-		@UpdateRectangle, _
-		1 _
-	)
+	' Dim UpdateRectangle As RECT = Any
+	' SetRect(@UpdateRectangle, _
+		' pStage->Lines(0, 0).Rectangle.left, _
+		' pStage->Lines(0, 0).Rectangle.top, _
+		' pStage->Lines(8, 8).Rectangle.right, _
+		' pStage->Lines(8, 8).Rectangle.bottom _
+	' )
+	' pStage->Events.OnChanged( _
+		' pStage->Context, _
+		' @UpdateRectangle, _
+		' 1 _
+	' )
 	
 	Return False
 	
@@ -118,43 +109,65 @@ Sub GameModelNewGame( _
 	' Обнуление
 	
 	pStage->Score = 0
+	pStage->Events.OnScoreChanged( _
+		pStage->Context _
+	)
+	
+	Dim pts(9 * 9 - 1) As POINT = Any
 	
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			pStage->Lines(j, i).Ball.Frame = AnimationFrames.Stopped
 			pStage->Lines(j, i).Ball.Exist = False
+			
+			pts(j * 9 + i).x = i
+			pts(j * 9 + i).y = j
 		Next
 	Next
+	
+	pStage->Events.OnLinesChanged( _
+		pStage->Context, _
+		@pts(0), _
+		9 * 9 _
+	)
 	
 	pStage->MovedBall.Frame = AnimationFrames.Stopped
 	pStage->MovedBall.Exist = False
 	
+	pStage->Events.OnMovedBallChanged( _
+		pStage->Context _
+	)
+	
 	ExtractBalls(pStage)
+	
 	GenerateTablo(pStage)
 	
 End Sub
 
-Sub GameModelClick( _
+Sub GameModelLMouseDown( _
+		ByVal pModel As GameModel Ptr, _
 		ByVal pStage As Stage Ptr, _
+		ByVal pScene As Scene Ptr, _
 		ByVal pp As POINT Ptr _
 	)
 	
 	' Если мы можем тыкать — то получить координаты ячейки
-	Dim CellCoord As POINT = Any
-	Dim b As Boolean = StageGetCellFromPoint( _
-		pStage, _
-		pp, _
-		@CellCoord _
-	)
-	If b Then
+	' Dim CellCoord As POINT = Any
+	' Dim b As Boolean = StageGetCellFromPoint( _
+		' pStage, _
+		' pp, _
+		' @CellCoord _
+	' )
+	' If b Then
 		' Получить ячейку
 		' Если она существует, то если шар был выбран — развыбрать и выбрать новый шар
 		' Если не существует и шар выбран — найти путь для перемещения и переместить
-	End If
+	' End If
 	
 End Sub
 
 Sub GameModelKeyDown( _
+		ByVal pModel As GameModel Ptr, _
 		ByVal pStage As Stage Ptr, _
 		ByVal Key As Integer _
 	)
@@ -171,91 +184,91 @@ Sub GameModelKeyDown( _
 			' Выбор шара, аналогично щелчку мыши
 			
 		Case VK_LEFT
-			' Прямоугольник предварительного выделения
-			' Убрать выделение
+			Dim pts(1) As POINT = Any
+			pts(0).x = pStage->SelectedCellX
+			pts(0).y = pStage->SelectedCellY
+			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
-			pStage->CallBacks.Changed( _
-				pStage->Context, _
-				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
-				1 _
-			)
-			' Сменить координаты
+			
 			pStage->SelectedCellX -= 1
 			If pStage->SelectedCellX < 0 Then
 				pStage->SelectedCellX = 8
 			End If
-			' Перерисовать прямоугольник
+			pts(1).x = pStage->SelectedCellX
+			pts(1).y = pStage->SelectedCellY
+			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
-			pStage->CallBacks.Changed( _
+			
+			pStage->Events.OnLinesChanged( _
 				pStage->Context, _
-				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
-				1 _
+				@pts(0), _
+				2 _
 			)
 			
 		Case VK_UP
-			' Прямоугольник предварительного выделения
-			' Убрать выделение
+			Dim pts(1) As POINT = Any
+			pts(0).x = pStage->SelectedCellX
+			pts(0).y = pStage->SelectedCellY
+			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
-			pStage->CallBacks.Changed( _
-				pStage->Context, _
-				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
-				1 _
-			)
-			' Сменить координаты
+			
 			pStage->SelectedCellY -= 1
 			If pStage->SelectedCellY < 0 Then
 				pStage->SelectedCellY = 8
 			End If
-			' Перерисовать прямоугольник
+			pts(1).x = pStage->SelectedCellX
+			pts(1).y = pStage->SelectedCellY
+			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
-			pStage->CallBacks.Changed( _
+			
+			pStage->Events.OnLinesChanged( _
 				pStage->Context, _
-				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
-				1 _
+				@pts(0), _
+				2 _
 			)
 			
 		Case VK_RIGHT
-			' Прямоугольник предварительного выделения
-			' Убрать выделение
+			Dim pts(1) As POINT = Any
+			pts(0).x = pStage->SelectedCellX
+			pts(0).y = pStage->SelectedCellY
+			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
-			pStage->CallBacks.Changed( _
-				pStage->Context, _
-				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
-				1 _
-			)
-			' Сменить координаты
+			
 			pStage->SelectedCellX += 1
 			If pStage->SelectedCellX > 8 Then
 				pStage->SelectedCellX = 0
 			End If
-			' Перерисовать прямоугольник
+			pts(1).x = pStage->SelectedCellX
+			pts(1).y = pStage->SelectedCellY
+			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
-			pStage->CallBacks.Changed( _
+			
+			pStage->Events.OnLinesChanged( _
 				pStage->Context, _
-				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
-				1 _
+				@pts(0), _
+				2 _
 			)
 			
 		Case VK_DOWN
-			' Прямоугольник предварительного выделения
-			' Убрать выделение
+			Dim pts(1) As POINT = Any
+			pts(0).x = pStage->SelectedCellX
+			pts(0).y = pStage->SelectedCellY
+			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
-			pStage->CallBacks.Changed( _
-				pStage->Context, _
-				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
-				1 _
-			)
-			' Сменить координаты
+			
 			pStage->SelectedCellY += 1
 			If pStage->SelectedCellY > 8 Then
 				pStage->SelectedCellY = 0
 			End If
-			' Перерисовать прямоугольник
+			pts(1).x = pStage->SelectedCellX
+			pts(1).y = pStage->SelectedCellY
+			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
-			pStage->CallBacks.Changed( _
+			
+			pStage->Events.OnLinesChanged( _
 				pStage->Context, _
-				@pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Rectangle, _
-				1 _
+				@pts(0), _
+				2 _
 			)
 			
 		Case VK_ESCAPE
@@ -266,6 +279,7 @@ Sub GameModelKeyDown( _
 End Sub
 
 Function GameModelTick( _
+		ByVal pModel As GameModel Ptr, _
 		ByVal pStage As Stage Ptr _
 	)As Boolean
 	
@@ -274,6 +288,7 @@ Function GameModelTick( _
 End Function
 
 Function GameModelCommand( _
+		ByVal pModel As GameModel Ptr, _
 		ByVal pStage As Stage Ptr, _
 		ByVal cmd As StageCommands _
 	)As Boolean

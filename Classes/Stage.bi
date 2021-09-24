@@ -57,15 +57,34 @@ Type Cell
 	Selected As Boolean
 End Type
 
-Type StageCallBacks
-	Changed As Function( _
-		ByVal Context As Any Ptr, _
-		ByVal pRenderRectangles As RECT Ptr, _
+Type StageEvents
+	
+	OnLinesChanged As Sub( _
+		ByVal pContext As Any Ptr, _
+		ByVal pCoordinates As POINT Ptr, _
 		ByVal Count As Integer _
-	)As Integer
-	Animated As Function( _
+	)
+	
+	OnTabloChanged As Sub( _
+		ByVal pContext As Any Ptr _
+	)
+	
+	OnMovedBallChanged As Sub( _
+		ByVal pContext As Any Ptr _
+	)
+	
+	OnScoreChanged As Sub( _
+		ByVal pContext As Any Ptr _
+	)
+	
+	OnHiScoreChanged As Sub( _
+		ByVal pContext As Any Ptr _
+	)
+	
+	OnAnimated As Sub( _
 		ByVal Context As Any Ptr _
-	)As Integer
+	)
+	
 End Type
 
 Type Stage
@@ -74,7 +93,7 @@ Type Stage
 	SelectedCellY As Integer
 	Tablo(0 To 2) As Cell
 	MovedBall As ColorBall
-	CallBacks As StageCallBacks
+	Events As StageEvents
 	Context As Any Ptr
 	Score As Integer
 	HiScore As Integer
@@ -82,19 +101,13 @@ End Type
 
 Declare Function CreateStage( _
 	ByVal HiScore As Integer, _
-	ByVal CallBacks As StageCallBacks Ptr, _
+	ByVal pEvents As StageEvents Ptr, _
 	ByVal Context As Any Ptr _
 )As Stage Ptr
 
 Declare Sub DestroyStage( _
 	ByVal pStage As Stage Ptr _
 )
-
-Declare Function StageGetCellFromPoint( _
-	ByVal pStage As Stage Ptr, _
-	ByVal pp As POINT Ptr, _
-	ByVal pCell As POINT Ptr _
-)As Boolean
 
 Declare Function StageGetWidth( _
 	ByVal pStage As Stage Ptr _

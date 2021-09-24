@@ -807,14 +807,6 @@ Sub SceneCopyRectangle( _
 	
 End Sub
 
-Sub SceneClick( _
-		ByVal pScene As Scene Ptr, _
-		ByVal pStage As Stage Ptr, _
-		ByVal pScreenPoint As POINT Ptr _
-	)
-	
-End Sub
-
 Sub SceneSetProjectionMatrix( _
 		ByVal pScene As Scene Ptr, _
 		ByVal pProjectionMatrix As XFORM Ptr _

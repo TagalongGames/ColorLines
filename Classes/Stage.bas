@@ -46,7 +46,7 @@ End Function
 
 Function CreateStage( _
 		ByVal HiScore As Integer, _
-		ByVal CallBacks As StageCallBacks Ptr, _
+		ByVal pEvents As StageEvents Ptr, _
 		ByVal Context As Any Ptr _
 	)As Stage Ptr
 	
@@ -107,7 +107,7 @@ Function CreateStage( _
 	' pStage->MovedBall.Rectangle = False
 	pStage->MovedBall.Exist = False
 	
-	pStage->CallBacks = *CallBacks
+	pStage->Events = *pEvents
 	pStage->Context = Context
 	pStage->Score = 0
 	pStage->HiScore = HiScore

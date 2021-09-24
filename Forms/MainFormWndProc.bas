@@ -19,27 +19,27 @@ Dim Shared pScene As Scene Ptr
 Dim Shared pStage As Stage Ptr
 Dim Shared pModel As GameModel Ptr
 
-Function ColorLinesStageChanged( _
-		ByVal Context As Any Ptr, _
-		ByVal pRenderRectangles As RECT Ptr, _
+Sub ColorLinesStageChanged( _
+		ByVal pContext As Any Ptr, _
+		ByVal pCoordinates As POINT Ptr, _
 		ByVal Count As Integer _
-	)As Integer
+	)
 	
-	Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, Context)
+	' Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, pContext)
 	
 	SceneRender( _
 		pScene, _
 		pStage _
 	)
 	
-	For i As Integer = 0 To Count - 1
-		Dim ScreenRectangle As RECT = Any
-		SceneTranslateRectangle( _
-			pScene, _
-			pStage, _
-			@pRenderRectangles[i], _
-			@ScreenRectangle _
-		)
+	' For i As Integer = 0 To Count - 1
+		' Dim ScreenRectangle As RECT = Any
+		' SceneTranslateRectangle( _
+			' pScene, _
+			' pStage, _
+			' @pRenderRectangles[i], _
+			' @ScreenRectangle _
+		' )
 		
 		/'
 		Dim buffer As WString * (512 + 1) = Any
@@ -49,16 +49,34 @@ Function ColorLinesStageChanged( _
 		MessageBoxW(NULL, @buffer, NULL, MB_OK)
 		'/
 		
-		InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
-	Next
+		' InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
+	' Next
 	
-	Return 0
-	
-End Function
+End Sub
 
-Function ColorLinesStageAnimated( _
+Sub ColorLinesTabloChanged( _
 		ByVal Context As Any Ptr _
-	)As Integer
+	)
+End Sub
+
+Sub ColorLinesMovedBallChanged( _
+		ByVal Context As Any Ptr _
+	)
+End Sub
+
+Sub ColorLinesScoreChanged( _
+		ByVal Context As Any Ptr _
+	)
+End Sub
+
+Sub ColorLinesHiScoreChanged( _
+		ByVal Context As Any Ptr _
+	)
+End Sub
+
+Sub ColorLinesStageAnimated( _
+		ByVal Context As Any Ptr _
+	)
 	
 	Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, Context)
 	
@@ -69,9 +87,7 @@ Function ColorLinesStageAnimated( _
 		NULL _
 	)
 	
-	Return 0
-	
-End Function
+End Sub
 
 Sub SetOrthoProjection( _
 		ByVal ScreenWidth As Integer, _
@@ -99,17 +115,21 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 	Select Case wMsg
 		
 		Case WM_CREATE
-			Dim Context As UpdateContext Ptr = Allocate(SizeOf(UpdateContext))
-			If Context = NULL Then
+			Dim pContext As UpdateContext Ptr = Allocate(SizeOf(UpdateContext))
+			If pContext = NULL Then
 				Return -1
 			End If
-			Context->hWin = hWin
+			pContext->hWin = hWin
 			
-			Dim CallBacks As StageCallBacks = Any
-			CallBacks.Changed = @ColorLinesStageChanged
-			CallBacks.Animated = @ColorLinesStageAnimated
+			Dim Events As StageEvents = Any
+			Events.OnLinesChanged = @ColorLinesStageChanged
+			Events.OnTabloChanged = @ColorLinesTabloChanged
+			Events.OnMovedBallChanged = @ColorLinesMovedBallChanged
+			Events.OnScoreChanged = @ColorLinesScoreChanged
+			Events.OnHiScoreChanged = @ColorLinesHiScoreChanged
+			Events.OnAnimated = @ColorLinesStageAnimated
 			
-			pStage = CreateStage(0, @CallBacks, Context)
+			pStage = CreateStage(0, @Events, pContext)
 			If pStage = NULL Then
 				Return -1
 			End If
@@ -153,7 +173,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 							GameModelNewGame(pModel, pStage)
 							
 						Case IDM_GAME_UNDO
-							GameModelCommand(pStage, StageCommands.Undo)
+							GameModelCommand(pModel, pStage, StageCommands.Undo)
 							
 						' Case IDM_GAME_STATISTICS
 							' MainFormMenuStatistics_Click(hWin)
@@ -180,7 +200,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 							GameModelNewGame(pModel, pStage)
 							
 						Case IDM_GAME_UNDO_ACS
-							GameModelCommand(pStage, StageCommands.Undo)
+							GameModelCommand(pModel, pStage, StageCommands.Undo)
 							
 						' Case IDM_GAME_STATISTICS_ACS
 							' MainFormMenuStatistics_Click(hWin)
@@ -222,16 +242,16 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim pt As POINT = Any
 			pt.x = GET_X_LPARAM(lParam)
 			pt.y = GET_Y_LPARAM(lParam)
-			SceneClick(pScene, pStage, @pt)
+			GameModelLMouseDown(pModel, pStage, pScene, @pt)
 			
 		Case WM_KEYDOWN
-			GameModelKeyDown(pStage, wParam)
+			GameModelKeyDown(pModel, pStage, wParam)
 			
 		Case WM_TIMER
 			Select Case wParam
 				
 				Case ANIMATION_TIMER_ID
-					Dim AnimationNeeded As Boolean = GameModelTick(pStage)
+					Dim AnimationNeeded As Boolean = GameModelTick(pModel, pStage)
 					If AnimationNeeded = False Then
 						KillTimer(hWin, ANIMATION_TIMER_ID)
 					End If

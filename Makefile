@@ -437,11 +437,11 @@ $(OBJ_RELEASE_DIR)\GameModel$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\GameModel
 $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).c
 	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).asm
 
-$(OBJ_RELEASE_DIR)\GameModel$(FILE_SUFFIX_GUI).c: Classes\GameModel.bas Classes\GameModel.bi Classes\Stage.bi
+$(OBJ_RELEASE_DIR)\GameModel$(FILE_SUFFIX_GUI).c: Classes\GameModel.bas Classes\GameModel.bi Classes\Stage.bi Classes\Scene.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Classes\GameModel.bas"
 	move /y Classes\GameModel.c $(OBJ_RELEASE_DIR)\GameModel$(FILE_SUFFIX_GUI).c
 
-$(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).c:   Classes\GameModel.bas Classes\GameModel.bi Classes\Stage.bi
+$(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).c:   Classes\GameModel.bas Classes\GameModel.bi Classes\Stage.bi Classes\Scene.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Classes\GameModel.bas"
 	move /y Classes\GameModel.c $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).c
 
