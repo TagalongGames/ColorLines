@@ -86,7 +86,7 @@ Sub DrawBall( _
 	' - уничтожение, рассыпался в прах (от 9 до 0)
 	' координаты
 	
-	If pBall->Exist Then
+	If pBall->Visible Then
 		Dim OldBrush As HGDIOBJ = Any
 		
 		Select Case CInt(pBall->Color)

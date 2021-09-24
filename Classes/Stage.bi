@@ -48,7 +48,8 @@ Type ColorBall
 	Color As BallColors
 	Frame As AnimationFrames
 	Rectangle As RECT
-	Exist As Boolean
+	Visible As Boolean
+	Selected As Boolean
 End Type
 
 Type Cell
@@ -57,52 +58,18 @@ Type Cell
 	Selected As Boolean
 End Type
 
-Type StageEvents
-	
-	OnLinesChanged As Sub( _
-		ByVal pContext As Any Ptr, _
-		ByVal pCoordinates As POINT Ptr, _
-		ByVal Count As Integer _
-	)
-	
-	OnTabloChanged As Sub( _
-		ByVal pContext As Any Ptr _
-	)
-	
-	OnMovedBallChanged As Sub( _
-		ByVal pContext As Any Ptr _
-	)
-	
-	OnScoreChanged As Sub( _
-		ByVal pContext As Any Ptr _
-	)
-	
-	OnHiScoreChanged As Sub( _
-		ByVal pContext As Any Ptr _
-	)
-	
-	OnAnimated As Sub( _
-		ByVal Context As Any Ptr _
-	)
-	
-End Type
-
 Type Stage
 	Lines(0 To 8, 0 To 8) As Cell
 	SelectedCellX As Integer
 	SelectedCellY As Integer
 	Tablo(0 To 2) As Cell
 	MovedBall As ColorBall
-	Events As StageEvents
-	Context As Any Ptr
 	Score As Integer
 	HiScore As Integer
 End Type
 
 Declare Function CreateStage( _
-	ByVal HiScore As Integer, _
-	ByVal pEvents As StageEvents Ptr, _
-	ByVal Context As Any Ptr _
+	ByVal HiScore As Integer _
 )As Stage Ptr
 
 Declare Sub DestroyStage( _

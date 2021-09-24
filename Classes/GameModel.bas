@@ -12,26 +12,28 @@ Enum StageKeys
 End Enum
 
 Type _GameModel
-	placeholder As Any Ptr
+	Events As StageEvents
+	Context As Any Ptr
 End Type
 
 Sub GenerateTablo( _
+		ByVal pModel As GameModel Ptr, _
 		ByVal pStage As Stage Ptr _
 	)
 	
 	For i As Integer = 0 To 2
 		Dim RandomColor As BallColors = GetRandomBallColor()
 		pStage->Tablo(i).Ball.Color = RandomColor
-		pStage->Tablo(i).Ball.Exist = True
 	Next
 	
-	pStage->Events.OnTabloChanged( _
-		pStage->Context _
+	pModel->Events.OnTabloChanged( _
+		pModel->Context _
 	)
 	
 End Sub
 
 Function ExtractBalls( _
+		ByVal pModel As GameModel Ptr, _
 		ByVal pStage As Stage Ptr _
 	)As Boolean
 	
@@ -54,7 +56,7 @@ Function ExtractBalls( _
 		' Поместить на игровое поле
 		pStage->Lines(y, x).Ball.Color = RandomColor
 		pStage->Lines(y, x).Ball.Frame = AnimationFrames.Birth0
-		pStage->Lines(y, x).Ball.Exist = True
+		pStage->Lines(y, x).Ball.Visible = True
 		
 		' Если нет места, то вернуть ошибку
 		
@@ -71,8 +73,8 @@ Function ExtractBalls( _
 		' pStage->Lines(8, 8).Rectangle.right, _
 		' pStage->Lines(8, 8).Rectangle.bottom _
 	' )
-	' pStage->Events.OnChanged( _
-		' pStage->Context, _
+	' pModel->Events.OnChanged( _
+		' pModel->Context, _
 		' @UpdateRectangle, _
 		' 1 _
 	' )
@@ -82,12 +84,17 @@ Function ExtractBalls( _
 End Function
 
 Function CreateGameModel( _
+		ByVal pEvents As StageEvents Ptr, _
+		ByVal Context As Any Ptr _
 	)As GameModel Ptr
 	
 	Dim pModel As GameModel Ptr = Allocate(SizeOf(GameModel))
 	If pModel = NULL Then
 		Return NULL
 	End If
+	
+	pModel->Events = *pEvents
+	pModel->Context = Context
 	
 	Return pModel
 	
@@ -109,8 +116,8 @@ Sub GameModelNewGame( _
 	' Обнуление
 	
 	pStage->Score = 0
-	pStage->Events.OnScoreChanged( _
-		pStage->Context _
+	pModel->Events.OnScoreChanged( _
+		pModel->Context _
 	)
 	
 	Dim pts(9 * 9 - 1) As POINT = Any
@@ -118,29 +125,30 @@ Sub GameModelNewGame( _
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			pStage->Lines(j, i).Ball.Frame = AnimationFrames.Stopped
-			pStage->Lines(j, i).Ball.Exist = False
+			pStage->Lines(j, i).Ball.Visible = False
+			pStage->Lines(j, i).Ball.Selected = False
 			
 			pts(j * 9 + i).x = i
 			pts(j * 9 + i).y = j
 		Next
 	Next
 	
-	pStage->Events.OnLinesChanged( _
-		pStage->Context, _
+	pModel->Events.OnLinesChanged( _
+		pModel->Context, _
 		@pts(0), _
 		9 * 9 _
 	)
 	
 	pStage->MovedBall.Frame = AnimationFrames.Stopped
-	pStage->MovedBall.Exist = False
+	pStage->MovedBall.Visible = False
 	
-	pStage->Events.OnMovedBallChanged( _
-		pStage->Context _
+	pModel->Events.OnMovedBallChanged( _
+		pModel->Context _
 	)
 	
-	ExtractBalls(pStage)
+	ExtractBalls(pModel, pStage)
 	
-	GenerateTablo(pStage)
+	GenerateTablo(pModel, pStage)
 	
 End Sub
 
@@ -199,8 +207,8 @@ Sub GameModelKeyDown( _
 			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
 			
-			pStage->Events.OnLinesChanged( _
-				pStage->Context, _
+			pModel->Events.OnLinesChanged( _
+				pModel->Context, _
 				@pts(0), _
 				2 _
 			)
@@ -221,8 +229,8 @@ Sub GameModelKeyDown( _
 			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
 			
-			pStage->Events.OnLinesChanged( _
-				pStage->Context, _
+			pModel->Events.OnLinesChanged( _
+				pModel->Context, _
 				@pts(0), _
 				2 _
 			)
@@ -243,8 +251,8 @@ Sub GameModelKeyDown( _
 			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
 			
-			pStage->Events.OnLinesChanged( _
-				pStage->Context, _
+			pModel->Events.OnLinesChanged( _
+				pModel->Context, _
 				@pts(0), _
 				2 _
 			)
@@ -265,8 +273,8 @@ Sub GameModelKeyDown( _
 			
 			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
 			
-			pStage->Events.OnLinesChanged( _
-				pStage->Context, _
+			pModel->Events.OnLinesChanged( _
+				pModel->Context, _
 				@pts(0), _
 				2 _
 			)

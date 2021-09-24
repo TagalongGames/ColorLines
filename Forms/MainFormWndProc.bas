@@ -115,6 +115,11 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 	Select Case wMsg
 		
 		Case WM_CREATE
+			pStage = CreateStage(0)
+			If pStage = NULL Then
+				Return -1
+			End If
+			
 			Dim pContext As UpdateContext Ptr = Allocate(SizeOf(UpdateContext))
 			If pContext = NULL Then
 				Return -1
@@ -129,12 +134,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Events.OnHiScoreChanged = @ColorLinesHiScoreChanged
 			Events.OnAnimated = @ColorLinesStageAnimated
 			
-			pStage = CreateStage(0, @Events, pContext)
-			If pStage = NULL Then
-				Return -1
-			End If
-			
-			pModel = CreateGameModel()
+			pModel = CreateGameModel(@Events, pContext)
 			If pModel = NULL Then
 				Return -1
 			End If

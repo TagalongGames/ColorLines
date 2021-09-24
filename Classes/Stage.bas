@@ -45,9 +45,7 @@ Function GetRandomStageY()As Integer
 End Function
 
 Function CreateStage( _
-		ByVal HiScore As Integer, _
-		ByVal pEvents As StageEvents Ptr, _
-		ByVal Context As Any Ptr _
+		ByVal HiScore As Integer _
 	)As Stage Ptr
 	
 	Dim pStage As Stage Ptr = Allocate(SizeOf(Stage))
@@ -74,7 +72,8 @@ Function CreateStage( _
 					i * CellWidth + CellWidth - BallMarginWidth, _
 					j * CellHeight + CellHeight - BallMarginHeight _
 				)
-				' pStage->Lines(j, i).Ball.Exist = True
+				' pStage->Lines(j, i).Ball.Visible = True
+				' pStage->Lines(j, i).Ball.Selected = False
 			End Scope
 			
 			pStage->Lines(j, i).Selected = False
@@ -94,21 +93,19 @@ Function CreateStage( _
 		CopyRect(@pStage->Tablo(j).Ball.Rectangle, @pStage->Lines(j + 2, 8).Ball.Rectangle)
 		OffsetRect(@pStage->Tablo(j).Ball.Rectangle, 2 * CellWidth, 0)
 		
-		pStage->Tablo(j).Selected = False
-		
 		Dim RandomColor As BallColors = GetRandomBallColor()
 		pStage->Tablo(j).Ball.Color = RandomColor
-		pStage->Tablo(j).Ball.Exist = True
 		pStage->Tablo(j).Ball.Frame = AnimationFrames.Stopped
+		pStage->Tablo(j).Ball.Visible = True
+		pStage->Tablo(j).Ball.Selected = False
+		pStage->Tablo(j).Selected = False
 	Next
 	
 	' pStage->MovedBall.Color = BallColors.Red
 	pStage->MovedBall.Frame = AnimationFrames.Stopped
 	' pStage->MovedBall.Rectangle = False
-	pStage->MovedBall.Exist = False
+	pStage->MovedBall.Visible = False
 	
-	pStage->Events = *pEvents
-	pStage->Context = Context
 	pStage->Score = 0
 	pStage->HiScore = HiScore
 	
@@ -123,29 +120,6 @@ Sub DestroyStage( _
 	Deallocate(pStage)
 	
 End Sub
-
-Function StageGetCellFromPoint( _
-		ByVal pStage As Stage Ptr, _
-		ByVal pp As POINT Ptr, _
-		ByVal pCell As POINT Ptr _
-	)As Boolean
-	
-	For j As Integer = 0 To 8
-		For i As Integer = 0 To 8
-			If PtInRect(@pStage->Lines(j, i).Rectangle, *pp) Then
-				pCell->x = i
-				pCell->y = j
-				Return True
-			End If
-		Next
-	Next
-	
-	pCell->x = 0
-	pCell->y = 0
-	
-	Return False
-	
-End Function
 
 Function StageGetWidth( _
 		ByVal pStage As Stage Ptr _
