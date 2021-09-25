@@ -73,15 +73,15 @@ Declare Sub GameModelKeyUp( _
 	ByVal Key As Integer _
 )
 
-Declare Function GameModelTick( _
-	ByVal pModel As GameModel Ptr, _
-	ByVal pStage As Stage Ptr _
-)As Boolean
-
 Declare Function GameModelCommand( _
 	ByVal pModel As GameModel Ptr, _
 	ByVal pStage As Stage Ptr, _
 	ByVal cmd As StageCommands _
+)As Boolean
+
+Declare Function GameModelUpdate( _
+	ByVal pModel As GameModel Ptr, _
+	ByVal pStage As Stage Ptr _
 )As Boolean
 
 #endif

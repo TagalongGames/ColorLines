@@ -277,7 +277,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Select Case wParam
 				
 				Case ANIMATION_TIMER_ID
-					Dim AnimationNeeded As Boolean = GameModelTick(pModel, pStage)
+					Dim AnimationNeeded As Boolean = GameModelUpdate(pModel, pStage)
 					If AnimationNeeded = False Then
 						KillTimer(hWin, ANIMATION_TIMER_ID)
 					End If

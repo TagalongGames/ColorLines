@@ -326,7 +326,7 @@ Sub GameModelKeyDown( _
 	
 End Sub
 
-Function GameModelTick( _
+Function GameModelUpdate( _
 		ByVal pModel As GameModel Ptr, _
 		ByVal pStage As Stage Ptr _
 	)As Boolean
