@@ -81,12 +81,6 @@ Function CreateStage( _
 		Next
 	Next
 	
-	pStage->Lines(0, 0).Selected = True
-	pStage->SelectedCellX = 0
-	pStage->SelectedCellY = 0
-	pStage->SelectedBallX = 0
-	pStage->SelectedBallY = 0
-	
 	For j As Integer = 0 To 2
 		
 		CopyRect(@pStage->Tablo(j).Rectangle, @pStage->Lines(j + 2, 8).Rectangle)

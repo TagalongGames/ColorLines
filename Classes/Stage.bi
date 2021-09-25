@@ -62,10 +62,6 @@ Type Stage
 	Lines(0 To 8, 0 To 8) As Cell
 	Tablo(0 To 2) As Cell
 	MovedBall As ColorBall
-	SelectedCellX As Integer
-	SelectedCellY As Integer
-	SelectedBallX As Integer
-	SelectedBallY As Integer
 	Score As Integer
 	HiScore As Integer
 End Type

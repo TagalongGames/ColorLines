@@ -14,6 +14,10 @@ End Enum
 Type _GameModel
 	Events As StageEvents
 	Context As Any Ptr
+	SelectedCellX As Integer
+	SelectedCellY As Integer
+	SelectedBallX As Integer
+	SelectedBallY As Integer
 End Type
 
 Sub GenerateTablo( _
@@ -95,6 +99,10 @@ Function CreateGameModel( _
 	
 	pModel->Events = *pEvents
 	pModel->Context = Context
+	pModel->SelectedCellX = 0
+	pModel->SelectedCellY = 0
+	pModel->SelectedBallX = 0
+	pModel->SelectedBallY = 0
 	
 	Return pModel
 	
@@ -190,42 +198,42 @@ Sub GameModelKeyDown( _
 			
 		Case VK_SPACE, VK_RETURN
 			' Выбор шара, аналогично щелчку мыши
-			If pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Ball.Visible Then
+			If pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Ball.Visible Then
 				
-				pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Ball.Selected = Not pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Ball.Selected
+				pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Ball.Selected = Not pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Ball.Selected
 				
-				pStage->SelectedBallX = pStage->SelectedCellX
-				pStage->SelectedBallY = pStage->SelectedCellY
+				pModel->SelectedBallX = pModel->SelectedCellX
+				pModel->SelectedBallY = pModel->SelectedCellY
 				
 				Dim pts As POINT = Any
-				pts.x = pStage->SelectedCellX
-				pts.y = pStage->SelectedCellY
+				pts.x = pModel->SelectedCellX
+				pts.y = pModel->SelectedCellY
 				pModel->Events.OnLinesChanged( _
 					pModel->Context, _
 					@pts, _
 					1 _
 				)
 			Else
-				If pStage->Lines(pStage->SelectedBallY, pStage->SelectedBallX).Ball.Selected Then
+				If pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected Then
 					' Переместить шар
 				End If
 			End If
 			
 		Case VK_LEFT
 			Dim pts(1) As POINT = Any
-			pts(0).x = pStage->SelectedCellX
-			pts(0).y = pStage->SelectedCellY
+			pts(0).x = pModel->SelectedCellX
+			pts(0).y = pModel->SelectedCellY
 			
-			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
+			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 			
-			pStage->SelectedCellX -= 1
-			If pStage->SelectedCellX < 0 Then
-				pStage->SelectedCellX = 8
+			pModel->SelectedCellX -= 1
+			If pModel->SelectedCellX < 0 Then
+				pModel->SelectedCellX = 8
 			End If
-			pts(1).x = pStage->SelectedCellX
-			pts(1).y = pStage->SelectedCellY
+			pts(1).x = pModel->SelectedCellX
+			pts(1).y = pModel->SelectedCellY
 			
-			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
+			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 			
 			pModel->Events.OnLinesChanged( _
 				pModel->Context, _
@@ -235,19 +243,19 @@ Sub GameModelKeyDown( _
 			
 		Case VK_UP
 			Dim pts(1) As POINT = Any
-			pts(0).x = pStage->SelectedCellX
-			pts(0).y = pStage->SelectedCellY
+			pts(0).x = pModel->SelectedCellX
+			pts(0).y = pModel->SelectedCellY
 			
-			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
+			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 			
-			pStage->SelectedCellY -= 1
-			If pStage->SelectedCellY < 0 Then
-				pStage->SelectedCellY = 8
+			pModel->SelectedCellY -= 1
+			If pModel->SelectedCellY < 0 Then
+				pModel->SelectedCellY = 8
 			End If
-			pts(1).x = pStage->SelectedCellX
-			pts(1).y = pStage->SelectedCellY
+			pts(1).x = pModel->SelectedCellX
+			pts(1).y = pModel->SelectedCellY
 			
-			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
+			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 			
 			pModel->Events.OnLinesChanged( _
 				pModel->Context, _
@@ -257,19 +265,19 @@ Sub GameModelKeyDown( _
 			
 		Case VK_RIGHT
 			Dim pts(1) As POINT = Any
-			pts(0).x = pStage->SelectedCellX
-			pts(0).y = pStage->SelectedCellY
+			pts(0).x = pModel->SelectedCellX
+			pts(0).y = pModel->SelectedCellY
 			
-			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
+			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 			
-			pStage->SelectedCellX += 1
-			If pStage->SelectedCellX > 8 Then
-				pStage->SelectedCellX = 0
+			pModel->SelectedCellX += 1
+			If pModel->SelectedCellX > 8 Then
+				pModel->SelectedCellX = 0
 			End If
-			pts(1).x = pStage->SelectedCellX
-			pts(1).y = pStage->SelectedCellY
+			pts(1).x = pModel->SelectedCellX
+			pts(1).y = pModel->SelectedCellY
 			
-			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
+			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 			
 			pModel->Events.OnLinesChanged( _
 				pModel->Context, _
@@ -279,19 +287,19 @@ Sub GameModelKeyDown( _
 			
 		Case VK_DOWN
 			Dim pts(1) As POINT = Any
-			pts(0).x = pStage->SelectedCellX
-			pts(0).y = pStage->SelectedCellY
+			pts(0).x = pModel->SelectedCellX
+			pts(0).y = pModel->SelectedCellY
 			
-			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = False
+			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 			
-			pStage->SelectedCellY += 1
-			If pStage->SelectedCellY > 8 Then
-				pStage->SelectedCellY = 0
+			pModel->SelectedCellY += 1
+			If pModel->SelectedCellY > 8 Then
+				pModel->SelectedCellY = 0
 			End If
-			pts(1).x = pStage->SelectedCellX
-			pts(1).y = pStage->SelectedCellY
+			pts(1).x = pModel->SelectedCellX
+			pts(1).y = pModel->SelectedCellY
 			
-			pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Selected = True
+			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 			
 			pModel->Events.OnLinesChanged( _
 				pModel->Context, _
@@ -301,12 +309,12 @@ Sub GameModelKeyDown( _
 			
 		Case VK_ESCAPE
 			' Снять выбор шара
-			If pStage->Lines(pStage->SelectedBallY, pStage->SelectedBallX).Ball.Selected Then
-				pStage->Lines(pStage->SelectedBallY, pStage->SelectedBallX).Ball.Selected = False
+			If pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected Then
+				pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
 				
 				Dim pts As POINT = Any
-				pts.x = pStage->SelectedBallX
-				pts.y = pStage->SelectedBallY
+				pts.x = pModel->SelectedBallX
+				pts.y = pModel->SelectedBallY
 				pModel->Events.OnLinesChanged( _
 					pModel->Context, _
 					@pts, _
