@@ -105,6 +105,8 @@ Function CreateGameModel( _
 	pModel->SelectedCellY = 0
 	pModel->SelectedBallX = 0
 	pModel->SelectedBallY = 0
+	pModel->PressedCellX = 0
+	pModel->PressedCellY = 0
 	
 	Return pModel
 	
