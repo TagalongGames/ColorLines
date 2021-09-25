@@ -273,6 +273,9 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 		Case WM_KEYDOWN
 			GameModelKeyDown(pModel, pStage, wParam)
 			
+		Case WM_KEYUP
+			GameModelKeyUp(pModel, pStage, wParam)
+			
 		Case WM_TIMER
 			Select Case wParam
 				

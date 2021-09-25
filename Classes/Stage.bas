@@ -77,6 +77,7 @@ Function CreateStage( _
 			End Scope
 			
 			pStage->Lines(j, i).Selected = False
+			pStage->Lines(j, i).Pressed = False
 			
 		Next
 	Next

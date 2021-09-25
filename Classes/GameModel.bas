@@ -18,6 +18,8 @@ Type _GameModel
 	SelectedCellY As Integer
 	SelectedBallX As Integer
 	SelectedBallY As Integer
+	PressedCellX As Integer
+	PressedCellY As Integer
 End Type
 
 Sub GenerateTablo( _
@@ -197,27 +199,18 @@ Sub GameModelKeyDown( _
 			' Если Shift+TAB то на предыдущий шар
 			
 		Case VK_SPACE, VK_RETURN
-			' Выбор шара, аналогично щелчку мыши
-			If pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Ball.Visible Then
-				
-				pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Ball.Selected = Not pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Ball.Selected
-				
-				pModel->SelectedBallX = pModel->SelectedCellX
-				pModel->SelectedBallY = pModel->SelectedCellY
-				
-				Dim pts As POINT = Any
-				pts.x = pModel->SelectedCellX
-				pts.y = pModel->SelectedCellY
-				pModel->Events.OnLinesChanged( _
-					pModel->Context, _
-					@pts, _
-					1 _
-				)
-			Else
-				If pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected Then
-					' Переместить шар
-				End If
-			End If
+			pModel->PressedCellX = pModel->SelectedCellX
+			pModel->PressedCellY = pModel->SelectedCellY
+			pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = True
+			
+			Dim pts As POINT = Any
+			pts.x = pModel->PressedCellX
+			pts.y = pModel->PressedCellY
+			pModel->Events.OnLinesChanged( _
+				pModel->Context, _
+				@pts, _
+				1 _
+			)
 			
 		Case VK_LEFT
 			Dim pts(1) As POINT = Any
@@ -321,6 +314,47 @@ Sub GameModelKeyDown( _
 					1 _
 				)
 			End If
+			
+	End Select
+	
+End Sub
+
+Sub GameModelKeyUp( _
+		ByVal pModel As GameModel Ptr, _
+		ByVal pStage As Stage Ptr, _
+		ByVal Key As Integer _
+	)
+	
+	Select Case Key
+		
+		Case VK_SPACE, VK_RETURN
+			' Отпустить кнопку
+			pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
+			
+			' Если шар виден, то выбрать его
+			If pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Ball.Visible Then
+				
+				' Выбрать или снять выбор шара
+				pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Ball.Selected = Not pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Ball.Selected
+				
+				pModel->SelectedBallX = pModel->PressedCellX
+				pModel->SelectedBallY = pModel->PressedCellY
+				
+			Else
+				' Если есть выделенный шар, то переместить его на новое место
+				If pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected Then
+					' Переместить шар
+				End If
+			End If
+			
+			Dim pts As POINT = Any
+			pts.x = pModel->PressedCellX
+			pts.y = pModel->PressedCellY
+			pModel->Events.OnLinesChanged( _
+				pModel->Context, _
+				@pts, _
+				1 _
+			)
 			
 	End Select
 	

@@ -56,6 +56,7 @@ Type Cell
 	Rectangle As RECT
 	Ball As ColorBall
 	Selected As Boolean
+	Pressed As Boolean
 End Type
 
 Type Stage

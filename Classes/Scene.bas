@@ -211,9 +211,8 @@ Sub DrawCell( _
 	Dim dy As UINT = 0
 	
 	If pCell->Selected Then
-		OldBrush = SelectObject(hDC, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
-		
 		' Чёрный прямоугольник
+		OldBrush = SelectObject(hDC, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
 		Rectangle( _
 			hDC, _
 			pCell->Rectangle.left, _
@@ -238,23 +237,43 @@ Sub DrawCell( _
 	
 	' Белый прямоугольник
 	SelectObject(hDC, Cast(HBRUSH, GetStockObject(WHITE_BRUSH)))
-	Rectangle( _
-		hDC, _
-		pCell->Rectangle.left + dx, _
-		pCell->Rectangle.top + dy, _
-		pCell->Rectangle.right - 1 - dx, _
-		pCell->Rectangle.bottom - 1 - dy _
-	)
+	If pCell->Pressed Then
+		Rectangle( _
+			hDC, _
+			pCell->Rectangle.left - 1 + dx, _
+			pCell->Rectangle.top + dy, _
+			pCell->Rectangle.right - 1 - dx, _
+			pCell->Rectangle.bottom - dy _
+		)
+	Else
+		Rectangle( _
+			hDC, _
+			pCell->Rectangle.left + dx, _
+			pCell->Rectangle.top + dy, _
+			pCell->Rectangle.right - 1 - dx, _
+			pCell->Rectangle.bottom - 1 - dy _
+		)
+	End If
 	
 	' Серый прямоугольник
 	SelectObject(hDC, Cast(HBRUSH, GetStockObject(GRAY_BRUSH)))
-	Rectangle( _
-		hDC, _
-		pCell->Rectangle.left + 1 + dx, _
-		pCell->Rectangle.top + 1 + dy, _
-		pCell->Rectangle.right - 1 - dx, _
-		pCell->Rectangle.bottom - 1 - dy _
-	)
+	If pCell->Pressed Then
+		Rectangle( _
+			hDC, _
+			pCell->Rectangle.left - 1 + dx, _
+			pCell->Rectangle.top - 1 + dy, _
+			pCell->Rectangle.right + 1 - dx, _
+			pCell->Rectangle.bottom + 1 - dy _
+		)
+	Else
+		Rectangle( _
+			hDC, _
+			pCell->Rectangle.left + 1 + dx, _
+			pCell->Rectangle.top + 1 + dy, _
+			pCell->Rectangle.right - 1 - dx, _
+			pCell->Rectangle.bottom - 1 - dy _
+		)
+	End If
 	
 	' Светло-серый прямоугольник
 	SelectObject(hDC, Cast(HBRUSH, GetStockObject(LTGRAY_BRUSH)))
@@ -267,8 +286,9 @@ Sub DrawCell( _
 	)
 	
 	If pCell->Selected Then
-		SelectObject(hDC, Cast(HBRUSH, GetStockObject(HOLLOW_BRUSH)))
+		' Рамка выделения
 		Dim OldOldPen As HGDIOBJ = SelectObject(hDC, pBrushes->DashPen)
+		SelectObject(hDC, Cast(HBRUSH, GetStockObject(HOLLOW_BRUSH)))
 		dx += 4
 		dy += 4
 		Rectangle( _
