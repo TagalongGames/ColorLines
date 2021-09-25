@@ -28,7 +28,6 @@ Declare Sub SceneCopyRectangle( _
 
 Declare Sub SceneTranslateRectangle( _
 	ByVal pScene As Scene Ptr, _
-	ByVal pStage As Stage Ptr, _
 	ByVal pRectangle As RECT Ptr, _
 	ByVal pTranslatedRectangle As RECT Ptr _
 )

@@ -84,6 +84,8 @@ Function CreateStage( _
 	pStage->Lines(0, 0).Selected = True
 	pStage->SelectedCellX = 0
 	pStage->SelectedCellY = 0
+	pStage->SelectedBallX = 0
+	pStage->SelectedBallY = 0
 	
 	For j As Integer = 0 To 2
 		
@@ -105,6 +107,7 @@ Function CreateStage( _
 	pStage->MovedBall.Frame = AnimationFrames.Stopped
 	' pStage->MovedBall.Rectangle = False
 	pStage->MovedBall.Visible = False
+	pStage->MovedBall.Selected = False
 	
 	pStage->Score = 0
 	pStage->HiScore = HiScore
@@ -125,7 +128,7 @@ Function StageGetWidth( _
 		ByVal pStage As Stage Ptr _
 	)As Integer
 	
-	Return pStage->Lines(0, 0).Rectangle.left + pStage->Tablo(0).Rectangle.right
+	Return CellWidth * 9 + CellWidth + CellWidth
 	
 End Function
 
@@ -133,6 +136,6 @@ Function StageGetHeight( _
 		ByVal pStage As Stage Ptr _
 	)As Integer
 	
-	Return pStage->Lines(0, 0).Rectangle.top + pStage->Lines(8, 0).Rectangle.bottom
+	Return CellHeight * 9
 	
 End Function

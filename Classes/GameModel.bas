@@ -190,6 +190,26 @@ Sub GameModelKeyDown( _
 			
 		Case VK_SPACE, VK_RETURN
 			' Выбор шара, аналогично щелчку мыши
+			If pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Ball.Visible Then
+				
+				pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Ball.Selected = Not pStage->Lines(pStage->SelectedCellY, pStage->SelectedCellX).Ball.Selected
+				
+				pStage->SelectedBallX = pStage->SelectedCellX
+				pStage->SelectedBallY = pStage->SelectedCellY
+				
+				Dim pts As POINT = Any
+				pts.x = pStage->SelectedCellX
+				pts.y = pStage->SelectedCellY
+				pModel->Events.OnLinesChanged( _
+					pModel->Context, _
+					@pts, _
+					1 _
+				)
+			Else
+				If pStage->Lines(pStage->SelectedBallY, pStage->SelectedBallX).Ball.Selected Then
+					' Переместить шар
+				End If
+			End If
 			
 		Case VK_LEFT
 			Dim pts(1) As POINT = Any
@@ -281,6 +301,18 @@ Sub GameModelKeyDown( _
 			
 		Case VK_ESCAPE
 			' Снять выбор шара
+			If pStage->Lines(pStage->SelectedBallY, pStage->SelectedBallX).Ball.Selected Then
+				pStage->Lines(pStage->SelectedBallY, pStage->SelectedBallX).Ball.Selected = False
+				
+				Dim pts As POINT = Any
+				pts.x = pStage->SelectedBallX
+				pts.y = pStage->SelectedBallY
+				pModel->Events.OnLinesChanged( _
+					pModel->Context, _
+					@pts, _
+					1 _
+				)
+			End If
 			
 	End Select
 	

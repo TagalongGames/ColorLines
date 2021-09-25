@@ -25,21 +25,20 @@ Sub ColorLinesStageChanged( _
 		ByVal Count As Integer _
 	)
 	
-	' Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, pContext)
+	Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, pContext)
 	
 	SceneRender( _
 		pScene, _
 		pStage _
 	)
 	
-	' For i As Integer = 0 To Count - 1
-		' Dim ScreenRectangle As RECT = Any
-		' SceneTranslateRectangle( _
-			' pScene, _
-			' pStage, _
-			' @pRenderRectangles[i], _
-			' @ScreenRectangle _
-		' )
+	For i As Integer = 0 To Count - 1
+		Dim ScreenRectangle As RECT = Any
+		SceneTranslateRectangle( _
+			pScene, _
+			@pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Rectangle, _
+			@ScreenRectangle _
+		)
 		
 		/'
 		Dim buffer As WString * (512 + 1) = Any
@@ -49,36 +48,63 @@ Sub ColorLinesStageChanged( _
 		MessageBoxW(NULL, @buffer, NULL, MB_OK)
 		'/
 		
-		' InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
-	' Next
+		InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
+	Next
 	
 End Sub
 
 Sub ColorLinesTabloChanged( _
-		ByVal Context As Any Ptr _
+		ByVal pContext As Any Ptr _
 	)
+	
+	Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, pContext)
+	
+	SceneRender( _
+		pScene, _
+		pStage _
+	)
+	
+	For i As Integer = 0 To 2
+		Dim ScreenRectangle As RECT = Any
+		SceneTranslateRectangle( _
+			pScene, _
+			@pStage->Tablo(i).Rectangle, _
+			@ScreenRectangle _
+		)
+		
+		/'
+		Dim buffer As WString * (512 + 1) = Any
+		Const ffFormat = WStr("{%d, %d, %d, %d} = {%d, %d, %d, %d}")
+		swprintf(@buffer, @ffFormat, pRenderRectangles[i].left, pRenderRectangles[i].top, pRenderRectangles[i].right, pRenderRectangles[i].bottom, ScreenRectangle.left, ScreenRectangle.top, ScreenRectangle.right, ScreenRectangle.bottom)
+		buffer[255] = 0
+		MessageBoxW(NULL, @buffer, NULL, MB_OK)
+		'/
+		
+		InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
+	Next
+	
 End Sub
 
 Sub ColorLinesMovedBallChanged( _
-		ByVal Context As Any Ptr _
+		ByVal pContext As Any Ptr _
 	)
 End Sub
 
 Sub ColorLinesScoreChanged( _
-		ByVal Context As Any Ptr _
+		ByVal pContext As Any Ptr _
 	)
 End Sub
 
 Sub ColorLinesHiScoreChanged( _
-		ByVal Context As Any Ptr _
+		ByVal pContext As Any Ptr _
 	)
 End Sub
 
 Sub ColorLinesStageAnimated( _
-		ByVal Context As Any Ptr _
+		ByVal pContext As Any Ptr _
 	)
 	
-	Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, Context)
+	Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, pContext)
 	
 	SetTimer( _
 		pUpdateContext->hWin, _
