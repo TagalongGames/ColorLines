@@ -80,6 +80,13 @@ Sub DrawBall( _
 		ByVal pBall As ColorBall Ptr _
 	)
 	
+	Dim m As XFORM = Any
+	MatrixSetTranslate(@m, pBall->Position.TranslateX, pBall->Position.TranslateY)
+	ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
+	
+	MatrixSetRRotate(@m, pBall->Position.AngleSine, pBall->Position.AngleCosine)
+	ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
+	
 	' тип движения:
 	' - появление из точки в нормальный размер (от 0 до 9)
 	' - прыжки при выборе мышью (от 0 до 5 и обратно)
@@ -146,8 +153,6 @@ Sub DrawBall( _
 		)
 		' ModifyWorldTransform(hDC, @TranslateMatrix, MWT_LEFTMULTIPLY)
 		
-		Const Sine45 = 0.70710678118654752440084436210485
-		Const Cosine45 = 0.70710678118654752440084436210485
 		Dim RotateMatrix As XFORM = Any ' 45 градусов
 		MatrixSetRRotate( _
 			@RotateMatrix, _
@@ -203,6 +208,10 @@ Sub DrawCell( _
 		ByVal pBrushes As SceneBrushes Ptr, _
 		ByVal pCell As Cell Ptr _
 	)
+	
+	Dim m As XFORM = Any
+	MatrixSetTranslate(@m, pCell->Position.TranslateX, pCell->Position.TranslateY)
+	ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
 	
 	Dim OldPen As HGDIOBJ = SelectObject(hDC, Cast(HPEN, GetStockObject(NULL_PEN)))
 	Dim OldBrush As HGDIOBJ = Any

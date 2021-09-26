@@ -2,6 +2,7 @@
 #define STAGE_BI
 
 #include once "windows.bi"
+#include once "GdiMatrix.bi"
 
 Enum BallColors
 	Red
@@ -45,15 +46,17 @@ Enum AnimationFrames
 End Enum
 
 Type ColorBall
+	Rectangle As RECT
+	Position As Transformation
 	Color As BallColors
 	Frame As AnimationFrames
-	Rectangle As RECT
 	Visible As Boolean
 	Selected As Boolean
 End Type
 
 Type Cell
 	Rectangle As RECT
+	Position As Transformation
 	Ball As ColorBall
 	Selected As Boolean
 	Pressed As Boolean
