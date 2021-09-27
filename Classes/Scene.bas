@@ -130,10 +130,10 @@ Sub DrawBall( _
 		
 		Ellipse( _
 			hDC, _
-			pBall->Rectangle.left, _
-			pBall->Rectangle.top, _
-			pBall->Rectangle.right, _
-			pBall->Rectangle.bottom _
+			pBall->Bounds.left, _
+			pBall->Bounds.top, _
+			pBall->Bounds.right, _
+			pBall->Bounds.bottom _
 		)
 		
 		' SelectObject(hDC, OldPen)
@@ -224,10 +224,10 @@ Sub DrawCell( _
 		OldBrush = SelectObject(hDC, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
 		Rectangle( _
 			hDC, _
-			pCell->Rectangle.left, _
-			pCell->Rectangle.top, _
-			pCell->Rectangle.right, _
-			pCell->Rectangle.bottom _
+			pCell->Bounds.left, _
+			pCell->Bounds.top, _
+			pCell->Bounds.right, _
+			pCell->Bounds.bottom _
 		)
 		SelectObject(hDC, OldBrush)
 		dx = 1
@@ -238,10 +238,10 @@ Sub DrawCell( _
 	OldBrush = SelectObject(hDC, Cast(HBRUSH, GetStockObject(DKGRAY_BRUSH)))
 	Rectangle( _
 		hDC, _
-		pCell->Rectangle.left + dx, _
-		pCell->Rectangle.top + dy, _
-		pCell->Rectangle.right - dx, _
-		pCell->Rectangle.bottom - dy _
+		pCell->Bounds.left + dx, _
+		pCell->Bounds.top + dy, _
+		pCell->Bounds.right - dx, _
+		pCell->Bounds.bottom - dy _
 	)
 	
 	' Белый прямоугольник
@@ -249,18 +249,18 @@ Sub DrawCell( _
 	If pCell->Pressed Then
 		Rectangle( _
 			hDC, _
-			pCell->Rectangle.left - 1 + dx, _
-			pCell->Rectangle.top + dy, _
-			pCell->Rectangle.right - 1 - dx, _
-			pCell->Rectangle.bottom - dy _
+			pCell->Bounds.left - 1 + dx, _
+			pCell->Bounds.top + dy, _
+			pCell->Bounds.right - 1 - dx, _
+			pCell->Bounds.bottom - dy _
 		)
 	Else
 		Rectangle( _
 			hDC, _
-			pCell->Rectangle.left + dx, _
-			pCell->Rectangle.top + dy, _
-			pCell->Rectangle.right - 1 - dx, _
-			pCell->Rectangle.bottom - 1 - dy _
+			pCell->Bounds.left + dx, _
+			pCell->Bounds.top + dy, _
+			pCell->Bounds.right - 1 - dx, _
+			pCell->Bounds.bottom - 1 - dy _
 		)
 	End If
 	
@@ -269,18 +269,18 @@ Sub DrawCell( _
 	If pCell->Pressed Then
 		Rectangle( _
 			hDC, _
-			pCell->Rectangle.left - 1 + dx, _
-			pCell->Rectangle.top - 1 + dy, _
-			pCell->Rectangle.right + 1 - dx, _
-			pCell->Rectangle.bottom + 1 - dy _
+			pCell->Bounds.left - 1 + dx, _
+			pCell->Bounds.top - 1 + dy, _
+			pCell->Bounds.right + 1 - dx, _
+			pCell->Bounds.bottom + 1 - dy _
 		)
 	Else
 		Rectangle( _
 			hDC, _
-			pCell->Rectangle.left + 1 + dx, _
-			pCell->Rectangle.top + 1 + dy, _
-			pCell->Rectangle.right - 1 - dx, _
-			pCell->Rectangle.bottom - 1 - dy _
+			pCell->Bounds.left + 1 + dx, _
+			pCell->Bounds.top + 1 + dy, _
+			pCell->Bounds.right - 1 - dx, _
+			pCell->Bounds.bottom - 1 - dy _
 		)
 	End If
 	
@@ -288,10 +288,10 @@ Sub DrawCell( _
 	SelectObject(hDC, Cast(HBRUSH, GetStockObject(LTGRAY_BRUSH)))
 	Rectangle( _
 		hDC, _
-		pCell->Rectangle.left + 1 + dx, _
-		pCell->Rectangle.top + 1 + dy, _
-		pCell->Rectangle.right - 2 - dx, _
-		pCell->Rectangle.bottom - 2 - dy _
+		pCell->Bounds.left + 1 + dx, _
+		pCell->Bounds.top + 1 + dy, _
+		pCell->Bounds.right - 2 - dx, _
+		pCell->Bounds.bottom - 2 - dy _
 	)
 	
 	If pCell->Selected Then
@@ -302,10 +302,10 @@ Sub DrawCell( _
 		dy += 4
 		Rectangle( _
 			hDC, _
-			pCell->Rectangle.left + dx, _
-			pCell->Rectangle.top + dy, _
-			pCell->Rectangle.right - dx, _
-			pCell->Rectangle.bottom - dy _
+			pCell->Bounds.left + dx, _
+			pCell->Bounds.top + dy, _
+			pCell->Bounds.right - dx, _
+			pCell->Bounds.bottom - dy _
 		)
 		SelectObject(hDC, OldOldPen)
 	End If
@@ -480,7 +480,7 @@ Sub SceneRender( _
 		
 		TextOutW( _
 			pScene->DeviceContext, _
-			pStage->Tablo(0).Rectangle.left, _
+			pStage->Tablo(0).Bounds.left, _
 			0, _
 			@Buffer(0), _
 			lstrlenw(@Buffer(0)) _
@@ -493,8 +493,8 @@ Sub SceneRender( _
 		
 		TextOutW( _
 			pScene->DeviceContext, _
-			pStage->Tablo(0).Rectangle.left, _
-			pStage->Tablo(2).Rectangle.bottom, _
+			pStage->Tablo(0).Bounds.left, _
+			pStage->Tablo(2).Bounds.bottom, _
 			@Buffer(0), _
 			lstrlenw(@Buffer(0)) _
 		)
@@ -585,44 +585,123 @@ Sub SceneRender( _
 	
 End Sub
 
-Sub SceneTranslateRectangle( _
-		ByVal pScene As Scene Ptr, _
-		ByVal pRectangle As RECT Ptr, _
-		ByVal pTranslatedRectangle As RECT Ptr _
+Sub SetPositionMatrix( _
+		ByVal m As XFORM Ptr, _
+		ByVal pPosition As Transformation Ptr _
 	)
 	
-	Dim OutMatrix As XFORM = Any
-	CombineTransform(@OutMatrix, @pScene->ProjectionMatrix, @pScene->ViewMatrix)
+	Dim WorldMatrix As XFORM = Any
+	Scope
+		MatrixSetIdentity(@WorldMatrix)
+	End Scope
 	
-	Dim OutMatrix2 As XFORM = Any
-	CombineTransform(@OutMatrix2, @OutMatrix, @pScene->WorldMatrix)
+	Scope
+		Dim TranslationMatrix As XFORM = Any
+		MatrixSetTranslate(@TranslationMatrix, pPosition->TranslateX, pPosition->TranslateY)
+		
+		Dim OutMatrix As XFORM = Any
+		CombineTransform(@OutMatrix, @WorldMatrix, @TranslationMatrix)
+		WorldMatrix = OutMatrix
+	End Scope
 	
-	' Вектор
-	Dim LeftTopStageVector As Vector2DF = Any
-	LeftTopStageVector.X = CSng(pRectangle->left)
-	LeftTopStageVector.Y = CSng(pRectangle->Top)
+	Scope
+		Dim RotationMatrix As XFORM = Any
+		MatrixSetRRotate(@RotationMatrix, pPosition->AngleSine, pPosition->AngleCosine)
+		
+		Dim OutMatrix As XFORM = Any
+		CombineTransform(@OutMatrix, @WorldMatrix, @RotationMatrix)
+		WorldMatrix = OutMatrix
+	End Scope
 	
-	Dim LeftTopSceneVectorF As Vector2DF = Any
-	MultipleVector(@LeftTopSceneVectorF, @OutMatrix2, @LeftTopStageVector)
+	Scope
+		Dim ScaleMatrix As XFORM = Any
+		MatrixSetScale(@ScaleMatrix, pPosition->ScaleX, pPosition->ScaleY)
+		
+		Dim OutMatrix As XFORM = Any
+		CombineTransform(@OutMatrix, @WorldMatrix, @ScaleMatrix)
+		WorldMatrix = OutMatrix
+	End Scope
 	
+	Scope
+		Dim ReflectMatrix As XFORM = Any
+		MatrixSetReflect(@ReflectMatrix, pPosition->ReflectX, pPosition->ReflectY)
+		
+		Dim OutMatrix As XFORM = Any
+		CombineTransform(@OutMatrix, @WorldMatrix, @ReflectMatrix)
+		WorldMatrix = OutMatrix
+	End Scope
+	
+	Scope
+		Dim ShearMatrix As XFORM = Any
+		MatrixSetShear(@ShearMatrix, pPosition->ShearX, pPosition->ShearY)
+		
+		Dim OutMatrix As XFORM = Any
+		CombineTransform(@OutMatrix, @WorldMatrix, @ShearMatrix)
+		WorldMatrix = OutMatrix
+	End Scope
+	
+	*m = WorldMatrix
+	
+End Sub
+
+Sub SceneTranslateBounds( _
+		ByVal pScene As Scene Ptr, _
+		ByVal pObjectBounds As RECT Ptr, _
+		ByVal pPosition As Transformation Ptr, _
+		ByVal pScreenBounds As RECT Ptr _
+	)
+	
+	Dim WorldMatrix As XFORM = Any
+	Scope
+		Dim OutMatrix As XFORM = Any
+		CombineTransform(@OutMatrix, @pScene->ProjectionMatrix, @pScene->ViewMatrix)
+		
+		CombineTransform(@WorldMatrix, @OutMatrix, @pScene->WorldMatrix)
+	End Scope
+	
+	Dim PositionMatrix As XFORM = Any
+	SetPositionMatrix(@PositionMatrix, pPosition)
+	
+	Scope
+		Dim OutMatrix As XFORM = Any
+		CombineTransform(@OutMatrix, @PositionMatrix, @WorldMatrix)
+		
+		WorldMatrix = OutMatrix
+	End Scope
+	
+	' Вектор объекта на экране 1
 	Dim LeftTopSceneVectorI As Vector2DI = Any
-	ConvertVector2DFToVector2DI(@LeftTopSceneVectorI, @LeftTopSceneVectorF)
+	Scope
+		' Вектор объекта на сцене
+		Dim LeftTopStageVectorF As Vector2DF = Any
+		LeftTopStageVectorF.X = CSng(pObjectBounds->left)
+		LeftTopStageVectorF.Y = CSng(pObjectBounds->top)
+		
+		Dim LeftTopSceneVectorF As Vector2DF = Any
+		MultipleVector(@LeftTopSceneVectorF, @WorldMatrix, @LeftTopStageVectorF)
+		
+		ConvertVector2DFToVector2DI(@LeftTopSceneVectorI, @LeftTopSceneVectorF)
+	End Scope
 	
-	Dim RightBottomStageVector As Vector2DF = Any
-	RightBottomStageVector.X = CSng(pRectangle->right)
-	RightBottomStageVector.Y = CSng(pRectangle->bottom)
-	
-	Dim RightBottomSceneVectorF As Vector2DF = Any
-	MultipleVector(@RightBottomSceneVectorF, @OutMatrix2, @RightBottomStageVector)
-	
+	' Вектор объекта на экране 2
 	Dim RightBottomSceneVectorI As Vector2DI = Any
-	ConvertVector2DFToVector2DI(@RightBottomSceneVectorI, @RightBottomSceneVectorF)
+	Scope
+		' Вектор объекта на сцене
+		Dim RightBottomStageVectorF As Vector2DF = Any
+		RightBottomStageVectorF.X = CSng(pObjectBounds->right)
+		RightBottomStageVectorF.Y = CSng(pObjectBounds->bottom)
+		
+		Dim RightBottomSceneVectorF As Vector2DF = Any
+		MultipleVector(@RightBottomSceneVectorF, @WorldMatrix, @RightBottomStageVectorF)
+		
+		ConvertVector2DFToVector2DI(@RightBottomSceneVectorI, @RightBottomSceneVectorF)
+	End Scope
 	
-	SetRect(pTranslatedRectangle, _
-		LeftTopSceneVectorI.X - 1, _
-		LeftTopSceneVectorI.Y - 1, _
-		RightBottomSceneVectorI.X + 1, _
-		RightBottomSceneVectorI.Y + 1 _
+	SetRect(pScreenBounds, _
+		LeftTopSceneVectorI.X, _
+		LeftTopSceneVectorI.Y, _
+		RightBottomSceneVectorI.X, _
+		RightBottomSceneVectorI.Y _
 	)
 	
 End Sub

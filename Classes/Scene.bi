@@ -26,10 +26,11 @@ Declare Sub SceneCopyRectangle( _
 	ByVal pRectangle As RECT Ptr _
 )
 
-Declare Sub SceneTranslateRectangle( _
+Declare Sub SceneTranslateBounds( _
 	ByVal pScene As Scene Ptr, _
-	ByVal pRectangle As RECT Ptr, _
-	ByVal pTranslatedRectangle As RECT Ptr _
+	ByVal pObjectBounds As RECT Ptr, _
+	ByVal pPosition As Transformation Ptr, _
+	ByVal pScreenBounds As RECT Ptr _
 )
 
 Declare Sub SceneSetProjectionMatrix( _

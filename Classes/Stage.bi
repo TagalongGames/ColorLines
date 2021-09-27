@@ -46,7 +46,7 @@ Enum AnimationFrames
 End Enum
 
 Type ColorBall
-	Rectangle As RECT
+	Bounds As RECT
 	Position As Transformation
 	Color As BallColors
 	Frame As AnimationFrames
@@ -55,7 +55,7 @@ Type ColorBall
 End Type
 
 Type Cell
-	Rectangle As RECT
+	Bounds As RECT
 	Position As Transformation
 	Ball As ColorBall
 	Selected As Boolean

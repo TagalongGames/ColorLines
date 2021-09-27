@@ -34,21 +34,25 @@ Sub ColorLinesStageChanged( _
 	
 	For i As Integer = 0 To Count - 1
 		Dim ScreenRectangle As RECT = Any
-		SceneTranslateRectangle( _
+		SceneTranslateBounds( _
 			pScene, _
-			@pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Rectangle, _
+			@pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Bounds, _
+			@pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Position, _
 			@ScreenRectangle _
 		)
 		
-		/'
+		
 		Dim buffer As WString * (512 + 1) = Any
-		Const ffFormat = WStr("{%d, %d, %d, %d} = {%d, %d, %d, %d}")
-		swprintf(@buffer, @ffFormat, pRenderRectangles[i].left, pRenderRectangles[i].top, pRenderRectangles[i].right, pRenderRectangles[i].bottom, ScreenRectangle.left, ScreenRectangle.top, ScreenRectangle.right, ScreenRectangle.bottom)
+		' Const ffFormat = WStr("{%d, %d, %d, %d} = {%d, %d, %d, %d}")
+		' swprintf(@buffer, @ffFormat, pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Bounds.left, pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Bounds.top, pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Bounds.right, pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Bounds.bottom, ScreenRectangle.left, ScreenRectangle.top, ScreenRectangle.right, ScreenRectangle.bottom)
+		Const ffFormat = WStr("{%d, %d, %d, %d}")
+		swprintf(@buffer, @ffFormat, ScreenRectangle.left, ScreenRectangle.top, ScreenRectangle.right, ScreenRectangle.bottom)
 		buffer[255] = 0
 		MessageBoxW(NULL, @buffer, NULL, MB_OK)
-		'/
+		
 		
 		InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
+		' InvalidateRect(pUpdateContext->hWin, NULL, FALSE)
 	Next
 	
 End Sub
@@ -66,9 +70,10 @@ Sub ColorLinesTabloChanged( _
 	
 	For i As Integer = 0 To 2
 		Dim ScreenRectangle As RECT = Any
-		SceneTranslateRectangle( _
+		SceneTranslateBounds( _
 			pScene, _
-			@pStage->Tablo(i).Rectangle, _
+			@pStage->Tablo(i).Bounds, _
+			@pStage->Tablo(i).Position, _
 			@ScreenRectangle _
 		)
 		
@@ -247,6 +252,12 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 		Case WM_PAINT
 			Dim ps As PAINTSTRUCT = Any
 			Dim hDC As HDC = BeginPaint(hWin, @ps)
+			
+			' Dim buffer As WString * (512 + 1) = Any
+			' Const ffFormat = WStr("{%d, %d, %d, %d}")
+			' swprintf(@buffer, @ffFormat, ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom)
+			' buffer[255] = 0
+			' MessageBoxW(NULL, @buffer, NULL, MB_OK)
 			
 			SceneCopyRectangle(pScene, hDC, @ps.rcPaint)
 			
