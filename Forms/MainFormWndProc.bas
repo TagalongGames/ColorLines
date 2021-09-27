@@ -41,7 +41,7 @@ Sub ColorLinesStageChanged( _
 			@ScreenRectangle _
 		)
 		
-		
+		/'
 		Dim buffer As WString * (512 + 1) = Any
 		' Const ffFormat = WStr("{%d, %d, %d, %d} = {%d, %d, %d, %d}")
 		' swprintf(@buffer, @ffFormat, pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Bounds.left, pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Bounds.top, pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Bounds.right, pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Bounds.bottom, ScreenRectangle.left, ScreenRectangle.top, ScreenRectangle.right, ScreenRectangle.bottom)
@@ -49,7 +49,7 @@ Sub ColorLinesStageChanged( _
 		swprintf(@buffer, @ffFormat, ScreenRectangle.left, ScreenRectangle.top, ScreenRectangle.right, ScreenRectangle.bottom)
 		buffer[255] = 0
 		MessageBoxW(NULL, @buffer, NULL, MB_OK)
-		
+		'/
 		
 		InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
 		' InvalidateRect(pUpdateContext->hWin, NULL, FALSE)

@@ -302,8 +302,8 @@ Sub DrawCell( _
 		dy += 4
 		Rectangle( _
 			hDC, _
-			pCell->Bounds.left + dx, _
-			pCell->Bounds.top + dy, _
+			pCell->Bounds.left + dx - 1, _
+			pCell->Bounds.top + dy - 1, _
 			pCell->Bounds.right - dx, _
 			pCell->Bounds.bottom - dy _
 		)
