@@ -99,31 +99,24 @@ Sub DrawBall( _
 		Select Case CInt(pBall->Color)
 			
 			Case BallColors.Red
-				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
 				OldBrush = SelectObject(hDC, pBrushes->RedBrush)
 				
 			Case BallColors.Green
-				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
 				OldBrush = SelectObject(hDC, pBrushes->GreenBrush)
 				
 			Case BallColors.Blue
-				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
 				OldBrush = SelectObject(hDC, pBrushes->BlueBrush)
 				
 			Case BallColors.Yellow
-				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
 				OldBrush = SelectObject(hDC, pBrushes->YellowBrush)
 				
 			Case BallColors.Magenta
-				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
 				OldBrush = SelectObject(hDC, pBrushes->MagentaBrush)
 				
 			Case BallColors.DarkRed
-				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
 				OldBrush = SelectObject(hDC, pBrushes->DarkRedBrush)
 				
 			Case Else ' BallColors.Cyan
-				' OldPen = SelectObject(hDC, pBrushes->GreenPen)
 				OldBrush = SelectObject(hDC, pBrushes->CyanBrush)
 				
 		End Select
@@ -136,7 +129,6 @@ Sub DrawBall( _
 			pBall->Bounds.bottom _
 		)
 		
-		' SelectObject(hDC, OldPen)
 		SelectObject(hDC, OldBrush)
 	End If
 	

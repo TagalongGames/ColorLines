@@ -52,7 +52,6 @@ Sub ColorLinesStageChanged( _
 		'/
 		
 		InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
-		' InvalidateRect(pUpdateContext->hWin, NULL, FALSE)
 	Next
 	
 End Sub
@@ -76,14 +75,6 @@ Sub ColorLinesTabloChanged( _
 			@pStage->Tablo(i).Position, _
 			@ScreenRectangle _
 		)
-		
-		/'
-		Dim buffer As WString * (512 + 1) = Any
-		Const ffFormat = WStr("{%d, %d, %d, %d} = {%d, %d, %d, %d}")
-		swprintf(@buffer, @ffFormat, pRenderRectangles[i].left, pRenderRectangles[i].top, pRenderRectangles[i].right, pRenderRectangles[i].bottom, ScreenRectangle.left, ScreenRectangle.top, ScreenRectangle.right, ScreenRectangle.bottom)
-		buffer[255] = 0
-		MessageBoxW(NULL, @buffer, NULL, MB_OK)
-		'/
 		
 		InvalidateRect(pUpdateContext->hWin, @ScreenRectangle, FALSE)
 	Next
@@ -252,12 +243,6 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 		Case WM_PAINT
 			Dim ps As PAINTSTRUCT = Any
 			Dim hDC As HDC = BeginPaint(hWin, @ps)
-			
-			' Dim buffer As WString * (512 + 1) = Any
-			' Const ffFormat = WStr("{%d, %d, %d, %d}")
-			' swprintf(@buffer, @ffFormat, ps.rcPaint.left, ps.rcPaint.top, ps.rcPaint.right, ps.rcPaint.bottom)
-			' buffer[255] = 0
-			' MessageBoxW(NULL, @buffer, NULL, MB_OK)
 			
 			SceneCopyRectangle(pScene, hDC, @ps.rcPaint)
 			
