@@ -213,11 +213,10 @@ Sub DrawCell( _
 	MatrixSetTranslate(@m, pCell->Position.TranslateX, pCell->Position.TranslateY)
 	ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
 	
-	Dim OldPen As HGDIOBJ = SelectObject(hDC, Cast(HPEN, GetStockObject(NULL_PEN)))
 	Dim OldBrush As HGDIOBJ = Any
 	
-	Dim dx As UINT = 0
-	Dim dy As UINT = 0
+	Dim MarginX As Long = 0
+	Dim MarginY As Long = 0
 	
 	If pCell->Selected Then
 		' Чёрный прямоугольник
@@ -230,18 +229,18 @@ Sub DrawCell( _
 			pCell->Bounds.bottom _
 		)
 		SelectObject(hDC, OldBrush)
-		dx = 1
-		dy = 1
+		MarginX = 1
+		MarginY = 1
 	End If
 	
 	' Тёмно-серый прямоугольник
 	OldBrush = SelectObject(hDC, Cast(HBRUSH, GetStockObject(DKGRAY_BRUSH)))
 	Rectangle( _
 		hDC, _
-		pCell->Bounds.left + dx, _
-		pCell->Bounds.top + dy, _
-		pCell->Bounds.right - dx, _
-		pCell->Bounds.bottom - dy _
+		pCell->Bounds.left + MarginX, _
+		pCell->Bounds.top + MarginY, _
+		pCell->Bounds.right - MarginX, _
+		pCell->Bounds.bottom - MarginY _
 	)
 	
 	' Белый прямоугольник
@@ -249,18 +248,18 @@ Sub DrawCell( _
 	If pCell->Pressed Then
 		Rectangle( _
 			hDC, _
-			pCell->Bounds.left - 1 + dx, _
-			pCell->Bounds.top + dy, _
-			pCell->Bounds.right - 1 - dx, _
-			pCell->Bounds.bottom - dy _
+			pCell->Bounds.left - 1 + MarginX, _
+			pCell->Bounds.top + MarginY, _
+			pCell->Bounds.right - 1 - MarginX, _
+			pCell->Bounds.bottom - MarginY _
 		)
 	Else
 		Rectangle( _
 			hDC, _
-			pCell->Bounds.left + dx, _
-			pCell->Bounds.top + dy, _
-			pCell->Bounds.right - 1 - dx, _
-			pCell->Bounds.bottom - 1 - dy _
+			pCell->Bounds.left + MarginX, _
+			pCell->Bounds.top + MarginY, _
+			pCell->Bounds.right - 1 - MarginX, _
+			pCell->Bounds.bottom - 1 - MarginY _
 		)
 	End If
 	
@@ -269,18 +268,18 @@ Sub DrawCell( _
 	If pCell->Pressed Then
 		Rectangle( _
 			hDC, _
-			pCell->Bounds.left - 1 + dx, _
-			pCell->Bounds.top - 1 + dy, _
-			pCell->Bounds.right + 1 - dx, _
-			pCell->Bounds.bottom + 1 - dy _
+			pCell->Bounds.left - 1 + MarginX, _
+			pCell->Bounds.top - 1 + MarginY, _
+			pCell->Bounds.right + 1 - MarginX, _
+			pCell->Bounds.bottom + 1 - MarginY _
 		)
 	Else
 		Rectangle( _
 			hDC, _
-			pCell->Bounds.left + 1 + dx, _
-			pCell->Bounds.top + 1 + dy, _
-			pCell->Bounds.right - 1 - dx, _
-			pCell->Bounds.bottom - 1 - dy _
+			pCell->Bounds.left + 1 + MarginX, _
+			pCell->Bounds.top + 1 + MarginY, _
+			pCell->Bounds.right - 1 - MarginX, _
+			pCell->Bounds.bottom - 1 - MarginY _
 		)
 	End If
 	
@@ -288,30 +287,29 @@ Sub DrawCell( _
 	SelectObject(hDC, Cast(HBRUSH, GetStockObject(LTGRAY_BRUSH)))
 	Rectangle( _
 		hDC, _
-		pCell->Bounds.left + 1 + dx, _
-		pCell->Bounds.top + 1 + dy, _
-		pCell->Bounds.right - 2 - dx, _
-		pCell->Bounds.bottom - 2 - dy _
+		pCell->Bounds.left + 1 + MarginX, _
+		pCell->Bounds.top + 1 + MarginY, _
+		pCell->Bounds.right - 2 - MarginX, _
+		pCell->Bounds.bottom - 2 - MarginY _
 	)
 	
 	If pCell->Selected Then
 		' Рамка выделения
 		Dim OldOldPen As HGDIOBJ = SelectObject(hDC, pBrushes->DashPen)
 		SelectObject(hDC, Cast(HBRUSH, GetStockObject(HOLLOW_BRUSH)))
-		dx += 4
-		dy += 4
+		MarginX += 4
+		MarginY += 4
 		Rectangle( _
 			hDC, _
-			pCell->Bounds.left + dx - 1, _
-			pCell->Bounds.top + dy - 1, _
-			pCell->Bounds.right - dx, _
-			pCell->Bounds.bottom - dy _
+			pCell->Bounds.left + MarginX - 1, _
+			pCell->Bounds.top + MarginY - 1, _
+			pCell->Bounds.right - MarginX, _
+			pCell->Bounds.bottom - MarginY _
 		)
 		SelectObject(hDC, OldOldPen)
 	End If
 	
 	SelectObject(hDC, OldBrush)
-	SelectObject(hDC, OldPen)
 	
 End Sub
 
@@ -500,6 +498,7 @@ Sub SceneRender( _
 		)
 	End Scope
 	
+	Dim OldPen As HGDIOBJ = SelectObject(pScene->DeviceContext, Cast(HPEN, GetStockObject(NULL_PEN)))
 	' Ячейки
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
@@ -515,6 +514,20 @@ Sub SceneRender( _
 			SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 		Next
 	Next
+	' Табло
+	For i As Integer = 0 To 2
+		Dim OldWorldMatrix As XFORM = Any
+		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+		
+		DrawCell( _
+			pScene->DeviceContext, _
+			@pScene->Brushes, _
+			@pStage->Tablo(i) _
+		)
+		
+		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+	Next
+	SelectObject(pScene->DeviceContext, OldPen)
 	
 	' Шары
 	For j As Integer = 0 To 8
@@ -531,35 +544,6 @@ Sub SceneRender( _
 			SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 		Next
 	Next
-	
-	' Двигающийся шар
-	Scope
-		Dim OldWorldMatrix As XFORM = Any
-		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
-		
-		DrawBall( _
-			pScene->DeviceContext, _
-			@pScene->Brushes, _
-			@pStage->MovedBall _
-		)
-		
-		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
-	End Scope
-	
-	' Табло
-	For i As Integer = 0 To 2
-		Dim OldWorldMatrix As XFORM = Any
-		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
-		
-		DrawCell( _
-			pScene->DeviceContext, _
-			@pScene->Brushes, _
-			@pStage->Tablo(i) _
-		)
-		
-		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
-	Next
-	
 	' Шары в табле
 	For i As Integer = 0 To 2
 		Dim OldWorldMatrix As XFORM = Any
@@ -573,6 +557,19 @@ Sub SceneRender( _
 		
 		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 	Next
+	' Двигающийся шар
+	Scope
+		Dim OldWorldMatrix As XFORM = Any
+		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+		
+		DrawBall( _
+			pScene->DeviceContext, _
+			@pScene->Brushes, _
+			@pStage->MovedBall _
+		)
+		
+		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
+	End Scope
 	
 	SetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
