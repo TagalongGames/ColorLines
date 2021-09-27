@@ -80,6 +80,10 @@ Sub DrawBall( _
 		ByVal pBall As ColorBall Ptr _
 	)
 	
+	' Dim PositionMatrix As XFORM = Any
+	' SetPositionMatrix(@PositionMatrix, @pBall->Position)
+	' ModifyWorldTransform(hDC, @PositionMatrix, MWT_RIGHTMULTIPLY)
+	
 	Dim m As XFORM = Any
 	MatrixSetTranslate(@m, pBall->Position.TranslateX, pBall->Position.TranslateY)
 	ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
@@ -571,65 +575,6 @@ Sub SceneRender( _
 	SetWindowExtEx(pScene->DeviceContext, oldWindowExt.cx, oldWindowExt.cy, NULL)
 	SetMapMode(pScene->DeviceContext, oldMode)
 	'/
-	
-End Sub
-
-Sub SetPositionMatrix( _
-		ByVal m As XFORM Ptr, _
-		ByVal pPosition As Transformation Ptr _
-	)
-	
-	Dim WorldMatrix As XFORM = Any
-	Scope
-		MatrixSetIdentity(@WorldMatrix)
-	End Scope
-	
-	Scope
-		Dim TranslationMatrix As XFORM = Any
-		MatrixSetTranslate(@TranslationMatrix, pPosition->TranslateX, pPosition->TranslateY)
-		
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @TranslationMatrix)
-		WorldMatrix = OutMatrix
-	End Scope
-	
-	Scope
-		Dim RotationMatrix As XFORM = Any
-		MatrixSetRRotate(@RotationMatrix, pPosition->AngleSine, pPosition->AngleCosine)
-		
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @RotationMatrix)
-		WorldMatrix = OutMatrix
-	End Scope
-	
-	Scope
-		Dim ScaleMatrix As XFORM = Any
-		MatrixSetScale(@ScaleMatrix, pPosition->ScaleX, pPosition->ScaleY)
-		
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @ScaleMatrix)
-		WorldMatrix = OutMatrix
-	End Scope
-	
-	Scope
-		Dim ReflectMatrix As XFORM = Any
-		MatrixSetReflect(@ReflectMatrix, pPosition->ReflectX, pPosition->ReflectY)
-		
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @ReflectMatrix)
-		WorldMatrix = OutMatrix
-	End Scope
-	
-	Scope
-		Dim ShearMatrix As XFORM = Any
-		MatrixSetShear(@ShearMatrix, pPosition->ShearX, pPosition->ShearY)
-		
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @ShearMatrix)
-		WorldMatrix = OutMatrix
-	End Scope
-	
-	*m = WorldMatrix
 	
 End Sub
 

@@ -86,4 +86,9 @@ Declare Sub ConvertVector2DFToVector2DI( _
 	ByVal lpVec As Const Vector2DF Ptr _
 )
 
+Declare Sub SetPositionMatrix( _
+	ByVal m As XFORM Ptr, _
+	ByVal pPosition As Transformation Ptr _
+)
+
 #endif
