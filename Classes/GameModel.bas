@@ -1,4 +1,5 @@
 #include once "GameModel.bi"
+#include once "crt.bi"
 
 Enum StageKeys
 	Tab
@@ -164,6 +165,34 @@ Sub GameModelNewGame( _
 	
 End Sub
 
+Function GetCellFromPoint( _
+		ByVal pStage As Stage Ptr, _
+		ByVal pScene As Scene Ptr, _
+		ByVal pp As POINT Ptr, _
+		ByVal ppCell As POINT Ptr _
+	)As Boolean
+	
+	For j As Integer = 0 To 8
+		For i As Integer = 0 To 8
+			Dim ScreenRectangle As RECT = Any
+			SceneTranslateBounds( _
+				pScene, _
+				@pStage->Lines(j, i).Bounds, _
+				@pStage->Lines(j, i).Position, _
+				@ScreenRectangle _
+			)
+			If PtInRect(@ScreenRectangle, *pp) Then
+				ppCell->x = i
+				ppCell->y = j
+				Return True
+			End If
+		Next
+	Next
+	
+	Return False
+	
+End Function
+
 Sub GameModelLMouseDown( _
 		ByVal pModel As GameModel Ptr, _
 		ByVal pStage As Stage Ptr, _
@@ -171,18 +200,15 @@ Sub GameModelLMouseDown( _
 		ByVal pp As POINT Ptr _
 	)
 	
-	' ≈сли мы можем тыкать Ч то получить координаты €чейки
-	' Dim CellCoord As POINT = Any
-	' Dim b As Boolean = StageGetCellFromPoint( _
-		' pStage, _
-		' pp, _
-		' @CellCoord _
-	' )
-	' If b Then
-		' ѕолучить €чейку
-		' ≈сли она существует, то если шар был выбран Ч развыбрать и выбрать новый шар
-		' ≈сли не существует и шар выбран Ч найти путь дл€ перемещени€ и переместить
-	' End If
+	Dim CellCoord As Point = Any
+	If GetCellFromPoint(pStage, pScene, pp, @CellCoord) Then
+		' ’орошо
+		' Dim buffer As WString * (512 + 1) = Any
+		' Const ffFormat = WStr("{%d, %d}")
+		' swprintf(@buffer, @ffFormat, CellCoord.x, CellCoord.y)
+		' buffer[255] = 0
+		' MessageBoxW(NULL, @buffer, NULL, MB_OK)
+	End If
 	
 End Sub
 
