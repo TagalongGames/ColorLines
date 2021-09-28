@@ -3,7 +3,7 @@
 #include once "windows.bi"
 #include once "win\GdiPlus.bi"
 
-Enum
+Enum GdiColors
 	rgbBlack =       &h00000000
 	rgbDarkBlue =    &h00800000
 	rgbDarkGreen =   &h00008000
@@ -22,7 +22,7 @@ Enum
 	rgbWhite =       &h00FFFFFF
 End Enum
 
-Enum
+Enum GdiPlusColors
 	argbBlack =       &hFF000000
 	argbDarkBlue =    &hFF000080
 	argbDarkGreen =   &hFF008000
@@ -80,16 +80,17 @@ Sub DrawBall( _
 		ByVal pBall As ColorBall Ptr _
 	)
 	
-	' Dim PositionMatrix As XFORM = Any
-	' SetPositionMatrix(@PositionMatrix, @pBall->Position)
-	' ModifyWorldTransform(hDC, @PositionMatrix, MWT_RIGHTMULTIPLY)
-	Dim m As XFORM = Any
+	Dim PositionMatrix As XFORM = Any
+	SetPositionMatrix(@PositionMatrix, @pBall->Position)
+	ModifyWorldTransform(hDC, @PositionMatrix, MWT_LEFTMULTIPLY)
 	
-	MatrixSetTranslate(@m, pBall->Position.TranslateX, pBall->Position.TranslateY)
-	ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
+	' Dim m As XFORM = Any
 	
-	MatrixSetRRotate(@m, pBall->Position.AngleSine, pBall->Position.AngleCosine)
-	ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
+	' MatrixSetTranslate(@m, pBall->Position.TranslateX, pBall->Position.TranslateY)
+	' ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
+	
+	' MatrixSetRRotate(@m, pBall->Position.AngleSine, pBall->Position.AngleCosine)
+	' ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
 	
 	' тип движения:
 	' - появление из точки в нормальный размер (от 0 до 9)
@@ -205,9 +206,9 @@ Sub DrawCell( _
 		ByVal pCell As Cell Ptr _
 	)
 	
-	Dim m As XFORM = Any
-	MatrixSetTranslate(@m, pCell->Position.TranslateX, pCell->Position.TranslateY)
-	ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
+	Dim PositionMatrix As XFORM = Any
+	SetPositionMatrix(@PositionMatrix, @pCell->Position)
+	ModifyWorldTransform(hDC, @PositionMatrix, MWT_LEFTMULTIPLY)
 	
 	Dim OldBrush As HGDIOBJ = Any
 	
@@ -393,31 +394,6 @@ Sub SceneRender( _
 		ByVal pStage As Stage Ptr _
 	)
 	
-	/'
-	Dim oldMode As Long = GetMapMode(pScene->DeviceContext)
-	
-	' Изотропная система координат
-	SetMapMode(pScene->DeviceContext, MM_ISOTROPIC)
-	
-	' установка логической системы координат
-	' сx, сy - новые значения размеров по осям
-	Dim oldWindowExt As SIZE = Any
-	SetWindowExtEx(pScene->DeviceContext, pScene->Width, pScene->Height, @oldWindowExt)
-	
-	' Настраивает размеры физической области вывода
-	' Если изначально система координат установлена таким образом
-	' что ось y направлена вниз, можно "перевернуть" её
-	' задав отрицательное значение по оси y
-	' сx, сy - новые значения размеров по осям.
-	Dim oldViewportExt As SIZE = Any
-	SetViewportExtEx(pScene->DeviceContext, pScene->Width, -1 * pScene->Height, @oldViewportExt)
-	
-	' перенос начала координат физической области вывода
-	' (x, y) - физические координаты точки, которую нужно сделать началом координат
-	Dim oldViewportOrg As POINT = Any
-	SetViewportOrgEx(pScene->DeviceContext, pScene->Width \ 2, pScene->Height \ 2, @oldViewportOrg)
-	'/
-	
 	SceneClear(pScene)
 	
 	' Старая матрица
@@ -530,13 +506,6 @@ Sub SceneRender( _
 	End Scope
 	
 	SetWorldTransform(pScene->DeviceContext, @OldMatrix)
-	
-	/'
-	SetViewportOrgEx(pScene->DeviceContext, oldViewportOrg.x, oldViewportOrg.y, NULL)
-	SetViewportExtEx(pScene->DeviceContext, oldViewportExt.cx, oldViewportExt.cy, NULL)
-	SetWindowExtEx(pScene->DeviceContext, oldWindowExt.cx, oldWindowExt.cy, NULL)
-	SetMapMode(pScene->DeviceContext, oldMode)
-	'/
 	
 End Sub
 

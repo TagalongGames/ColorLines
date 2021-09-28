@@ -147,20 +147,11 @@ Sub SetPositionMatrix( _
 	End Scope
 	
 	Scope
-		Dim TranslationMatrix As XFORM = Any
-		MatrixSetTranslate(@TranslationMatrix, pPosition->TranslateX, pPosition->TranslateY)
+		Dim ShearMatrix As XFORM = Any
+		MatrixSetShear(@ShearMatrix, pPosition->ShearX, pPosition->ShearY)
 		
 		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @TranslationMatrix)
-		WorldMatrix = OutMatrix
-	End Scope
-	
-	Scope
-		Dim RotationMatrix As XFORM = Any
-		MatrixSetRRotate(@RotationMatrix, pPosition->AngleSine, pPosition->AngleCosine)
-		
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @RotationMatrix)
+		CombineTransform(@OutMatrix, @WorldMatrix, @ShearMatrix)
 		WorldMatrix = OutMatrix
 	End Scope
 	
@@ -183,11 +174,20 @@ Sub SetPositionMatrix( _
 	End Scope
 	
 	Scope
-		Dim ShearMatrix As XFORM = Any
-		MatrixSetShear(@ShearMatrix, pPosition->ShearX, pPosition->ShearY)
+		Dim RotationMatrix As XFORM = Any
+		MatrixSetRRotate(@RotationMatrix, pPosition->AngleSine, pPosition->AngleCosine)
 		
 		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @ShearMatrix)
+		CombineTransform(@OutMatrix, @WorldMatrix, @RotationMatrix)
+		WorldMatrix = OutMatrix
+	End Scope
+	
+	Scope
+		Dim TranslationMatrix As XFORM = Any
+		MatrixSetTranslate(@TranslationMatrix, pPosition->TranslateX, pPosition->TranslateY)
+		
+		Dim OutMatrix As XFORM = Any
+		CombineTransform(@OutMatrix, @WorldMatrix, @TranslationMatrix)
 		WorldMatrix = OutMatrix
 	End Scope
 	
