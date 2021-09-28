@@ -92,20 +92,6 @@ Function wWinMain( _
 		Dim WindowText(255) As TCHAR = Any
 		LoadString(hInst, IDS_WINDOWTITLE, @WindowText(0), 255)
 		
-		' Dim hWndMain As HWND = CreateWindowEx( _
-			' WS_EX_OVERLAPPEDWINDOW, _
-			' @MainWindowClassName, _
-			' @WindowText(0), _
-			' WS_OVERLAPPEDWINDOW, _
-			' CW_USEDEFAULT, _
-			' CW_USEDEFAULT, _
-			' CW_USEDEFAULT, _
-			' CW_USEDEFAULT, _
-			' NULL, _
-			' Cast(HMENU, NULL), _
-			' hInst, _
-			' NULL _
-		' )
 		Dim hWndMain As HWND = CreateWindowEx( _
 			WS_EX_OVERLAPPEDWINDOW, _
 			@MainWindowClassName, _
@@ -113,8 +99,8 @@ Function wWinMain( _
 			WS_OVERLAPPEDWINDOW, _
 			CW_USEDEFAULT, _
 			CW_USEDEFAULT, _
-			640, _
-			480, _
+			CW_USEDEFAULT, _
+			CW_USEDEFAULT, _
 			NULL, _
 			Cast(HMENU, NULL), _
 			hInst, _
