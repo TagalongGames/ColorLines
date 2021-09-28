@@ -83,8 +83,8 @@ Sub DrawBall( _
 	' Dim PositionMatrix As XFORM = Any
 	' SetPositionMatrix(@PositionMatrix, @pBall->Position)
 	' ModifyWorldTransform(hDC, @PositionMatrix, MWT_RIGHTMULTIPLY)
-	
 	Dim m As XFORM = Any
+	
 	MatrixSetTranslate(@m, pBall->Position.TranslateX, pBall->Position.TranslateY)
 	ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
 	
@@ -321,33 +321,6 @@ Sub SceneClear( _
 	
 End Sub
 
-Sub SetProjectionMatrix( _
-		ByVal hDC As HDC, _
-		ByVal pProjectionMatrix As XFORM Ptr _
-	)
-	
-	ModifyWorldTransform(hDC, pProjectionMatrix, MWT_LEFTMULTIPLY)
-	
-End Sub
-
-Sub SetViewMatrix( _
-		ByVal hDC As HDC, _
-		ByVal pViewMatrix As XFORM Ptr _
-	)
-	
-	ModifyWorldTransform(hDC, pViewMatrix, MWT_LEFTMULTIPLY)
-	
-End Sub
-
-Sub SetWorldMatrix( _
-		ByVal hDC As HDC, _
-		ByVal pWorldMatrix As XFORM Ptr _
-	)
-	
-	ModifyWorldTransform(hDC, pWorldMatrix, MWT_LEFTMULTIPLY)
-	
-End Sub
-
 Function CreateScene( _
 		ByVal hWin As HWND, _
 		ByVal SceneWidth As UINT, _
@@ -451,20 +424,9 @@ Sub SceneRender( _
 	Dim OldMatrix As XFORM = Any
 	GetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
-	SetProjectionMatrix( _
-		pScene->DeviceContext, _
-		@pScene->ProjectionMatrix _
-	)
-	
-	SetViewMatrix( _
-		pScene->DeviceContext, _
-		@pScene->ViewMatrix _
-	)
-	
-	SetWorldMatrix( _
-		pScene->DeviceContext, _
-		@pScene->WorldMatrix _
-	)
+	ModifyWorldTransform(pScene->DeviceContext, @pScene->ProjectionMatrix, MWT_LEFTMULTIPLY)
+	ModifyWorldTransform(pScene->DeviceContext, @pScene->ViewMatrix, MWT_LEFTMULTIPLY)
+	ModifyWorldTransform(pScene->DeviceContext, @pScene->WorldMatrix, MWT_LEFTMULTIPLY)
 	
 	' Рисуем
 	
