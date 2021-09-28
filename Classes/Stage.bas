@@ -72,12 +72,6 @@ Function CreateStage( _
 	
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			' SetRect(@pStage->Lines(j, i).Bounds, _
-				' i * CellWidth, _
-				' j * CellHeight, _
-				' i * CellWidth + CellWidth, _
-				' j * CellHeight + CellHeight _
-			' )
 			CopyRect(@pStage->Lines(j, i).Bounds, @CellRectangle)
 			pStage->Lines(j, i).Position.TranslateX = CSng(i * CellWidth + CellWidth \ 2)
 			pStage->Lines(j, i).Position.TranslateY = CSng(j * CellHeight + CellHeight \ 2)
@@ -94,12 +88,6 @@ Function CreateStage( _
 				' pStage->Lines(j, i).Ball.Color = BallColors.Red
 				pStage->Lines(j, i).Ball.Frame = AnimationFrames.Stopped
 				
-				' SetRect(@pStage->Lines(j, i).Ball.Bounds, _
-					' i * CellWidth + BallMarginWidth, _
-					' j * CellHeight + BallMarginHeight, _
-					' i * CellWidth + CellWidth - BallMarginWidth, _
-					' j * CellHeight + CellHeight - BallMarginHeight _
-				' )
 				CopyRect(@pStage->Lines(j, i).Ball.Bounds, @BallRectangle)
 				pStage->Lines(j, i).Ball.Position.TranslateX = CSng(i * CellWidth + CellWidth \ 2)
 				pStage->Lines(j, i).Ball.Position.TranslateY = CSng(j * CellHeight + CellHeight \ 2)
@@ -124,8 +112,6 @@ Function CreateStage( _
 	
 	For j As Integer = 0 To 2
 		
-		' CopyRect(@pStage->Tablo(j).Bounds, @pStage->Lines(j + 2, 8).Bounds)
-		' OffsetRect(@pStage->Tablo(j).Bounds, 2 * CellWidth, 0)
 		CopyRect(@pStage->Tablo(j).Bounds, @CellRectangle)
 		pStage->Tablo(j).Position.TranslateX = CSng(10 * CellWidth + CellWidth \ 2)
 		pStage->Tablo(j).Position.TranslateY = CSng((j + 1) * CellHeight + CellHeight \ 2)
@@ -138,8 +124,6 @@ Function CreateStage( _
 		pStage->Tablo(j).Position.ShearX = 0.0
 		pStage->Tablo(j).Position.ShearY = 0.0
 		
-		' CopyRect(@pStage->Tablo(j).Ball.Bounds, @pStage->Lines(j + 2, 8).Ball.Bounds)
-		' OffsetRect(@pStage->Tablo(j).Ball.Bounds, 2 * CellWidth, 0)
 		CopyRect(@pStage->Tablo(j).Ball.Bounds, @BallRectangle)
 		pStage->Tablo(j).Ball.Position.TranslateX = CSng(10 * CellWidth + CellWidth \ 2)
 		pStage->Tablo(j).Ball.Position.TranslateY = CSng((j + 1) * CellHeight + CellHeight \ 2)
