@@ -56,15 +56,6 @@ Type SceneBrushes
 	DashPen As HPEN
 	BoundingPen As HPEN
 	
-	' Для шаров
-	RedBrush As HBRUSH
-	GreenBrush As HBRUSH
-	BlueBrush As HBRUSH
-	YellowBrush As HBRUSH
-	MagentaBrush As HBRUSH
-	DarkRedBrush As HBRUSH
-	CyanBrush As HBRUSH
-	
 End Type
 
 Type _Scene
@@ -172,43 +163,46 @@ Sub DrawBall( _
 		Dim nCount As DWORD = GetRegionData(elRgn, 0, NULL)
 		
 		Dim lpData As RGNDATA Ptr = Allocate(SizeOf(RGNDATA) * nCount)
-		GetRegionData(elRgn, nCount, lpData)
+		If lpData <> NULL Then
+			GetRegionData(elRgn, nCount, lpData)
+			
+			Dim elRgn2 As HRGN = ExtCreateRegion(@WorldMatrix, nCount, lpData)
+			
+			Dim c As COLOR16RGB = Any
+			GetCOLOR16RGB(pBall->Color, @c)
+			
+			Dim vertex(0 To 1) As TRIVERTEX = Any
+			vertex(0).x     = pBall->Bounds.left
+			vertex(0).y     = pBall->Bounds.top
+			vertex(0).Red   = &hFF00
+			vertex(0).Green = &hFF00
+			vertex(0).Blue  = &hFF00
+			vertex(0).Alpha = &hFF00
+			
+			vertex(1).x     = pBall->Bounds.right
+			vertex(1).y     = pBall->Bounds.bottom
+			vertex(1).Red   = c.Red
+			vertex(1).Green = c.Green
+			vertex(1).Blue  = c.Blue
+			vertex(1).Alpha = &hFF00
+			
+			' Create a GRADIENT_RECT structure that 
+			' references the TRIVERTEX vertices. 
+			Dim gRect As GRADIENT_RECT = Any
+			gRect.UpperLeft  = 0
+			gRect.LowerRight = 1
+			
+			SelectClipRgn(hDC, elRgn2)
+			
+			' Draw a shaded rectangle. 
+			GradientFill(hDC, @vertex(0), 2, @gRect, 1, GRADIENT_FILL_RECT_H)
+			
+			SelectClipRgn(hDC, NULL)
+			
+			DeleteObject(elRgn2)
+			Deallocate(lpData)
+		End If
 		
-		Dim elRgn2 As HRGN = ExtCreateRegion(@WorldMatrix, nCount, lpData)
-		
-		Dim c As COLOR16RGB = Any
-		GetCOLOR16RGB(pBall->Color, @c)
-		
-		Dim vertex(0 To 1) As TRIVERTEX = Any
-		vertex(0).x     = pBall->Bounds.left
-		vertex(0).y     = pBall->Bounds.top
-		vertex(0).Red   = &hFF00
-		vertex(0).Green = &hFF00
-		vertex(0).Blue  = &hFF00
-		vertex(0).Alpha = &hFF00
-		
-		vertex(1).x     = pBall->Bounds.right
-		vertex(1).y     = pBall->Bounds.bottom
-		vertex(1).Red   = c.Red
-		vertex(1).Green = c.Green
-		vertex(1).Blue  = c.Blue
-		vertex(1).Alpha = &hFF00
-		
-		' Create a GRADIENT_RECT structure that 
-		' references the TRIVERTEX vertices. 
-		Dim gRect As GRADIENT_RECT = Any
-		gRect.UpperLeft  = 0
-		gRect.LowerRight = 1
-		
-		SelectClipRgn(hDC, elRgn2)
-		
-		' Draw a shaded rectangle. 
-		GradientFill(hDC, @vertex(0), 2, @gRect, 1, GRADIENT_FILL_RECT_H)
-		
-		SelectClipRgn(hDC, NULL)
-		
-		DeleteObject(elRgn2)
-		Deallocate(lpData)
 		DeleteObject(elRgn)
 		
 		Ellipse( _
@@ -360,13 +354,6 @@ Function CreateScene( _
 	pScene->Brushes.DarkGrayBrush = CreateSolidBrush(rgbDarkGray)
 	pScene->Brushes.DashPen = CreatePen(PS_DOT, 1, rgbBlack)
 	pScene->Brushes.BoundingPen = CreatePen(PS_SOLID, 2, rgbBlack)
-	pScene->Brushes.RedBrush = CreateSolidBrush(rgbRed)
-	pScene->Brushes.GreenBrush = CreateSolidBrush(rgbGreen)
-	pScene->Brushes.BlueBrush = CreateSolidBrush(rgbBlue)
-	pScene->Brushes.YellowBrush = CreateSolidBrush(rgbYellow)
-	pScene->Brushes.MagentaBrush = CreateSolidBrush(rgbMagenta)
-	pScene->Brushes.DarkRedBrush = CreateSolidBrush(rgbDarkRed)
-	pScene->Brushes.CyanBrush = CreateSolidBrush(rgbCyan)
 	
 	Scope
 		Dim WindowDC As HDC = GetDC(hWin)
@@ -398,13 +385,6 @@ Sub DestroyScene( _
 	DeleteObject(pScene->Brushes.DarkGrayBrush)
 	DeleteObject(pScene->Brushes.DashPen)
 	DeleteObject(pScene->Brushes.BoundingPen)
-	DeleteObject(pScene->Brushes.RedBrush)
-	DeleteObject(pScene->Brushes.GreenBrush)
-	DeleteObject(pScene->Brushes.BlueBrush)
-	DeleteObject(pScene->Brushes.YellowBrush)
-	DeleteObject(pScene->Brushes.MagentaBrush)
-	DeleteObject(pScene->Brushes.DarkRedBrush)
-	DeleteObject(pScene->Brushes.CyanBrush)
 	
 	SelectObject(pScene->DeviceContext, pScene->OldBitmap)
 	DeleteObject(pScene->Bitmap)
