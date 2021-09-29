@@ -149,8 +149,12 @@ Sub DrawBall( _
 			WorldMatrix = OutMatrix
 		End Scope
 		
-		' Dim elRgn As HRGN = CreateEllipticRgnIndirect(@pBall->Bounds)
-		Dim elRgn As HRGN = CreateEllipticRgn(pBall->Bounds.left, pBall->Bounds.top, pBall->Bounds.right + 1, pBall->Bounds.bottom + 1)
+		Dim elRgn As HRGN = CreateEllipticRgn( _
+			pBall->Bounds.left, _
+			pBall->Bounds.top, _
+			pBall->Bounds.right + 1, _
+			pBall->Bounds.bottom + 1 _
+		)
 		Dim nCount As DWORD = GetRegionData(elRgn, 0, NULL)
 		
 		Dim lpData As RGNDATA Ptr = Allocate(SizeOf(RGNDATA) * nCount)
@@ -190,8 +194,6 @@ Sub DrawBall( _
 		Deallocate(lpData)
 		DeleteObject(elRgn)
 		
-		Dim OldPen As HPEN = SelectObject(hDC, pScene->Brushes.BoundingPen)
-		Dim OldBrush As HBRUSH = SelectObject(hDC, Cast(HBRUSH, GetStockObject(NULL_BRUSH)))
 		Ellipse( _
 			hDC, _
 			pBall->Bounds.left, _
@@ -199,8 +201,6 @@ Sub DrawBall( _
 			pBall->Bounds.right, _
 			pBall->Bounds.bottom _
 		)
-		SelectObject(hDC, OldPen)
-		SelectObject(hDC, OldBrush)
 		
 	End If
 	
@@ -472,6 +472,8 @@ Sub SceneRender( _
 	SelectObject(pScene->DeviceContext, OldPen)
 	
 	' Шары
+	OldPen = SelectObject(pScene->DeviceContext, pScene->Brushes.BoundingPen)
+	Dim OldBrush As HBRUSH = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(NULL_BRUSH)))
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			Dim OldWorldMatrix As XFORM = Any
@@ -515,6 +517,8 @@ Sub SceneRender( _
 		
 		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 	End Scope
+	SelectObject(pScene->DeviceContext, OldPen)
+	SelectObject(pScene->DeviceContext, OldBrush)
 	
 	SetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
