@@ -41,6 +41,13 @@ Enum GdiPlusColors
 	argbWhite =       &hFFFFFFFF
 End Enum
 
+Type COLOR16RGB
+	Red As COLOR16
+	Green As COLOR16
+	Blue As COLOR16
+	Alpha As COLOR16
+End Type
+
 Type SceneBrushes
 	
 	' ƒл€ €чеек
@@ -75,6 +82,59 @@ Type _Scene
 	WorldMatrix As XFORM
 End Type
 
+Sub GetCOLOR16RGB( _
+		ByVal BallColor As BallColors, _
+		ByVal pColor As COLOR16RGB Ptr _
+	)
+	
+	Select Case BallColor
+		
+		Case BallColors.Red
+			pColor->Red =   &hFF00
+			pColor->Green = &h0000
+			pColor->Blue  = &h0000
+			pColor->Alpha = &hFF00
+			
+		Case BallColors.Green
+			pColor->Red =   &h0000
+			pColor->Green = &hFF00
+			pColor->Blue  = &h0000
+			pColor->Alpha = &hFF00
+			
+		Case BallColors.Blue
+			pColor->Red =   &h0000
+			pColor->Green = &h0000
+			pColor->Blue  = &hFF00
+			pColor->Alpha = &hFF00
+			
+		Case BallColors.Yellow
+			pColor->Red =   &hFF00
+			pColor->Green = &hFF00
+			pColor->Blue  = &h0000
+			pColor->Alpha = &hFF00
+			
+		Case BallColors.Magenta
+			pColor->Red =   &hFF00
+			pColor->Green = &h0000
+			pColor->Blue  = &hFF00
+			pColor->Alpha = &hFF00
+			
+		Case BallColors.DarkRed
+			pColor->Red =   &h8000
+			pColor->Green = &h0000
+			pColor->Blue  = &h0000
+			pColor->Alpha = &hFF00
+			
+		Case Else ' BallColors.Cyan
+			pColor->Red =   &h0000
+			pColor->Green = &hFF00
+			pColor->Blue  = &hFF00
+			pColor->Alpha = &hFF00
+			
+	End Select
+	
+End Sub
+
 Sub DrawBall( _
 		ByVal pScene As Scene Ptr, _
 		ByVal hDC As HDC, _
@@ -85,52 +145,6 @@ Sub DrawBall( _
 	Dim PositionMatrix As XFORM = Any
 	SetPositionMatrix(@PositionMatrix, @pBall->Position)
 	ModifyWorldTransform(hDC, @PositionMatrix, MWT_LEFTMULTIPLY)
-	
-	' тип движени€:
-	' - по€вление из точки в нормальный размер (от 0 до 9)
-	' - прыжки при выборе мышью (от 0 до 5 и обратно)
-	' - уничтожение, рассыпалс€ в прах (от 9 до 0)
-	' координаты
-	/'
-	If pBall->Visible Then
-		Dim OldBrush As HGDIOBJ = Any
-		
-		Select Case CInt(pBall->Color)
-			
-			Case BallColors.Red
-				OldBrush = SelectObject(hDC, pBrushes->RedBrush)
-				
-			Case BallColors.Green
-				OldBrush = SelectObject(hDC, pBrushes->GreenBrush)
-				
-			Case BallColors.Blue
-				OldBrush = SelectObject(hDC, pBrushes->BlueBrush)
-				
-			Case BallColors.Yellow
-				OldBrush = SelectObject(hDC, pBrushes->YellowBrush)
-				
-			Case BallColors.Magenta
-				OldBrush = SelectObject(hDC, pBrushes->MagentaBrush)
-				
-			Case BallColors.DarkRed
-				OldBrush = SelectObject(hDC, pBrushes->DarkRedBrush)
-				
-			Case Else ' BallColors.Cyan
-				OldBrush = SelectObject(hDC, pBrushes->CyanBrush)
-				
-		End Select
-		
-		Ellipse( _
-			hDC, _
-			pBall->Bounds.left, _
-			pBall->Bounds.top, _
-			pBall->Bounds.right, _
-			pBall->Bounds.bottom _
-		)
-		
-		SelectObject(hDC, OldBrush)
-	End If
-	'/
 	
 	If pBall->Visible Then
 		
@@ -162,20 +176,23 @@ Sub DrawBall( _
 		
 		Dim elRgn2 As HRGN = ExtCreateRegion(@WorldMatrix, nCount, lpData)
 		
+		Dim c As COLOR16RGB = Any
+		GetCOLOR16RGB(pBall->Color, @c)
+		
 		Dim vertex(0 To 1) As TRIVERTEX = Any
 		vertex(0).x     = pBall->Bounds.left
 		vertex(0).y     = pBall->Bounds.top
-		vertex(0).Red   = &hFFFF
-		vertex(0).Green = &hFFFF
-		vertex(0).Blue  = &hFFFF
-		vertex(0).Alpha = &hFFFF
+		vertex(0).Red   = &hFF00
+		vertex(0).Green = &hFF00
+		vertex(0).Blue  = &hFF00
+		vertex(0).Alpha = &hFF00
 		
 		vertex(1).x     = pBall->Bounds.right
 		vertex(1).y     = pBall->Bounds.bottom
-		vertex(1).Red   = &h0000
-		vertex(1).Green = &h8000
-		vertex(1).Blue  = &h8000
-		vertex(1).Alpha = &hFFFF
+		vertex(1).Red   = c.Red
+		vertex(1).Green = c.Green
+		vertex(1).Blue  = c.Blue
+		vertex(1).Alpha = &hFF00
 		
 		' Create a GRADIENT_RECT structure that 
 		' references the TRIVERTEX vertices. 
@@ -413,7 +430,7 @@ Sub SceneRender( _
 	ModifyWorldTransform(pScene->DeviceContext, @pScene->WorldMatrix, MWT_LEFTMULTIPLY)
 	
 	' –исуем
-	
+	/'
 	Scope
 		Dim Buffer(511) As WCHAR = Any
 		_itow(pStage->HiScore, @Buffer(0), 10)
@@ -439,6 +456,7 @@ Sub SceneRender( _
 			lstrlenw(@Buffer(0)) _
 		)
 	End Scope
+	'/
 	
 	Dim OldPen As HGDIOBJ = SelectObject(pScene->DeviceContext, Cast(HPEN, GetStockObject(NULL_PEN)))
 	' ячейки
