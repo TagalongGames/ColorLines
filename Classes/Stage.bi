@@ -86,12 +86,13 @@ Declare Function StageGetHeight( _
 	ByVal pStage As Stage Ptr _
 )As Integer
 
+Declare Function StageGetRandomEmptyCellCoord( _
+	ByVal pStage As Stage Ptr, _
+	ByVal pp As POINT Ptr _
+)As Boolean
+
 Declare Function GetRandomBoolean()As Boolean
 
 Declare Function GetRandomBallColor()As BallColors
-
-Declare Function GetRandomStageX()As Integer
-
-Declare Function GetRandomStageY()As Integer
 
 #endif

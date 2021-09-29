@@ -47,6 +47,7 @@ Type SceneBrushes
 	GrayBrush As HBRUSH
 	DarkGrayBrush As HBRUSH
 	DashPen As HPEN
+	BoundingPen As HPEN
 	
 	' Для шаров
 	RedBrush As HBRUSH
@@ -75,6 +76,7 @@ Type _Scene
 End Type
 
 Sub DrawBall( _
+		ByVal pScene As Scene Ptr, _
 		ByVal hDC As HDC, _
 		ByVal pBrushes As SceneBrushes Ptr, _
 		ByVal pBall As ColorBall Ptr _
@@ -84,20 +86,12 @@ Sub DrawBall( _
 	SetPositionMatrix(@PositionMatrix, @pBall->Position)
 	ModifyWorldTransform(hDC, @PositionMatrix, MWT_LEFTMULTIPLY)
 	
-	' Dim m As XFORM = Any
-	
-	' MatrixSetTranslate(@m, pBall->Position.TranslateX, pBall->Position.TranslateY)
-	' ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
-	
-	' MatrixSetRRotate(@m, pBall->Position.AngleSine, pBall->Position.AngleCosine)
-	' ModifyWorldTransform(hDC, @m, MWT_LEFTMULTIPLY)
-	
 	' тип движения:
 	' - появление из точки в нормальный размер (от 0 до 9)
 	' - прыжки при выборе мышью (от 0 до 5 и обратно)
 	' - уничтожение, рассыпался в прах (от 9 до 0)
 	' координаты
-	
+	/'
 	If pBall->Visible Then
 		Dim OldBrush As HGDIOBJ = Any
 		
@@ -136,45 +130,44 @@ Sub DrawBall( _
 		
 		SelectObject(hDC, OldBrush)
 	End If
+	'/
 	
-	
-	/'
-	If pBall->Exist Then
-		' Перенос, вращение, масштабирование
+	If pBall->Visible Then
 		
-		Dim TranslateMatrix As XFORM = Any
-		MatrixSetTranslate( _
-			@TranslateMatrix, _
-			pBall->Rectangle.left, _
-			pBall->Rectangle.top _
-		)
-		' ModifyWorldTransform(hDC, @TranslateMatrix, MWT_LEFTMULTIPLY)
+		Dim WorldMatrix As XFORM = Any
+		Scope
+			Dim OutMatrix As XFORM = Any
+			CombineTransform(@OutMatrix, @pScene->ProjectionMatrix, @pScene->ViewMatrix)
+			
+			CombineTransform(@WorldMatrix, @OutMatrix, @pScene->WorldMatrix)
+		End Scope
 		
-		Dim RotateMatrix As XFORM = Any ' 45 градусов
-		MatrixSetRRotate( _
-			@RotateMatrix, _
-			Sine45, _
-			Cosine45 _
-		)
-		ModifyWorldTransform(hDC, @RotateMatrix, MWT_LEFTMULTIPLY)
+		Scope
+			Dim OutMatrix As XFORM = Any
+			CombineTransform(@OutMatrix, @PositionMatrix, @WorldMatrix)
+			
+			WorldMatrix = OutMatrix
+		End Scope
 		
-		' declare function GetRegionData(byval hrgn as HRGN, byval nCount as DWORD, byval lpRgnData as LPRGNDATA) as DWORD
-		' declare function ExtCreateRegion(byval lpx as const XFORM ptr, byval nCount as DWORD, byval lpData as const RGNDATA ptr) as HRGN
-		Dim elRgn As HRGN = CreateEllipticRgn(0, 0, pBall->Rectangle.right - pBall->Rectangle.left, pBall->Rectangle.bottom - pBall->Rectangle.top)
+		' Dim elRgn As HRGN = CreateEllipticRgnIndirect(@pBall->Bounds)
+		Dim elRgn As HRGN = CreateEllipticRgn(pBall->Bounds.left, pBall->Bounds.top, pBall->Bounds.right + 1, pBall->Bounds.bottom + 1)
+		Dim nCount As DWORD = GetRegionData(elRgn, 0, NULL)
 		
-		' Create an array of TRIVERTEX structures that describe 
-		' positional and color values for each vertex. For a rectangle, 
-		' only two vertices need to be defined: upper-left and lower-right. 
+		Dim lpData As RGNDATA Ptr = Allocate(SizeOf(RGNDATA) * nCount)
+		GetRegionData(elRgn, nCount, lpData)
+		
+		Dim elRgn2 As HRGN = ExtCreateRegion(@WorldMatrix, nCount, lpData)
+		
 		Dim vertex(0 To 1) As TRIVERTEX = Any
-		vertex(0).x     = 0
-		vertex(0).y     = 0
+		vertex(0).x     = pBall->Bounds.left
+		vertex(0).y     = pBall->Bounds.top
 		vertex(0).Red   = &hFFFF
 		vertex(0).Green = &hFFFF
 		vertex(0).Blue  = &hFFFF
 		vertex(0).Alpha = &hFFFF
 		
-		vertex(1).x     = pBall->Rectangle.right - pBall->Rectangle.left
-		vertex(1).y     = pBall->Rectangle.bottom - pBall->Rectangle.top
+		vertex(1).x     = pBall->Bounds.right
+		vertex(1).y     = pBall->Bounds.bottom
 		vertex(1).Red   = &h0000
 		vertex(1).Green = &h8000
 		vertex(1).Blue  = &h8000
@@ -186,17 +179,30 @@ Sub DrawBall( _
 		gRect.UpperLeft  = 0
 		gRect.LowerRight = 1
 		
-		' SelectClipRgn(hDC, elRgn)
+		SelectClipRgn(hDC, elRgn2)
 		
 		' Draw a shaded rectangle. 
 		GradientFill(hDC, @vertex(0), 2, @gRect, 1, GRADIENT_FILL_RECT_H)
 		
 		SelectClipRgn(hDC, NULL)
 		
+		DeleteObject(elRgn2)
+		Deallocate(lpData)
 		DeleteObject(elRgn)
 		
+		Dim OldPen As HPEN = SelectObject(hDC, pScene->Brushes.BoundingPen)
+		Dim OldBrush As HBRUSH = SelectObject(hDC, Cast(HBRUSH, GetStockObject(NULL_BRUSH)))
+		Ellipse( _
+			hDC, _
+			pBall->Bounds.left, _
+			pBall->Bounds.top, _
+			pBall->Bounds.right, _
+			pBall->Bounds.bottom _
+		)
+		SelectObject(hDC, OldPen)
+		SelectObject(hDC, OldBrush)
+		
 	End If
-	'/
 	
 End Sub
 
@@ -336,6 +342,7 @@ Function CreateScene( _
 	pScene->Brushes.GrayBrush = CreateSolidBrush(rgbGray)
 	pScene->Brushes.DarkGrayBrush = CreateSolidBrush(rgbDarkGray)
 	pScene->Brushes.DashPen = CreatePen(PS_DOT, 1, rgbBlack)
+	pScene->Brushes.BoundingPen = CreatePen(PS_SOLID, 2, rgbBlack)
 	pScene->Brushes.RedBrush = CreateSolidBrush(rgbRed)
 	pScene->Brushes.GreenBrush = CreateSolidBrush(rgbGreen)
 	pScene->Brushes.BlueBrush = CreateSolidBrush(rgbBlue)
@@ -373,6 +380,7 @@ Sub DestroyScene( _
 	DeleteObject(pScene->Brushes.GrayBrush)
 	DeleteObject(pScene->Brushes.DarkGrayBrush)
 	DeleteObject(pScene->Brushes.DashPen)
+	DeleteObject(pScene->Brushes.BoundingPen)
 	DeleteObject(pScene->Brushes.RedBrush)
 	DeleteObject(pScene->Brushes.GreenBrush)
 	DeleteObject(pScene->Brushes.BlueBrush)
@@ -470,6 +478,7 @@ Sub SceneRender( _
 			GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 			
 			DrawBall( _
+				pScene, _
 				pScene->DeviceContext, _
 				@pScene->Brushes, _
 				@pStage->Lines(j, i).Ball _
@@ -484,6 +493,7 @@ Sub SceneRender( _
 		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 		
 		DrawBall( _
+			pScene, _
 			pScene->DeviceContext, _
 			@pScene->Brushes, _
 			@pStage->Tablo(i).Ball _
@@ -497,6 +507,7 @@ Sub SceneRender( _
 		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 		
 		DrawBall( _
+			pScene, _
 			pScene->DeviceContext, _
 			@pScene->Brushes, _
 			@pStage->MovedBall _

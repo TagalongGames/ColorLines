@@ -47,44 +47,37 @@ Function ExtractBalls( _
 	For i As Integer = 0 To 2
 		' Выбрать случайную свободную ячейку
 		' Если пустых нет, то вернуть ошибку
-		Dim x As Integer = GetRandomStageX()
-		Dim y As Integer = GetRandomStageY()
+		Dim pt As POINT = Any
+		Dim NotEmpty As Boolean = StageGetRandomEmptyCellCoord(pStage, @pt)
 		
-		Dim RandomColor As BallColors = pStage->Tablo(i).Ball.Color
-		
-		/'
-		Dim buffer As WString * (255 + 1) = Any
-		Const ffFormat = WStr("{%d, %d}, %d")
-		swprintf(@buffer, @ffFormat, x, y, RandomColor)
-		buffer[255] = 0
-		MessageBoxW(NULL, @buffer, NULL, MB_OK)
-		'/
-		
-		' Поместить на игровое поле
-		pStage->Lines(y, x).Ball.Color = RandomColor
-		pStage->Lines(y, x).Ball.Frame = AnimationFrames.Birth0
-		pStage->Lines(y, x).Ball.Visible = True
-		
-		' Если нет места, то вернуть ошибку
-		
-		' Удалить 5 в ряд
-		
-		' Если было удаление, то генерировать табло не надо
-		
+		If NotEmpty Then
+			
+			Dim RandomColor As BallColors = pStage->Tablo(i).Ball.Color
+			
+			/'
+			Dim buffer As WString * (255 + 1) = Any
+			Const ffFormat = WStr("{%d, %d}, %d")
+			swprintf(@buffer, @ffFormat, x, y, RandomColor)
+			buffer[255] = 0
+			MessageBoxW(NULL, @buffer, NULL, MB_OK)
+			'/
+			
+			' Поместить на игровое поле
+			pStage->Lines(pt.y, pt.x).Ball.Color = RandomColor
+			pStage->Lines(pt.y, pt.x).Ball.Frame = AnimationFrames.Birth0
+			pStage->Lines(pt.y, pt.x).Ball.Visible = True
+			
+			pModel->Events.OnLinesChanged( _
+				pModel->Context, _
+				@pt, _
+				1 _
+			)
+		End If
 	Next
 	
-	' Dim UpdateRectangle As RECT = Any
-	' SetRect(@UpdateRectangle, _
-		' pStage->Lines(0, 0).Rectangle.left, _
-		' pStage->Lines(0, 0).Rectangle.top, _
-		' pStage->Lines(8, 8).Rectangle.right, _
-		' pStage->Lines(8, 8).Rectangle.bottom _
-	' )
-	' pModel->Events.OnChanged( _
-		' pModel->Context, _
-		' @UpdateRectangle, _
-		' 1 _
-	' )
+	' Удалить 5 в ряд
+	
+	' Если было удаление, то генерировать табло не надо
 	
 	Return False
 	

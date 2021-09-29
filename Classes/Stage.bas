@@ -30,22 +30,6 @@ Function GetRandomBallColor()As BallColors
 	
 End Function
 
-Function GetRandomStageX()As Integer
-	
-	Dim RndValue As Long = rand()
-	
-	Return CInt(RndValue Mod 9)
-	
-End Function
-
-Function GetRandomStageY()As Integer
-	
-	Dim RndValue As Long = rand()
-	
-	Return CInt(RndValue Mod 9)
-	
-End Function
-
 Function CreateStage( _
 		ByVal HiScore As Integer _
 	)As Stage Ptr
@@ -178,5 +162,31 @@ Function StageGetHeight( _
 	)As Integer
 	
 	Return CellHeight * 9
+	
+End Function
+
+Function StageGetRandomEmptyCellCoord( _
+		ByVal pStage As Stage Ptr, _
+		ByVal pp As POINT Ptr _
+	)As Boolean
+	
+	Dim EmptyCells(0 To 9 * 9 - 1) As POINT = Any
+	Dim EmptyCellsCount As Integer = 0
+	
+	For j As Integer = 0 To 8
+		For i As Integer = 0 To 8
+			If pStage->Lines(j, i).Ball.Visible = False Then
+			' Vector(i) = i
+			End If
+		Next
+	Next
+	
+	If EmptyCellsCount = 0 Then
+		Return False
+	End If
+	
+	Dim RndValue As Long = rand()
+	
+	Return CInt(RndValue Mod 9)
 	
 End Function
