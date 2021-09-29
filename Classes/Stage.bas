@@ -170,13 +170,16 @@ Function StageGetRandomEmptyCellCoord( _
 		ByVal pp As POINT Ptr _
 	)As Boolean
 	
+	' Получить список пустых ячеек
 	Dim EmptyCells(0 To 9 * 9 - 1) As POINT = Any
 	Dim EmptyCellsCount As Integer = 0
 	
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			If pStage->Lines(j, i).Ball.Visible = False Then
-			' Vector(i) = i
+				EmptyCells(EmptyCellsCount).x = i
+				EmptyCells(EmptyCellsCount).y = j
+				EmptyCellsCount += 1
 			End If
 		Next
 	Next
@@ -185,8 +188,19 @@ Function StageGetRandomEmptyCellCoord( _
 		Return False
 	End If
 	
-	Dim RndValue As Long = rand()
+	' Перетасовать список
+	For i As Integer = 0 To EmptyCellsCount - 1
+		Dim RandomNumber As Integer = rand() Mod EmptyCellsCount
+		
+		Dim t As POINT = EmptyCells(i)
+		EmptyCells(i) = EmptyCells(RandomNumber)
+		EmptyCells(RandomNumber) = t
+	Next
 	
-	Return CInt(RndValue Mod 9)
+	' Вернуть случайную ячейку из списка
+	Dim RandomNumber As Integer = rand() Mod EmptyCellsCount
+	*pp = EmptyCells(RandomNumber)
+	
+	Return True
 	
 End Function

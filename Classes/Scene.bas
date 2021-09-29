@@ -567,10 +567,8 @@ Sub SceneTranslateBounds( _
 		WorldMatrix = OutMatrix
 	End Scope
 	
-	' Вектор объекта на экране 1
 	Dim LeftTopSceneVectorI As Vector2DI = Any
 	Scope
-		' Вектор объекта на сцене
 		Dim LeftTopStageVectorF As Vector2DF = Any
 		LeftTopStageVectorF.X = CSng(pObjectBounds->left)
 		LeftTopStageVectorF.Y = CSng(pObjectBounds->top)
@@ -581,10 +579,8 @@ Sub SceneTranslateBounds( _
 		ConvertVector2DFToVector2DI(@LeftTopSceneVectorI, @LeftTopSceneVectorF)
 	End Scope
 	
-	' Вектор объекта на экране 2
 	Dim RightBottomSceneVectorI As Vector2DI = Any
 	Scope
-		' Вектор объекта на сцене
 		Dim RightBottomStageVectorF As Vector2DF = Any
 		RightBottomStageVectorF.X = CSng(pObjectBounds->right)
 		RightBottomStageVectorF.Y = CSng(pObjectBounds->bottom)
