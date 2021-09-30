@@ -70,16 +70,13 @@ End Type
 	Для возвращения пути необходимо использовать список и динамическую память.
 '/
 Function GetLeePath( _
-		ByVal StartX As Integer, _
-		ByVal StartY As Integer, _
-		ByVal EndX As Integer, _
-		ByVal EndY As Integer, _
+		ByVal ptStart As POINT, _
+		ByVal ptEnd As POINT, _
 		ByVal StageWidth As Integer, _
 		ByVal StageHeight As Integer, _
 		ByVal Grid As Integer Ptr, _
-		ByVal PathX As Integer Ptr, _
-		ByVal PathY As Integer Ptr, _
-		ByVal IncludeDiagonalPath As Boolean _
+		ByVal IncludeDiagonalPath As Boolean, _
+		ByVal pPath As POINT Ptr _
 	)As Integer
 	
 	' смещения, соответствующие соседям ячейки
@@ -127,9 +124,9 @@ Function GetLeePath( _
 		
 		d += 1
 		
-	Loop While stopp = 0 AndAlso Grid[EndY * StageWidth + EndX] = SquareLType.Blank
+	Loop While stopp = 0 AndAlso Grid[ptEnd.y * StageWidth + ptEnd.x] = SquareLType.Blank
 	
-	If Grid[EndY * StageWidth + EndX] = SquareLType.Blank Then
+	If Grid[ptEnd.y * StageWidth + ptEnd.x] = SquareLType.Blank Then
 		' путь не найден
 		Return 0
 	End If
@@ -137,15 +134,15 @@ Function GetLeePath( _
 	' восстановление пути
 	
 	' длина кратчайшего пути из (StartX, StartY) в (EndX, EndY)
-	Dim PathLen As Integer = Grid[EndY * StageWidth + EndX]
-	x = EndX
-	y = EndY
+	Dim PathLen As Integer = Grid[ptEnd.y * StageWidth + ptEnd.x]
+	x = ptEnd.x
+	y = ptEnd.y
 	d = PathLen
 	
 	Do While d > 0
 		' записываем ячейку (x, y) в путь
-		PathX[d] = x
-		PathY[d] = y
+		pPath[d].x = x
+		pPath[d].y = y
 		d -= 1
 		
 		For k As Integer = 0 To MaxK
@@ -162,8 +159,8 @@ Function GetLeePath( _
 	Loop
 	
 	' Теперь путь будет с начала и до конца
-	PathX[d] = StartX
-	PathY[d] = StartY
+	pPath[d].x = ptStart.x
+	pPath[d].y = ptStart.y
 	
 	Return PathLen
 	
@@ -475,6 +472,35 @@ Function MoveBall( _
 	)As Boolean
 	
 	' Проверить наличие пути
+	Dim Grid As Integer Ptr = Allocate(SizeOf(Integer) * (9 * 9))
+	For j As Integer = 0 To 8
+		For i As Integer = 0 To 8
+			' [y * StageWidth + x]
+			If pStage->Lines(j, i).Ball.Visible Then
+				Grid[j * 9 + i] = SquareLType.Wall
+			Else
+				Grid[j * 9 + i] = SquareLType.Blank
+			End If
+		Next
+	Next
+	Grid[OldCoord->y * 9 + OldCoord->x] = SquareLType.Start
+	Dim pPath As POINT Ptr = Allocate(SizeOf(POINT) * (9 * 9))
+	Dim Length As Integer = GetLeePath( _
+		*OldCoord, _
+		*NewCoord, _
+		9, _
+		9, _
+		Grid, _
+		False, _
+		pPath _
+	)
+	Deallocate(Grid)
+	If Length = 0 Then
+		Deallocate(pPath)
+		Return False
+	End If
+	
+	Deallocate(pPath)
 	
 	' Переместить шар
 	pStage->Lines(OldCoord->y, OldCoord->x).Ball.Visible = False
