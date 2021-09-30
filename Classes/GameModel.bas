@@ -23,6 +23,112 @@ Type _GameModel
 	PressedCellY As Integer
 End Type
 
+Function RowSequenceLength( _
+		ByVal pStage As Stage Ptr, _
+		ByVal X As Integer, _
+		ByVal Y As Integer, _
+		ByVal BallColor As BallColors _
+	)As Integer
+	
+	If X > 8 Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Visible = False Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+		Return 0
+	End If
+	
+	Return 1 + RowSequenceLength(pStage, X + 1, Y, BallColor)
+	
+End Function
+
+Function ColSequenceLength( _
+		ByVal pStage As Stage Ptr, _
+		ByVal X As Integer, _
+		ByVal Y As Integer, _
+		ByVal BallColor As BallColors _
+	)As Integer
+	
+	If Y > 8 Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Visible = False Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+		Return 0
+	End If
+	
+	Return 1 + ColSequenceLength(pStage, X, Y + 1, BallColor)
+	
+End Function
+
+Function RemoveLines( _
+		ByVal pModel As GameModel Ptr, _
+		ByVal pStage As Stage Ptr _
+	)As Boolean
+	
+	' Cписок удаляемых ячеек
+	Dim RemovedCells(0 To 9 * 9 - 1) As POINT = Any
+	Dim RemovedCellsCount As Integer = 0
+	
+	' Строки
+	For j As Integer = 0 To 8
+		For i As Integer = 0 To 8
+			Dim Length As Integer = RowSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			
+			If Length >= 5 Then
+				For k As Integer = i To Length + i - 1
+					RemovedCells(RemovedCellsCount).x = k
+					RemovedCells(RemovedCellsCount).y = j
+					RemovedCellsCount += 1
+				Next
+				i += Length
+			End If
+			
+		Next
+	Next
+	' Столбцы
+	For i As Integer = 0 To 8
+		For j As Integer = 0 To 8
+			Dim Length As Integer = ColSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			If Length >= 5 Then
+				For k As Integer = j To Length + j - 1
+					RemovedCells(RemovedCellsCount).x = i
+					RemovedCells(RemovedCellsCount).y = k
+					RemovedCellsCount += 1
+				Next
+				j += Length
+			End If
+		Next
+	Next
+	' Главная диагональ
+	' Побочная диагональ
+	
+	If RemovedCellsCount = 0 Then
+		Return False
+	End If
+	
+	For i As Integer = 0 To RemovedCellsCount - 1
+		pStage->Lines(RemovedCells(i).y, RemovedCells(i).x).Ball.Visible = False
+	Next
+	
+	pModel->Events.OnLinesChanged( _
+		pModel->Context, _
+		@RemovedCells(0), _
+		RemovedCellsCount _
+	)
+	
+	Return True
+	
+End Function
+
 Sub GenerateTablo( _
 		ByVal pModel As GameModel Ptr, _
 		ByVal pStage As Stage Ptr _
@@ -43,6 +149,8 @@ Function ExtractBalls( _
 		ByVal pModel As GameModel Ptr, _
 		ByVal pStage As Stage Ptr _
 	)As Boolean
+	
+	Dim ExtractCount As Integer = 0
 	
 	For i As Integer = 0 To 2
 		' Выбрать случайную свободную ячейку
@@ -67,6 +175,8 @@ Function ExtractBalls( _
 			pStage->Lines(pt.y, pt.x).Ball.Frame = AnimationFrames.Birth0
 			pStage->Lines(pt.y, pt.x).Ball.Visible = True
 			
+			ExtractCount += 1
+			
 			pModel->Events.OnLinesChanged( _
 				pModel->Context, _
 				@pt, _
@@ -75,11 +185,38 @@ Function ExtractBalls( _
 		End If
 	Next
 	
-	' Удалить 5 в ряд
-	
-	' Если было удаление, то генерировать табло не надо
+	If ExtractCount > 2 Then
+		Return True
+	End If
 	
 	Return False
+	
+End Function
+
+Function MoveBall( _
+		ByVal pModel As GameModel Ptr, _
+		ByVal pStage As Stage Ptr, _
+		ByVal OldCoord As POINT Ptr, _
+		ByVal NewCoord As POINT Ptr _
+	)As Boolean
+	
+	' Проверить наличие пути
+	
+	' Переместить шар
+	pStage->Lines(OldCoord->y, OldCoord->x).Ball.Visible = False
+	pStage->Lines(NewCoord->y, NewCoord->x).Ball.Color = pStage->Lines(OldCoord->y, OldCoord->x).Ball.Color
+	pStage->Lines(NewCoord->y, NewCoord->x).Ball.Visible = True
+	
+	Dim pts As POINT = Any
+	pts.x = OldCoord->x
+	pts.y = OldCoord->y
+	pModel->Events.OnLinesChanged( _
+		pModel->Context, _
+		@pts, _
+		1 _
+	)
+	
+	Return True
 	
 End Function
 
@@ -362,9 +499,28 @@ Sub GameModelKeyUp( _
 				pModel->SelectedBallY = pModel->PressedCellY
 				
 			Else
-				' Если есть выделенный шар, то переместить его на новое место
-				If pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected Then
+				' Если есть выделенный шар
+				' то переместить его на новое место
+				If pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected AndAlso pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Visible Then
+					
 					' Переместить шар
+					Dim OldCoord As POINT = Any
+					OldCoord.x = pModel->SelectedBallX
+					OldCoord.y = pModel->SelectedBallY
+					Dim NewCoord As POINT = Any
+					NewCoord.x = pModel->PressedCellX
+					NewCoord.y = pModel->PressedCellY
+					
+					If MoveBall(pModel, pStage, @OldCoord, @NewCoord) Then
+						If RemoveLines(pModel, pStage) = False Then
+							If ExtractBalls(pModel, pStage) Then
+								GenerateTablo(pModel, pStage)
+								RemoveLines(pModel, pStage)
+							End If
+						End If
+						
+						pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
+					End If
 				End If
 			End If
 			

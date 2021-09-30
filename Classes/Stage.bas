@@ -133,9 +133,28 @@ Function CreateStage( _
 	CopyRect(@pStage->MovedBall.Bounds, @BallRectangle)
 	pStage->MovedBall.Visible = False
 	pStage->MovedBall.Selected = False
+	' pStage->MovedBall.Position.TranslateX = CSng(10 * CellWidth + CellWidth \ 2)
+	' pStage->MovedBall.Position.TranslateY = CSng((j + 1) * CellHeight + CellHeight \ 2)
+	pStage->MovedBall.Position.AngleSine = Sine45
+	pStage->MovedBall.Position.AngleCosine = Cosine45
+	pStage->MovedBall.Position.ScaleX = 1.0
+	pStage->MovedBall.Position.ScaleY = 1.0
+	pStage->MovedBall.Position.ReflectX = False
+	pStage->MovedBall.Position.ReflectY = False
+	pStage->MovedBall.Position.ShearX = 0.0
+	pStage->MovedBall.Position.ShearY = 0.0
 	
 	pStage->Score = 0
 	pStage->HiScore = HiScore
+	
+	For i As Integer = 0 To 2
+		Dim pt As POINT = Any
+		StageGetRandomEmptyCellCoord(pStage, @pt)
+		
+		Dim RandomColor As BallColors = GetRandomBallColor()
+		pStage->Lines(pt.y, pt.x).Ball.Color = RandomColor
+		pStage->Lines(pt.y, pt.x).Ball.Visible = True
+	Next
 	
 	Return pStage
 	
