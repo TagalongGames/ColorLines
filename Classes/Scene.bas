@@ -192,7 +192,9 @@ Sub DrawBall( _
 			gRect.UpperLeft  = 0
 			gRect.LowerRight = 1
 			
-			SelectClipRgn(hDC, elRgn2)
+			If pBall->Selected = False Then
+				SelectClipRgn(hDC, elRgn2)
+			End If
 			
 			' Draw a shaded rectangle. 
 			GradientFill(hDC, @vertex(0), 2, @gRect, 1, GRADIENT_FILL_RECT_H)

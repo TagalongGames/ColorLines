@@ -12,6 +12,16 @@ Enum StageKeys
 	Escape
 End Enum
 
+' Тип ячейки в лабиринте
+Enum SquareLType
+	' Свободная непомеченная ячейка
+	Blank = -2
+	' Непроходимая ячейка, стена
+	Wall = -1
+	' Стартовая ячейка
+	Start = 0
+End Enum
+
 Type _GameModel
 	Events As StageEvents
 	Context As Any Ptr
@@ -22,6 +32,142 @@ Type _GameModel
 	PressedCellX As Integer
 	PressedCellY As Integer
 End Type
+
+/'
+	
+	волновой алгоритм Ли нахождения пути в лабиринте
+	
+	
+	StartX — координата X точки отправления.
+	StartY — координата Y точки отправления.
+	EndX — координата X точки назначения.
+	EndY — координата Y точки назначения.
+	StageHeight — высота лабиринта (количество клеток по вертикали)
+	StageWidth — ширина лабиринта (количество клеток по горизонтали)
+	Grid — указатель на массив специальным образом сформированного лабиринта
+	PathX — указатель на массив (одномерный) координат X пути
+	PathY — указатель на массив (одномерный) координат Y пути.
+	Массивы PathX и PathY должны иметь размерность StageHeight * StageWidth элементов, чтобы вместить весь путь
+	Сюда функция будет записывать координаты пути, если он существует
+	IncludeDiagonalPath — флаг, определающий включение диагональных путей
+	
+	Возвращает количество точек в пути, 0 если пути не существует
+	
+	Замечания
+	Координаты в лабиринте начинаются с нуля
+	Координаты в лабиринте указываются «слоями» по ширине. [y * StageWidth + x]
+	Лабиринт необходимо соответствующим образом подготовить
+	Для этого все свободные клетки должны иметь значение SquareLType.Blank
+	Все непроходимые клетки (стены) должны иметь значение SquareLType.Wall
+	Стартовая клетка должна быть помечена SquareLType.Start
+	Необходимо помнить, что значения ячеек лабиринта Greed в процессе работы функции
+	будут изменены (желательно отправлять копию оригинального лабиринта)
+	
+	Путь в лабиринте
+	Недостатки.
+	1. Лабиринт будет испорчен. Нужно создать копию лабиринта.
+	2. Возвращает не путь из клеток, а длину. Изменяет переменные массива пути.
+	Для возвращения пути необходимо использовать список и динамическую память.
+'/
+Function GetLeePath( _
+		ByVal StartX As Integer, _
+		ByVal StartY As Integer, _
+		ByVal EndX As Integer, _
+		ByVal EndY As Integer, _
+		ByVal StageWidth As Integer, _
+		ByVal StageHeight As Integer, _
+		ByVal Grid As Integer Ptr, _
+		ByVal PathX As Integer Ptr, _
+		ByVal PathY As Integer Ptr, _
+		ByVal IncludeDiagonalPath As Boolean _
+	)As Integer
+	
+	' смещения, соответствующие соседям ячейки
+	' справа, снизу, слева, сверху и диагональные
+	Dim dx(7) As Integer = {1, 0, -1, 0, 1, -1, -1, 1}
+	Dim dy(7) As Integer = {0, 1, 0, -1, 1, 1, -1, -1}
+	
+	Dim MaxK As Integer = Any
+	If IncludeDiagonalPath Then
+		MaxK = 7
+	Else
+		MaxK = 3
+	End If
+	'  
+	Dim d As Integer, x As Integer, y As Integer, stopp As Integer
+	
+	' распространение волны
+	
+	Do
+		' предполагаем, что все свободные клетки уже помечены
+		stopp = 1
+		
+		For y = 0 To StageHeight - 1
+			For x = 0 To StageWidth - 1
+				
+				' ячейка (x, y) помечена числом d
+				If Grid[y * StageWidth + x] = d Then
+					' проходим по всем непомеченным соседям
+					For k As Integer = 0 To MaxK
+						' Чтобы не вылезти за границы массива
+						If y + dy(k) >= 0 AndAlso y + dy(k) < StageHeight AndAlso x + dx(k) >= 0 AndAlso x + dx(k) < StageWidth Then
+							'y * StageWidth + x
+							If Grid[(y + dy(k)) * StageWidth + x + dx(k)] = SquareLType.Blank Then
+								' найдены непомеченные клетки
+								stopp = 0
+								' распространяем волну
+								Grid[(y + dy(k)) * StageWidth + x + dx(k)] = d + 1
+							End If
+						End If
+					Next
+				End If
+				
+			Next
+		Next
+		
+		d += 1
+		
+	Loop While stopp = 0 AndAlso Grid[EndY * StageWidth + EndX] = SquareLType.Blank
+	
+	If Grid[EndY * StageWidth + EndX] = SquareLType.Blank Then
+		' путь не найден
+		Return 0
+	End If
+	
+	' восстановление пути
+	
+	' длина кратчайшего пути из (StartX, StartY) в (EndX, EndY)
+	Dim PathLen As Integer = Grid[EndY * StageWidth + EndX]
+	x = EndX
+	y = EndY
+	d = PathLen
+	
+	Do While d > 0
+		' записываем ячейку (x, y) в путь
+		PathX[d] = x
+		PathY[d] = y
+		d -= 1
+		
+		For k As Integer = 0 To MaxK
+			If y + dy(k) >= 0 AndAlso y + dy(k) < StageWidth AndAlso x + dx(k) >= 0 AndAlso x + dx(k) < StageWidth Then
+				If Grid[(y + dy(k)) * StageWidth + x + dx(k)] = d Then
+					x += dx(k)
+					' переходим в ячейку, которая на 1 ближе к старту
+					y += dy(k)
+					Exit For
+				End If
+			End If
+		
+		Next
+	Loop
+	
+	' Теперь путь будет с начала и до конца
+	PathX[d] = StartX
+	PathY[d] = StartY
+	
+	Return PathLen
+	
+End Function
 
 Function RowSequenceLength( _
 		ByVal pStage As Stage Ptr, _
@@ -181,8 +327,8 @@ Function RemoveLines( _
 		Loop
 	Next
 	For t As Integer = 1 To 4
-		Dim i As Integer = 0
-		Dim j As Integer = t
+		Dim i As Integer = t
+		Dim j As Integer = 0
 		Do While (i <= 8) OrElse (j <= 8)
 			Dim Length As Integer = ForwardDiagonalSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
 			If Length >= 5 Then
@@ -207,7 +353,7 @@ Function RemoveLines( _
 			Dim Length As Integer = BackwardDiagonalSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
 			If Length >= 5 Then
 				For k As Integer = 0 To Length - 1
-					RemovedCells(RemovedCellsCount).x = i + k
+					RemovedCells(RemovedCellsCount).x = i - k
 					RemovedCells(RemovedCellsCount).y = j + k
 					RemovedCellsCount += 1
 				Next
