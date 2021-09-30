@@ -200,6 +200,44 @@ Function RemoveLines( _
 		Loop
 	Next
 	' Побочные диагонали
+	For t As Integer = 8 To 4 Step -1
+		Dim i As Integer = t
+		Dim j As Integer = 0
+		Do While (i >= 0) OrElse (j <= 8)
+			Dim Length As Integer = BackwardDiagonalSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			If Length >= 5 Then
+				For k As Integer = 0 To Length - 1
+					RemovedCells(RemovedCellsCount).x = i + k
+					RemovedCells(RemovedCellsCount).y = j + k
+					RemovedCellsCount += 1
+				Next
+				i -= Length
+				j += Length
+			Else
+				i -= 1
+				j += 1
+			End If
+		Loop
+	Next
+	For t As Integer = 1 To 4
+		Dim i As Integer = 8
+		Dim j As Integer = t
+		Do While (i >= 0) OrElse (j <= 8)
+			Dim Length As Integer = BackwardDiagonalSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			If Length >= 5 Then
+				For k As Integer = 0 To Length - 1
+					RemovedCells(RemovedCellsCount).x = i - k
+					RemovedCells(RemovedCellsCount).y = j + k
+					RemovedCellsCount += 1
+				Next
+				i -= Length
+				j += Length
+			Else
+				i -= 1
+				j += 1
+			End If
+		Loop
+	Next
 	
 	If RemovedCellsCount = 0 Then
 		Return False
