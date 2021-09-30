@@ -69,6 +69,60 @@ Function ColSequenceLength( _
 	
 End Function
 
+Function ForwardDiagonalSequenceLength( _
+		ByVal pStage As Stage Ptr, _
+		ByVal X As Integer, _
+		ByVal Y As Integer, _
+		ByVal BallColor As BallColors _
+	)As Integer
+	
+	If Y > 8 Then
+		Return 0
+	End If
+	
+	If X > 8 Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Visible = False Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+		Return 0
+	End If
+	
+	Return 1 + ForwardDiagonalSequenceLength(pStage, X + 1, Y + 1, BallColor)
+	
+End Function
+
+Function BackwardDiagonalSequenceLength( _
+		ByVal pStage As Stage Ptr, _
+		ByVal X As Integer, _
+		ByVal Y As Integer, _
+		ByVal BallColor As BallColors _
+	)As Integer
+	
+	If Y > 8 Then
+		Return 0
+	End If
+	
+	If X < 0 Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Visible = False Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+		Return 0
+	End If
+	
+	Return 1 + BackwardDiagonalSequenceLength(pStage, X - 1, Y + 1, BallColor)
+	
+End Function
+
 Function RemoveLines( _
 		ByVal pModel As GameModel Ptr, _
 		ByVal pStage As Stage Ptr _
@@ -82,7 +136,6 @@ Function RemoveLines( _
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			Dim Length As Integer = RowSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
-			
 			If Length >= 5 Then
 				For k As Integer = i To Length + i - 1
 					RemovedCells(RemovedCellsCount).x = k
@@ -91,7 +144,6 @@ Function RemoveLines( _
 				Next
 				i += Length
 			End If
-			
 		Next
 	Next
 	' Столбцы
@@ -108,8 +160,46 @@ Function RemoveLines( _
 			End If
 		Next
 	Next
-	' Главная диагональ
-	' Побочная диагональ
+	' Главные диагонали
+	For t As Integer = 4 To 0 Step -1
+		Dim i As Integer = 0
+		Dim j As Integer = t
+		Do While (i <= 8) OrElse (j <= 8)
+			Dim Length As Integer = ForwardDiagonalSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			If Length >= 5 Then
+				For k As Integer = 0 To Length - 1
+					RemovedCells(RemovedCellsCount).x = i + k
+					RemovedCells(RemovedCellsCount).y = j + k
+					RemovedCellsCount += 1
+				Next
+				i += Length
+				j += Length
+			Else
+				i += 1
+				j += 1
+			End If
+		Loop
+	Next
+	For t As Integer = 1 To 4
+		Dim i As Integer = 0
+		Dim j As Integer = t
+		Do While (i <= 8) OrElse (j <= 8)
+			Dim Length As Integer = ForwardDiagonalSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			If Length >= 5 Then
+				For k As Integer = 0 To Length - 1
+					RemovedCells(RemovedCellsCount).x = i + k
+					RemovedCells(RemovedCellsCount).y = j + k
+					RemovedCellsCount += 1
+				Next
+				i += Length
+				j += Length
+			Else
+				i += 1
+				j += 1
+			End If
+		Loop
+	Next
+	' Побочные диагонали
 	
 	If RemovedCellsCount = 0 Then
 		Return False
