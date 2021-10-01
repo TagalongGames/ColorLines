@@ -831,6 +831,10 @@ Sub GameModelKeyUp( _
 						End If
 						
 						pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
+					Else
+						pModel->Events.OnPathNotExist( _
+							pModel->Context _
+						)
 					End If
 				End If
 			End If

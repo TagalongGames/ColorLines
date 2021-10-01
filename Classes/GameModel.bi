@@ -36,6 +36,10 @@ Type StageEvents
 		ByVal Context As Any Ptr _
 	)
 	
+	OnPathNotExist As Sub( _
+		ByVal Context As Any Ptr _
+	)
+	
 End Type
 
 Type GameModel As _GameModel

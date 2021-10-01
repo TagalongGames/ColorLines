@@ -111,6 +111,14 @@ Sub ColorLinesStageAnimated( _
 	
 End Sub
 
+Sub ColorLinesPathNotExist( _
+		ByVal pContext As Any Ptr _
+	)
+	
+	MessageBeep(&hFFFFFFFF)
+	
+End Sub
+
 Sub SetOrthoProjection( _
 		ByVal ScreenWidth As Integer, _
 		ByVal ScreenHeight As Integer, _
@@ -155,6 +163,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Events.OnScoreChanged = @ColorLinesScoreChanged
 			Events.OnHiScoreChanged = @ColorLinesHiScoreChanged
 			Events.OnAnimated = @ColorLinesStageAnimated
+			Events.OnPathNotExist = @ColorLinesPathNotExist
 			
 			pModel = CreateGameModel(@Events, pContext)
 			If pModel = NULL Then
