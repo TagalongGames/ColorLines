@@ -792,11 +792,22 @@ Sub GameModelKeyUp( _
 			' Если шар виден, то выбрать его
 			If pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Ball.Visible Then
 				
-				' Выбрать или снять выбор шара
-				pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Ball.Selected = Not pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Ball.Selected
+				' Развыбрать старый шар
+				pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
 				
+				Dim pts As POINT = Any
+				pts.x = pModel->SelectedBallX
+				pts.y = pModel->SelectedBallY
+				pModel->Events.OnLinesChanged( _
+					pModel->Context, _
+					@pts, _
+					1 _
+				)
+				
+				' Выбрать новый шар
 				pModel->SelectedBallX = pModel->PressedCellX
 				pModel->SelectedBallY = pModel->PressedCellY
+				pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = Not pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected
 				
 			Else
 				' Если есть выделенный шар
