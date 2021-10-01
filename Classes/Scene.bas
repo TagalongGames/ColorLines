@@ -598,29 +598,15 @@ Sub SceneCopyRectangle( _
 	
 End Sub
 
-Sub SceneSetProjectionMatrix( _
+Sub SceneScale( _
 		ByVal pScene As Scene Ptr, _
-		ByVal pProjectionMatrix As XFORM Ptr _
+		ByVal ScaleX As Single, _
+		ByVal ScaleY As Single _
 	)
 	
-	pScene->ProjectionMatrix = *pProjectionMatrix
+	Dim ProjectionMatrix As XFORM = Any
+	MatrixSetScale(@ProjectionMatrix, ScaleX, ScaleY)
 	
-End Sub
-
-Sub SceneSetViewMatrix( _
-		ByVal pScene As Scene Ptr, _
-		ByVal pViewMatrix As XFORM Ptr _
-	)
-	
-	pScene->ViewMatrix = *pViewMatrix
-	
-End Sub
-
-Sub SceneSetWorldMatrix( _
-		ByVal pScene As Scene Ptr, _
-		ByVal pWorldMatrix As XFORM Ptr _
-	)
-	
-	pScene->WorldMatrix = *pWorldMatrix
+	pScene->ProjectionMatrix = ProjectionMatrix
 	
 End Sub

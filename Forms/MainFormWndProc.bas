@@ -3,7 +3,6 @@
 #include once "crt.bi"
 #include once "DisplayError.bi"
 #include once "GameModel.bi"
-#include once "GdiMatrix.bi"
 #include once "Resources.RH"
 #include once "Scene.bi"
 #include once "Stage.bi"
@@ -130,13 +129,7 @@ Sub SetOrthoProjection( _
 	Dim fAspectY As Single = max(1.0, CSng(ScreenHeight) / CSng(SceneHeight))
 	Dim fIsotropicAspect As Single = min(fAspectX, fAspectY)
 	
-	Dim ProjectionMatrix As XFORM = Any
-	MatrixSetScale(@ProjectionMatrix, fIsotropicAspect, fIsotropicAspect)
-	
-	SceneSetProjectionMatrix( _
-		pScene, _
-		@ProjectionMatrix _
-	)
+	SceneScale(pScene, fIsotropicAspect, fIsotropicAspect)
 	
 End Sub
 

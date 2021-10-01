@@ -33,19 +33,10 @@ Declare Sub SceneTranslateBounds( _
 	ByVal pScreenBounds As RECT Ptr _
 )
 
-Declare Sub SceneSetProjectionMatrix( _
+Declare Sub SceneScale( _
 	ByVal pScene As Scene Ptr, _
-	ByVal pProjectionMatrix As XFORM Ptr _
-)
-
-Declare Sub SceneSetViewMatrix( _
-	ByVal pScene As Scene Ptr, _
-	ByVal pViewMatrix As XFORM Ptr _
-)
-
-Declare Sub SceneSetWorldMatrix( _
-	ByVal pScene As Scene Ptr, _
-	ByVal pWorldMatrix As XFORM Ptr _
+	ByVal ScaleX As Single, _
+	ByVal ScaleY As Single _
 )
 
 #endif
