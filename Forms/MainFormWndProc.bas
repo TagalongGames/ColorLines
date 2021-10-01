@@ -270,10 +270,18 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			PostQuitMessage(0)
 			
 		Case WM_LBUTTONDOWN
+			SetCapture(hWin)
 			Dim pt As POINT = Any
 			pt.x = GET_X_LPARAM(lParam)
 			pt.y = GET_Y_LPARAM(lParam)
 			GameModelLMouseDown(pModel, pStage, pScene, @pt)
+			
+		Case WM_LBUTTONUP
+			ReleaseCapture()
+			Dim pt As POINT = Any
+			pt.x = GET_X_LPARAM(lParam)
+			pt.y = GET_Y_LPARAM(lParam)
+			GameModelLMouseUp(pModel, pStage, pScene, @pt)
 			
 		Case WM_KEYDOWN
 			GameModelKeyDown(pModel, pStage, wParam)

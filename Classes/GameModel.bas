@@ -632,13 +632,47 @@ Sub GameModelLMouseDown( _
 	
 	Dim CellCoord As Point = Any
 	If GetCellFromPoint(pStage, pScene, pp, @CellCoord) Then
-		' Хорошо
-		' Dim buffer As WString * (512 + 1) = Any
-		' Const ffFormat = WStr("{%d, %d}")
-		' swprintf(@buffer, @ffFormat, CellCoord.x, CellCoord.y)
-		' buffer[255] = 0
-		' MessageBoxW(NULL, @buffer, NULL, MB_OK)
+		' Развыбрать старую ячейку
+		Dim pts(1) As POINT = Any
+		pts(0).x = pModel->SelectedCellX
+		pts(0).y = pModel->SelectedCellY
+		pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
+		
+		' Выбрать новую ячейку
+		pModel->SelectedCellX = CellCoord.x
+		pModel->SelectedCellY = CellCoord.y
+		pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
+		
+		' Нажать кнопку
+		pModel->PressedCellX = CellCoord.x
+		pModel->PressedCellY = CellCoord.y
+		pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = True
+		
+		pts(1).x = CellCoord.x
+		pts(1).y = CellCoord.y
+		
+		pModel->Events.OnLinesChanged( _
+			pModel->Context, _
+			@pts(0), _
+			2 _
+		)
+		
 	End If
+	
+End Sub
+
+Sub GameModelLMouseUp( _
+		ByVal pModel As GameModel Ptr, _
+		ByVal pStage As Stage Ptr, _
+		ByVal pScene As Scene Ptr, _
+		ByVal pp As POINT Ptr _
+	)
+	
+	GameModelKeyUp( _
+		pModel, _
+		pStage, _
+		VK_SPACE _
+	)
 	
 End Sub
 
@@ -655,6 +689,8 @@ Sub GameModelKeyDown( _
 			
 		Case StageKeys.ShiftTab
 			' Если Shift+TAB то на предыдущий шар
+			' Ctrl+Стрелка переход к следующему шару
+			' Home, End, Ctrl+Home, Ctrl+End, PageUp, PageDown
 			
 		Case VK_SPACE, VK_RETURN
 			pModel->PressedCellX = pModel->SelectedCellX
@@ -760,18 +796,16 @@ Sub GameModelKeyDown( _
 			
 		Case VK_ESCAPE
 			' Снять выбор шара
-			If pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected Then
-				pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
-				
-				Dim pts As POINT = Any
-				pts.x = pModel->SelectedBallX
-				pts.y = pModel->SelectedBallY
-				pModel->Events.OnLinesChanged( _
-					pModel->Context, _
-					@pts, _
-					1 _
-				)
-			End If
+			pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
+			
+			Dim pts As POINT = Any
+			pts.x = pModel->SelectedBallX
+			pts.y = pModel->SelectedBallY
+			pModel->Events.OnLinesChanged( _
+				pModel->Context, _
+				@pts, _
+				1 _
+			)
 			
 	End Select
 	

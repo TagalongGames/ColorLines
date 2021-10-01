@@ -65,6 +65,13 @@ Declare Sub GameModelLMouseDown( _
 	ByVal pp As POINT Ptr _
 )
 
+Declare Sub GameModelLMouseUp( _
+	ByVal pModel As GameModel Ptr, _
+	ByVal pStage As Stage Ptr, _
+	ByVal pScene As Scene Ptr, _
+	ByVal pp As POINT Ptr _
+)
+
 Declare Sub GameModelKeyDown( _
 	ByVal pModel As GameModel Ptr, _
 	ByVal pStage As Stage Ptr, _
