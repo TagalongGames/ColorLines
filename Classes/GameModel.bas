@@ -31,6 +31,8 @@ Type _GameModel
 	SelectedBallY As Integer
 	PressedCellX As Integer
 	PressedCellY As Integer
+	Dim Grid(9 * 9 - 1) As Integer
+	Dim pPath(9 * 9 - 1) As POINT
 End Type
 
 /'
@@ -472,35 +474,28 @@ Function MoveBall( _
 	)As Boolean
 	
 	' Проверить наличие пути
-	Dim Grid As Integer Ptr = Allocate(SizeOf(Integer) * (9 * 9))
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			' [y * StageWidth + x]
 			If pStage->Lines(j, i).Ball.Visible Then
-				Grid[j * 9 + i] = SquareLType.Wall
+				pModel->Grid(j * 9 + i) = SquareLType.Wall
 			Else
-				Grid[j * 9 + i] = SquareLType.Blank
+				pModel->Grid(j * 9 + i) = SquareLType.Blank
 			End If
 		Next
 	Next
-	Grid[OldCoord->y * 9 + OldCoord->x] = SquareLType.Start
-	Dim pPath As POINT Ptr = Allocate(SizeOf(POINT) * (9 * 9))
+	pModel->Grid(OldCoord->y * 9 + OldCoord->x) = SquareLType.Start
 	Dim Length As Integer = GetLeePath( _
 		*OldCoord, _
 		*NewCoord, _
 		9, _
 		9, _
-		Grid, _
+		@pModel->Grid(0), _
 		False, _
-		pPath _
+		@pModel->pPath(0) _
 	)
-	Deallocate(Grid)
 	If Length = 0 Then
-		Deallocate(pPath)
 		Return False
 	End If
-	
-	Deallocate(pPath)
 	
 	' Переместить шар
 	pStage->Lines(OldCoord->y, OldCoord->x).Ball.Visible = False
@@ -668,11 +663,14 @@ Sub GameModelLMouseUp( _
 		ByVal pp As POINT Ptr _
 	)
 	
-	GameModelKeyUp( _
-		pModel, _
-		pStage, _
-		VK_SPACE _
-	)
+	Dim CellCoord As Point = Any
+	If GetCellFromPoint(pStage, pScene, pp, @CellCoord) Then
+		GameModelKeyUp( _
+			pModel, _
+			pStage, _
+			VK_SPACE _
+		)
+	End If
 	
 End Sub
 
