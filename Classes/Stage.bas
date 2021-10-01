@@ -1,12 +1,12 @@
 #include once "Stage.bi"
 ' #include once "crt.bi"
 
-Const CellWidth As UINT = 40
-Const CellHeight As UINT = 40
-Const BallWidth As UINT = 30
-Const BallHeight As UINT = 30
-Const BallMarginWidth As UINT = (CellWidth - BallWidth) \ 2
-Const BallMarginHeight As UINT = (CellHeight - BallHeight) \ 2
+Const CellWidth As Long = 40
+Const CellHeight As Long = 40
+Const BallWidth As Long = 30
+Const BallHeight As Long = 30
+Const BallMarginWidth As Long = (CellWidth - BallWidth) \ 2
+Const BallMarginHeight As Long = (CellHeight - BallHeight) \ 2
 Const Sine45   = 0.70710678118654752440084436210485
 Const Cosine45 = 0.70710678118654752440084436210485
 
@@ -41,15 +41,15 @@ Function CreateStage( _
 	
 	Dim CellRectangle As RECT = Any
 	SetRect(@CellRectangle, _
-		-1 * CellWidth \ 2, _
-		-1 * CellHeight \ 2, _
+		-1 * (CellWidth \ 2), _
+		-1 * (CellHeight \ 2), _
 		CellWidth \ 2, _
 		CellHeight \ 2 _
 	)
 	Dim BallRectangle As RECT = Any
 	SetRect(@BallRectangle, _
-		-1 * BallWidth \ 2, _
-		-1 * BallHeight \ 2, _
+		-1 * (BallWidth \ 2), _
+		-1 * (BallHeight \ 2), _
 		BallWidth \ 2, _
 		BallHeight \ 2 _
 	)
@@ -133,8 +133,8 @@ Function CreateStage( _
 	CopyRect(@pStage->MovedBall.Bounds, @BallRectangle)
 	pStage->MovedBall.Visible = False
 	pStage->MovedBall.Selected = False
-	' pStage->MovedBall.Position.TranslateX = CSng(10 * CellWidth + CellWidth \ 2)
-	' pStage->MovedBall.Position.TranslateY = CSng((j + 1) * CellHeight + CellHeight \ 2)
+	pStage->MovedBall.Position.TranslateX = 0.0
+	pStage->MovedBall.Position.TranslateY = 0.0
 	pStage->MovedBall.Position.AngleSine = Sine45
 	pStage->MovedBall.Position.AngleCosine = Cosine45
 	pStage->MovedBall.Position.ScaleX = 1.0
