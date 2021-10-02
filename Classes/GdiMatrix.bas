@@ -150,45 +150,35 @@ Sub SetPositionMatrix( _
 		Dim ShearMatrix As XFORM = Any
 		MatrixSetShear(@ShearMatrix, pPosition->ShearX, pPosition->ShearY)
 		
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @ShearMatrix)
-		WorldMatrix = OutMatrix
+		CombineTransform(@WorldMatrix, @WorldMatrix, @ShearMatrix)
 	End Scope
 	
 	Scope
 		Dim ScaleMatrix As XFORM = Any
 		MatrixSetScale(@ScaleMatrix, pPosition->ScaleX, pPosition->ScaleY)
 		
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @ScaleMatrix)
-		WorldMatrix = OutMatrix
+		CombineTransform(@WorldMatrix, @WorldMatrix, @ScaleMatrix)
 	End Scope
 	
 	Scope
 		Dim ReflectMatrix As XFORM = Any
 		MatrixSetReflect(@ReflectMatrix, pPosition->ReflectX, pPosition->ReflectY)
 		
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @ReflectMatrix)
-		WorldMatrix = OutMatrix
+		CombineTransform(@WorldMatrix, @WorldMatrix, @ReflectMatrix)
 	End Scope
 	
 	Scope
 		Dim RotationMatrix As XFORM = Any
 		MatrixSetRRotate(@RotationMatrix, pPosition->AngleSine, pPosition->AngleCosine)
 		
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @RotationMatrix)
-		WorldMatrix = OutMatrix
+		CombineTransform(@WorldMatrix, @WorldMatrix, @RotationMatrix)
 	End Scope
 	
 	Scope
 		Dim TranslationMatrix As XFORM = Any
 		MatrixSetTranslate(@TranslationMatrix, pPosition->TranslateX, pPosition->TranslateY)
 		
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @WorldMatrix, @TranslationMatrix)
-		WorldMatrix = OutMatrix
+		CombineTransform(@WorldMatrix, @WorldMatrix, @TranslationMatrix)
 	End Scope
 	
 	*m = WorldMatrix
