@@ -26,53 +26,80 @@ Type Transformation
 	ShearY As Single
 End Type
 
-' Заполнение матрицы для операции переноса
-Declare Sub MatrixSetTranslate( _
-	ByVal m As XFORM Ptr, _
-	ByVal dx As Single, _
-	ByVal dy As Single _
-)
-
-' Заполнение матрицы для операции поворота
-' В правосторонней системе координат
-Declare Sub MatrixSetRRotate( _
-	ByVal m As XFORM Ptr, _
-	ByVal AngleSine As Single, _
-	ByVal AngleCosine As Single _
-)
-
-' Заполнение матрицы для операции поворота
-' В левосторонней системе координат
-Declare Sub MatrixSetLRotate( _
-	ByVal m As XFORM Ptr, _
-	ByVal AngleSine As Single, _
-	ByVal AngleCosine As Single _
-)
-
-' Заполнение матрицы для операции масштабирования
-Declare Sub MatrixSetScale( _
-	ByVal m As XFORM Ptr, _
-	ByVal ScaleX As Single, _
-	ByVal ScaleY As Single _
-)
-
-' Заполнение матрицы для операции отражения
-Declare Sub MatrixSetReflect( _
-	ByVal m As XFORM Ptr, _
-	ByVal x As Boolean, _
-	ByVal y As Boolean _
-)
-
-' Заполнение матрицы для операции сдвига
 Declare Sub MatrixSetShear( _
 	ByVal m As XFORM Ptr, _
 	ByVal Horizontal As Single, _
 	ByVal Vertical As Single _
 )
 
-' Заполнение матрицы единичной матрицей
+Declare Sub MatrixSetScale( _
+	ByVal m As XFORM Ptr, _
+	ByVal ScaleX As Single, _
+	ByVal ScaleY As Single _
+)
+
+Declare Sub MatrixSetReflect( _
+	ByVal m As XFORM Ptr, _
+	ByVal x As Boolean, _
+	ByVal y As Boolean _
+)
+
+Declare Sub MatrixSetRRotate( _
+	ByVal m As XFORM Ptr, _
+	ByVal AngleSine As Single, _
+	ByVal AngleCosine As Single _
+)
+
+Declare Sub MatrixSetLRotate( _
+	ByVal m As XFORM Ptr, _
+	ByVal AngleSine As Single, _
+	ByVal AngleCosine As Single _
+)
+
+Declare Sub MatrixSetTranslate( _
+	ByVal m As XFORM Ptr, _
+	ByVal dx As Single, _
+	ByVal dy As Single _
+)
+
 Declare Sub MatrixSetIdentity( _
 	ByVal m As XFORM Ptr _
+)
+
+Declare Sub MatrixApplyShear( _
+	ByVal m As XFORM Ptr, _
+	ByVal Horizontal As Single, _
+	ByVal Vertical As Single _
+)
+
+Declare Sub MatrixApplyScale( _
+	ByVal m As XFORM Ptr, _
+	ByVal ScaleX As Single, _
+	ByVal ScaleY As Single _
+)
+
+Declare Sub MatrixApplyReflect( _
+	ByVal m As XFORM Ptr, _
+	ByVal x As Boolean, _
+	ByVal y As Boolean _
+)
+
+Declare Sub MatrixApplyRRotate( _
+	ByVal m As XFORM Ptr, _
+	ByVal AngleSine As Single, _
+	ByVal AngleCosine As Single _
+)
+
+Declare Sub MatrixApplyLRotate( _
+	ByVal m As XFORM Ptr, _
+	ByVal AngleSine As Single, _
+	ByVal AngleCosine As Single _
+)
+
+Declare Sub MatrixApplyTranslate( _
+	ByVal m As XFORM Ptr, _
+	ByVal dx As Single, _
+	ByVal dy As Single _
 )
 
 Declare Sub MultipleVector( _

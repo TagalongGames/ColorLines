@@ -56,7 +56,6 @@ Sub MatrixSetReflect( _
 		ByVal y As Boolean _
 	)
 	
-	' Отражение dx и dy
 	Dim dx As Single = Any
 	If x Then
 		dx = -1.0
@@ -96,6 +95,78 @@ Sub MatrixSetIdentity( _
 	m->eM11 = 1.0 : m->eM21 = 0.0 : m->eDx = 0.0
 	m->eM12 = 0.0 : m->eM22 = 1.0 : m->eDy = 0.0
 	' 0           : 0             : 1
+	
+End Sub
+
+Sub MatrixApplyShear( _
+		ByVal m As XFORM Ptr, _
+		ByVal Horizontal As Single, _
+		ByVal Vertical As Single _
+	)
+	
+	Dim ShearMatrix As XFORM = Any
+	MatrixSetShear(@ShearMatrix, Horizontal, Vertical)
+	CombineTransform(m, m, @ShearMatrix)
+	
+End Sub
+
+Sub MatrixApplyScale( _
+		ByVal m As XFORM Ptr, _
+		ByVal ScaleX As Single, _
+		ByVal ScaleY As Single _
+	)
+	
+	Dim ScaleMatrix As XFORM = Any
+	MatrixSetScale(@ScaleMatrix, ScaleX, ScaleY)
+	CombineTransform(m, m, @ScaleMatrix)
+	
+End Sub
+
+Sub MatrixApplyReflect( _
+		ByVal m As XFORM Ptr, _
+		ByVal x As Boolean, _
+		ByVal y As Boolean _
+	)
+	
+	Dim ReflectMatrix As XFORM = Any
+	MatrixSetReflect(@ReflectMatrix, x, y)
+	CombineTransform(m, m, @ReflectMatrix)
+	
+End Sub
+
+Sub MatrixApplyRRotate( _
+		ByVal m As XFORM Ptr, _
+		ByVal AngleSine As Single, _
+		ByVal AngleCosine As Single _
+	)
+	
+	Dim RotationMatrix As XFORM = Any
+	MatrixSetRRotate(@RotationMatrix, AngleSine, AngleCosine)
+	CombineTransform(m, m, @RotationMatrix)
+	
+End Sub
+
+Sub MatrixApplyLRotate( _
+		ByVal m As XFORM Ptr, _
+		ByVal AngleSine As Single, _
+		ByVal AngleCosine As Single _
+	)
+	
+	Dim RotationMatrix As XFORM = Any
+	MatrixSetLRotate(@RotationMatrix, AngleSine, AngleCosine)
+	CombineTransform(m, m, @RotationMatrix)
+	
+End Sub
+
+Sub MatrixApplyTranslate( _
+		ByVal m As XFORM Ptr, _
+		ByVal dx As Single, _
+		ByVal dy As Single _
+	)
+	
+	Dim TranslationMatrix As XFORM = Any
+	MatrixSetTranslate(@TranslationMatrix, dx, dy)
+	CombineTransform(m, m, @TranslationMatrix)
 	
 End Sub
 
