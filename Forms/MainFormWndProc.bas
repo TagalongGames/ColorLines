@@ -108,15 +108,16 @@ Sub ColorLinesPathNotExist( _
 	
 End Sub
 
-Sub SetOrthoProjection( _
-		ByVal ScreenWidth As Integer, _
-		ByVal ScreenHeight As Integer, _
-		ByVal SceneWidth As Integer, _
-		ByVal SceneHeight As Integer _
+Sub SetSceneIsotropicViewPort( _
+		ByVal ViewPortWidth As Integer, _
+		ByVal ViewPortHeight As Integer _
 	)
 	
-	Dim fAspectX As Single = max(1.0, CSng(ScreenWidth) / CSng(SceneWidth))
-	Dim fAspectY As Single = max(1.0, CSng(ScreenHeight) / CSng(SceneHeight))
+	Dim StageWidth As Integer = StageGetWidth(pStage)
+	Dim StageHeight As Integer = StageGetHeight(pStage)
+	
+	Dim fAspectX As Single = max(1.0, CSng(ViewPortWidth) / CSng(StageWidth))
+	Dim fAspectY As Single = max(1.0, CSng(ViewPortHeight) / CSng(StageHeight))
 	Dim fIsotropicAspect As Single = min(fAspectX, fAspectY)
 	
 	SceneScale(pScene, fIsotropicAspect, fIsotropicAspect)
@@ -163,17 +164,9 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				End If
 				pScene = CreateScene(hWin, ClientAreaWidth, ClientAreaHeight)
 				
-				SetOrthoProjection( _
-					ClientAreaWidth, _
-					ClientAreaHeight, _
-					StageGetWidth(pStage), _
-					StageGetHeight(pStage) _
-				)
+				SetSceneIsotropicViewPort(ClientAreaWidth, ClientAreaHeight)
+				SceneRender(pScene, pStage)
 				
-				SceneRender( _
-					pScene, _
-					pStage _
-				)
 			End If
 			
 		Case WM_COMMAND
