@@ -398,6 +398,20 @@ Function RemoveLines( _
 		RemovedCellsCount _
 	)
 	
+	pStage->Score += RemovedCellsCount
+	pModel->Events.OnScoreChanged( _
+		pModel->Context, _
+		RemovedCellsCount _
+	)
+	
+	If pStage->Score > pStage->HiScore Then
+		pStage->HiScore = pStage->Score
+		pModel->Events.OnHiScoreChanged( _
+			pModel->Context, _
+			RemovedCellsCount _
+		)
+	End If
+	
 	Return True
 	
 End Function
@@ -555,7 +569,8 @@ Sub GameModelNewGame( _
 	
 	pStage->Score = 0
 	pModel->Events.OnScoreChanged( _
-		pModel->Context _
+		pModel->Context, _
+		0 _
 	)
 	
 	Dim pts(9 * 9 - 1) As POINT = Any

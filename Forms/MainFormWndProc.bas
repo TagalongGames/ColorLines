@@ -76,12 +76,14 @@ Sub ColorLinesMovedBallChanged( _
 End Sub
 
 Sub ColorLinesScoreChanged( _
-		ByVal pContext As Any Ptr _
+		ByVal pContext As Any Ptr, _
+		ByVal Added As Integer _
 	)
 End Sub
 
 Sub ColorLinesHiScoreChanged( _
-		ByVal pContext As Any Ptr _
+		ByVal pContext As Any Ptr, _
+		ByVal Added As Integer _
 	)
 End Sub
 
@@ -132,7 +134,7 @@ Sub MoveSceneToCenterViewPort( _
 	Dim dx As Integer = ViewPortWidth \ 2
 	Dim dy As Integer = ViewPortHeight \ 2
 	
-	SceneTranslate(pScene, dx, dy)
+	SceneTranslate(pScene, CSng(dx), CSng(dy))
 	
 End Sub
 
@@ -145,7 +147,7 @@ Sub MoveSceneToCenterCoordinate( _
 	Dim dx As Integer = -1 * (StageWidth \ 2)
 	Dim dy As Integer = -1 * (StageHeight \ 2)
 	
-	SceneTranslate(pScene, dx, dy)
+	SceneTranslate(pScene, CSng(dx), CSng(dy))
 	
 End Sub
 

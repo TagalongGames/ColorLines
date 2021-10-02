@@ -25,11 +25,13 @@ Type StageEvents
 	)
 	
 	OnScoreChanged As Sub( _
-		ByVal pContext As Any Ptr _
+		ByVal pContext As Any Ptr, _
+		ByVal Added As Integer _
 	)
 	
 	OnHiScoreChanged As Sub( _
-		ByVal pContext As Any Ptr _
+		ByVal pContext As Any Ptr, _
+		ByVal Added As Integer _
 	)
 	
 	OnAnimated As Sub( _
