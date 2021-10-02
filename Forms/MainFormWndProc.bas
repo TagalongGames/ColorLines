@@ -124,6 +124,31 @@ Sub SetSceneIsotropicViewPort( _
 	
 End Sub
 
+Sub MoveSceneToCenterViewPort( _
+		ByVal ViewPortWidth As Integer, _
+		ByVal ViewPortHeight As Integer _
+	)
+	
+	Dim dx As Integer = ViewPortWidth \ 2
+	Dim dy As Integer = ViewPortHeight \ 2
+	
+	SceneTranslate(pScene, dx, dy)
+	
+End Sub
+
+Sub MoveSceneToCenterCoordinate( _
+	)
+	
+	Dim StageWidth As Integer = StageGetWidth(pStage)
+	Dim StageHeight As Integer = StageGetHeight(pStage)
+	
+	Dim dx As Integer = -1 * (StageWidth \ 2)
+	Dim dy As Integer = -1 * (StageHeight \ 2)
+	
+	SceneTranslate(pScene, dx, dy)
+	
+End Sub
+
 Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As WPARAM, ByVal lParam As LPARAM) As LRESULT
 	
 	Select Case wMsg
@@ -163,8 +188,12 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					DestroyScene(pScene)
 				End If
 				pScene = CreateScene(hWin, ClientAreaWidth, ClientAreaHeight)
+				Dim ViewPortWidth As Integer = ClientAreaWidth
+				Dim ViewPortHeight As Integer = ClientAreaHeight
 				
-				SetSceneIsotropicViewPort(ClientAreaWidth, ClientAreaHeight)
+				MoveSceneToCenterCoordinate()
+				SetSceneIsotropicViewPort(ViewPortWidth, ViewPortHeight)
+				MoveSceneToCenterViewPort(ViewPortWidth, ViewPortHeight)
 				SceneRender(pScene, pStage)
 				
 			End If
