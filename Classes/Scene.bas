@@ -67,8 +67,6 @@ Type _Scene
 	Width As UINT
 	Height As UINT
 	
-	ProjectionMatrix As XFORM
-	ViewMatrix As XFORM
 	WorldMatrix As XFORM
 End Type
 
@@ -141,14 +139,7 @@ Sub DrawBall( _
 		Dim WorldMatrix As XFORM = Any
 		Scope
 			Dim OutMatrix As XFORM = Any
-			CombineTransform(@OutMatrix, @pScene->ProjectionMatrix, @pScene->ViewMatrix)
-			
-			CombineTransform(@WorldMatrix, @OutMatrix, @pScene->WorldMatrix)
-		End Scope
-		
-		Scope
-			Dim OutMatrix As XFORM = Any
-			CombineTransform(@OutMatrix, @PositionMatrix, @WorldMatrix)
+			CombineTransform(@OutMatrix, @PositionMatrix, @pScene->WorldMatrix)
 			
 			WorldMatrix = OutMatrix
 		End Scope
@@ -370,8 +361,6 @@ Function CreateScene( _
 	
 	SetGraphicsMode(pScene->DeviceContext, GM_ADVANCED)
 	
-	MatrixSetIdentity(@pScene->ProjectionMatrix)
-	MatrixSetIdentity(@pScene->ViewMatrix)
 	MatrixSetIdentity(@pScene->WorldMatrix)
 	
 	Return pScene
@@ -406,8 +395,6 @@ Sub SceneRender( _
 	Dim OldMatrix As XFORM = Any
 	GetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
-	ModifyWorldTransform(pScene->DeviceContext, @pScene->ProjectionMatrix, MWT_LEFTMULTIPLY)
-	ModifyWorldTransform(pScene->DeviceContext, @pScene->ViewMatrix, MWT_LEFTMULTIPLY)
 	ModifyWorldTransform(pScene->DeviceContext, @pScene->WorldMatrix, MWT_LEFTMULTIPLY)
 	
 	' Рисуем
@@ -531,20 +518,13 @@ Sub SceneTranslateBounds( _
 		ByVal pScreenBounds As RECT Ptr _
 	)
 	
-	Dim WorldMatrix As XFORM = Any
-	Scope
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @pScene->ProjectionMatrix, @pScene->ViewMatrix)
-		
-		CombineTransform(@WorldMatrix, @OutMatrix, @pScene->WorldMatrix)
-	End Scope
-	
 	Dim PositionMatrix As XFORM = Any
 	SetPositionMatrix(@PositionMatrix, pPosition)
 	
+	Dim WorldMatrix As XFORM = Any
 	Scope
 		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @PositionMatrix, @WorldMatrix)
+		CombineTransform(@OutMatrix, @PositionMatrix, @pScene->WorldMatrix)
 		
 		WorldMatrix = OutMatrix
 	End Scope
@@ -604,9 +584,9 @@ Sub SceneScale( _
 		ByVal ScaleY As Single _
 	)
 	
-	Dim ProjectionMatrix As XFORM = Any
-	MatrixSetScale(@ProjectionMatrix, ScaleX, ScaleY)
+	Dim m As XFORM = Any
+	MatrixSetScale(@m, ScaleX, ScaleY)
 	
-	pScene->ProjectionMatrix = ProjectionMatrix
+	pScene->WorldMatrix = m
 	
 End Sub
