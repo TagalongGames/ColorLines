@@ -130,19 +130,12 @@ Sub DrawBall( _
 		ByVal pBall As ColorBall Ptr _
 	)
 	
-	Dim PositionMatrix As XFORM = Any
-	SetPositionMatrix(@PositionMatrix, @pBall->Position)
-	ModifyWorldTransform(hDC, @PositionMatrix, MWT_LEFTMULTIPLY)
+	ModifyWorldTransform(hDC, @pBall->PositionMatrix, MWT_LEFTMULTIPLY)
 	
 	If pBall->Visible Then
 		
 		Dim WorldMatrix As XFORM = Any
-		Scope
-			Dim OutMatrix As XFORM = Any
-			CombineTransform(@OutMatrix, @PositionMatrix, @pScene->WorldMatrix)
-			
-			WorldMatrix = OutMatrix
-		End Scope
+		CombineTransform(@WorldMatrix, @pBall->PositionMatrix, @pScene->WorldMatrix)
 		
 		Dim elRgn As HRGN = CreateEllipticRgn( _
 			pBall->Bounds.left, _
@@ -215,9 +208,7 @@ Sub DrawCell( _
 		ByVal pCell As Cell Ptr _
 	)
 	
-	Dim PositionMatrix As XFORM = Any
-	SetPositionMatrix(@PositionMatrix, @pCell->Position)
-	ModifyWorldTransform(hDC, @PositionMatrix, MWT_LEFTMULTIPLY)
+	ModifyWorldTransform(hDC, @pCell->PositionMatrix, MWT_LEFTMULTIPLY)
 	
 	Dim OldBrush As HGDIOBJ = Any
 	
@@ -398,7 +389,7 @@ Sub SceneRender( _
 	ModifyWorldTransform(pScene->DeviceContext, @pScene->WorldMatrix, MWT_LEFTMULTIPLY)
 	
 	' –исуем
-	/'
+	
 	Scope
 		Dim Buffer(511) As WCHAR = Any
 		_itow(pStage->HiScore, @Buffer(0), 10)
@@ -424,7 +415,7 @@ Sub SceneRender( _
 			lstrlenw(@Buffer(0)) _
 		)
 	End Scope
-	'/
+	
 	
 	Dim OldPen As HGDIOBJ = SelectObject(pScene->DeviceContext, Cast(HPEN, GetStockObject(NULL_PEN)))
 	' ячейки
@@ -459,7 +450,6 @@ Sub SceneRender( _
 	
 	' Ўары
 	OldPen = SelectObject(pScene->DeviceContext, pScene->Brushes.BoundingPen)
-	' OldPen = SelectObject(pScene->DeviceContext, Cast(HPEN, GetStockObject(BLACK_PEN)))
 	Dim OldBrush As HBRUSH = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(NULL_BRUSH)))
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
@@ -514,20 +504,12 @@ End Sub
 Sub SceneTranslateBounds( _
 		ByVal pScene As Scene Ptr, _
 		ByVal pObjectBounds As RECT Ptr, _
-		ByVal pPosition As Transformation Ptr, _
+		ByVal pPositionMatrix As XFORM Ptr, _
 		ByVal pScreenBounds As RECT Ptr _
 	)
 	
-	Dim PositionMatrix As XFORM = Any
-	SetPositionMatrix(@PositionMatrix, pPosition)
-	
 	Dim WorldMatrix As XFORM = Any
-	Scope
-		Dim OutMatrix As XFORM = Any
-		CombineTransform(@OutMatrix, @PositionMatrix, @pScene->WorldMatrix)
-		
-		WorldMatrix = OutMatrix
-	End Scope
+	CombineTransform(@WorldMatrix, pPositionMatrix, @pScene->WorldMatrix)
 	
 	Dim LeftTopSceneVectorI As Vector2DI = Any
 	Scope

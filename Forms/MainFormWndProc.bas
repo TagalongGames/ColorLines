@@ -36,7 +36,7 @@ Sub ColorLinesStageChanged( _
 		SceneTranslateBounds( _
 			pScene, _
 			@pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Bounds, _
-			@pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Position, _
+			@pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).PositionMatrix, _
 			@ScreenRectangle _
 		)
 		
@@ -61,7 +61,7 @@ Sub ColorLinesTabloChanged( _
 		SceneTranslateBounds( _
 			pScene, _
 			@pStage->Tablo(i).Bounds, _
-			@pStage->Tablo(i).Position, _
+			@pStage->Tablo(i).PositionMatrix, _
 			@ScreenRectangle _
 		)
 		

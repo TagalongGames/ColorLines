@@ -2,7 +2,6 @@
 #define STAGE_BI
 
 #include once "windows.bi"
-#include once "GdiMatrix.bi"
 
 Enum BallColors
 	Red
@@ -47,7 +46,7 @@ End Enum
 
 Type ColorBall
 	Bounds As RECT
-	Position As Transformation
+	PositionMatrix As XFORM
 	Color As BallColors
 	Frame As AnimationFrames
 	Visible As Boolean
@@ -56,7 +55,7 @@ End Type
 
 Type Cell
 	Bounds As RECT
-	Position As Transformation
+	PositionMatrix As XFORM
 	Ball As ColorBall
 	Selected As Boolean
 	Pressed As Boolean

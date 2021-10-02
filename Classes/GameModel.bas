@@ -610,7 +610,7 @@ Function GetCellFromPoint( _
 			SceneTranslateBounds( _
 				pScene, _
 				@pStage->Lines(j, i).Bounds, _
-				@pStage->Lines(j, i).Position, _
+				@pStage->Lines(j, i).PositionMatrix, _
 				@ScreenRectangle _
 			)
 			If PtInRect(@ScreenRectangle, *pp) Then

@@ -1,4 +1,5 @@
 #include once "Stage.bi"
+#include once "GdiMatrix.bi"
 ' #include once "crt.bi"
 
 Const CellWidth As Long = 40
@@ -57,35 +58,33 @@ Function CreateStage( _
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			CopyRect(@pStage->Lines(j, i).Bounds, @CellRectangle)
-			pStage->Lines(j, i).Position.TranslateX = CSng(i * CellWidth + CellWidth \ 2)
-			pStage->Lines(j, i).Position.TranslateY = CSng(j * CellHeight + CellHeight \ 2)
-			pStage->Lines(j, i).Position.AngleSine = 0.0
-			pStage->Lines(j, i).Position.AngleCosine = 1.0
-			pStage->Lines(j, i).Position.ScaleX = 1.0
-			pStage->Lines(j, i).Position.ScaleY = 1.0
-			pStage->Lines(j, i).Position.ReflectX = False
-			pStage->Lines(j, i).Position.ReflectY = False
-			pStage->Lines(j, i).Position.ShearX = 0.0
-			pStage->Lines(j, i).Position.ShearY = 0.0
+			
+			MatrixSetIdentity(@pStage->Lines(j, i).PositionMatrix)
+			MatrixApplyTranslate( _
+				@pStage->Lines(j, i).PositionMatrix, _
+				CSng(i * CellWidth + CellWidth \ 2), _
+				CSng(j * CellHeight + CellHeight \ 2) _
+			)
 			
 			Scope
-				' pStage->Lines(j, i).Ball.Color = BallColors.Red
-				pStage->Lines(j, i).Ball.Frame = AnimationFrames.Stopped
-				
 				CopyRect(@pStage->Lines(j, i).Ball.Bounds, @BallRectangle)
-				pStage->Lines(j, i).Ball.Position.TranslateX = CSng(i * CellWidth + CellWidth \ 2)
-				pStage->Lines(j, i).Ball.Position.TranslateY = CSng(j * CellHeight + CellHeight \ 2)
-				pStage->Lines(j, i).Ball.Position.AngleSine = Sine45
-				pStage->Lines(j, i).Ball.Position.AngleCosine = Cosine45
-				pStage->Lines(j, i).Ball.Position.ScaleX = 1.0
-				pStage->Lines(j, i).Ball.Position.ScaleY = 1.0
-				pStage->Lines(j, i).Ball.Position.ReflectX = False
-				pStage->Lines(j, i).Ball.Position.ReflectY = False
-				pStage->Lines(j, i).Ball.Position.ShearX = 0.0
-				pStage->Lines(j, i).Ball.Position.ShearY = 0.0
 				
-				' pStage->Lines(j, i).Ball.Visible = True
-				' pStage->Lines(j, i).Ball.Selected = False
+				MatrixSetIdentity(@pStage->Lines(j, i).Ball.PositionMatrix)
+				MatrixApplyRRotate( _
+					@pStage->Lines(j, i).Ball.PositionMatrix, _
+					Sine45, _
+					Cosine45 _
+				)
+				MatrixApplyTranslate( _
+					@pStage->Lines(j, i).Ball.PositionMatrix, _
+					CSng(i * CellWidth + CellWidth \ 2), _
+					CSng(j * CellHeight + CellHeight \ 2) _
+				)
+				
+				pStage->Lines(j, i).Ball.Color = BallColors.Red
+				pStage->Lines(j, i).Ball.Frame = AnimationFrames.Stopped
+				pStage->Lines(j, i).Ball.Visible = False
+				pStage->Lines(j, i).Ball.Selected = False
 			End Scope
 			
 			pStage->Lines(j, i).Selected = False
@@ -97,52 +96,52 @@ Function CreateStage( _
 	For j As Integer = 0 To 2
 		
 		CopyRect(@pStage->Tablo(j).Bounds, @CellRectangle)
-		pStage->Tablo(j).Position.TranslateX = CSng(10 * CellWidth + CellWidth \ 2)
-		pStage->Tablo(j).Position.TranslateY = CSng((j + 1) * CellHeight + CellHeight \ 2)
-		pStage->Tablo(j).Position.AngleSine = 0.0
-		pStage->Tablo(j).Position.AngleCosine = 1.0
-		pStage->Tablo(j).Position.ScaleX = 1.0
-		pStage->Tablo(j).Position.ScaleY = 1.0
-		pStage->Tablo(j).Position.ReflectX = False
-		pStage->Tablo(j).Position.ReflectY = False
-		pStage->Tablo(j).Position.ShearX = 0.0
-		pStage->Tablo(j).Position.ShearY = 0.0
 		
-		CopyRect(@pStage->Tablo(j).Ball.Bounds, @BallRectangle)
-		pStage->Tablo(j).Ball.Position.TranslateX = CSng(10 * CellWidth + CellWidth \ 2)
-		pStage->Tablo(j).Ball.Position.TranslateY = CSng((j + 1) * CellHeight + CellHeight \ 2)
-		pStage->Tablo(j).Ball.Position.AngleSine = Sine45
-		pStage->Tablo(j).Ball.Position.AngleCosine = Cosine45
-		pStage->Tablo(j).Ball.Position.ScaleX = 1.0
-		pStage->Tablo(j).Ball.Position.ScaleY = 1.0
-		pStage->Tablo(j).Ball.Position.ReflectX = False
-		pStage->Tablo(j).Ball.Position.ReflectY = False
-		pStage->Tablo(j).Ball.Position.ShearX = 0.0
-		pStage->Tablo(j).Ball.Position.ShearY = 0.0
+		MatrixSetIdentity(@pStage->Tablo(j).PositionMatrix)
+		MatrixApplyTranslate( _
+			@pStage->Tablo(j).PositionMatrix, _
+			CSng(10 * CellWidth + CellWidth \ 2), _
+			CSng((j + 1) * CellHeight + CellHeight \ 2) _
+		)
 		
-		Dim RandomColor As BallColors = GetRandomBallColor()
-		pStage->Tablo(j).Ball.Color = RandomColor
-		pStage->Tablo(j).Ball.Frame = AnimationFrames.Stopped
-		pStage->Tablo(j).Ball.Visible = True
-		pStage->Tablo(j).Ball.Selected = False
+		Scope
+			CopyRect(@pStage->Tablo(j).Ball.Bounds, @BallRectangle)
+			
+			MatrixSetIdentity(@pStage->Tablo(j).Ball.PositionMatrix)
+			MatrixApplyRRotate( _
+				@pStage->Tablo(j).Ball.PositionMatrix, _
+				Sine45, _
+				Cosine45 _
+			)
+			MatrixApplyTranslate( _
+				@pStage->Tablo(j).Ball.PositionMatrix, _
+				CSng(10 * CellWidth + CellWidth \ 2), _
+				CSng((j + 1) * CellHeight + CellHeight \ 2) _
+			)
+			
+			Dim RandomColor As BallColors = GetRandomBallColor()
+			pStage->Tablo(j).Ball.Color = RandomColor
+			pStage->Tablo(j).Ball.Frame = AnimationFrames.Stopped
+			pStage->Tablo(j).Ball.Visible = True
+			pStage->Tablo(j).Ball.Selected = False
+		End Scope
+		
 		pStage->Tablo(j).Selected = False
+		pStage->Tablo(j).Pressed = False
+		
 	Next
 	
-	' pStage->MovedBall.Color = BallColors.Red
-	pStage->MovedBall.Frame = AnimationFrames.Stopped
 	CopyRect(@pStage->MovedBall.Bounds, @BallRectangle)
+	MatrixSetIdentity(@pStage->MovedBall.PositionMatrix)
+	MatrixApplyRRotate( _
+		@pStage->MovedBall.PositionMatrix, _
+		Sine45, _
+		Cosine45 _
+	)
+	pStage->MovedBall.Color = BallColors.Red
+	pStage->MovedBall.Frame = AnimationFrames.Stopped
 	pStage->MovedBall.Visible = False
 	pStage->MovedBall.Selected = False
-	pStage->MovedBall.Position.TranslateX = 0.0
-	pStage->MovedBall.Position.TranslateY = 0.0
-	pStage->MovedBall.Position.AngleSine = Sine45
-	pStage->MovedBall.Position.AngleCosine = Cosine45
-	pStage->MovedBall.Position.ScaleX = 1.0
-	pStage->MovedBall.Position.ScaleY = 1.0
-	pStage->MovedBall.Position.ReflectX = False
-	pStage->MovedBall.Position.ReflectY = False
-	pStage->MovedBall.Position.ShearX = 0.0
-	pStage->MovedBall.Position.ShearY = 0.0
 	
 	pStage->Score = 0
 	pStage->HiScore = HiScore
