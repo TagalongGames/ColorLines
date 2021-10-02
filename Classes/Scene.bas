@@ -50,7 +50,6 @@ End Type
 
 Type SceneBrushes
 	
-	' ƒл€ €чеек
 	GrayBrush As HBRUSH
 	DarkGrayBrush As HBRUSH
 	DashPen As HPEN
@@ -157,7 +156,7 @@ Sub DrawBall( _
 		Dim elRgn As HRGN = CreateEllipticRgn( _
 			pBall->Bounds.left, _
 			pBall->Bounds.top, _
-			pBall->Bounds.right + 1, _
+			pBall->Bounds.right + 2, _
 			pBall->Bounds.bottom + 1 _
 		)
 		Dim nCount As DWORD = GetRegionData(elRgn, 0, NULL)
@@ -355,7 +354,7 @@ Function CreateScene( _
 	pScene->Brushes.GrayBrush = CreateSolidBrush(rgbGray)
 	pScene->Brushes.DarkGrayBrush = CreateSolidBrush(rgbDarkGray)
 	pScene->Brushes.DashPen = CreatePen(PS_DOT, 1, rgbBlack)
-	pScene->Brushes.BoundingPen = CreatePen(PS_SOLID, 2, rgbBlack)
+	pScene->Brushes.BoundingPen = CreatePen(PS_SOLID, 1, rgbBlack)
 	
 	Scope
 		Dim WindowDC As HDC = GetDC(hWin)
@@ -473,6 +472,7 @@ Sub SceneRender( _
 	
 	' Ўары
 	OldPen = SelectObject(pScene->DeviceContext, pScene->Brushes.BoundingPen)
+	' OldPen = SelectObject(pScene->DeviceContext, Cast(HPEN, GetStockObject(BLACK_PEN)))
 	Dim OldBrush As HBRUSH = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(NULL_BRUSH)))
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
