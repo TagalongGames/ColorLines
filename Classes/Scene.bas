@@ -578,6 +578,19 @@ Sub SceneCopyRectangle( _
 	
 End Sub
 
+Sub SceneShear( _
+		ByVal pScene As Scene Ptr, _
+		ByVal Horizontal As Single, _
+		ByVal Vertical As Single _
+	)
+	
+	Dim m As XFORM = Any
+	MatrixSetShear(@m, Horizontal, Vertical)
+	
+	CombineTransform(@pScene->WorldMatrix, @pScene->WorldMatrix, @m)
+	
+End Sub
+
 Sub SceneScale( _
 		ByVal pScene As Scene Ptr, _
 		ByVal ScaleX As Single, _
@@ -587,6 +600,66 @@ Sub SceneScale( _
 	Dim m As XFORM = Any
 	MatrixSetScale(@m, ScaleX, ScaleY)
 	
-	pScene->WorldMatrix = m
+	CombineTransform(@pScene->WorldMatrix, @pScene->WorldMatrix, @m)
+	
+End Sub
+
+Sub SceneReflect( _
+		ByVal pScene As Scene Ptr, _
+		ByVal x As Boolean, _
+		ByVal y As Boolean _
+	)
+	
+	Dim m As XFORM = Any
+	MatrixSetReflect(@m, x, y)
+	
+	CombineTransform(@pScene->WorldMatrix, @pScene->WorldMatrix, @m)
+	
+End Sub
+
+Sub SceneRRotate( _
+		ByVal pScene As Scene Ptr, _
+		ByVal AngleSine As Single, _
+		ByVal AngleCosine As Single _
+	)
+	
+	Dim m As XFORM = Any
+	MatrixSetRRotate(@m, AngleSine, AngleCosine)
+	
+	CombineTransform(@pScene->WorldMatrix, @pScene->WorldMatrix, @m)
+	
+End Sub
+
+Sub SceneLRotate( _
+		ByVal pScene As Scene Ptr, _
+		ByVal AngleSine As Single, _
+		ByVal AngleCosine As Single _
+	)
+	
+	Dim m As XFORM = Any
+	MatrixSetLRotate(@m, AngleSine, AngleCosine)
+	
+	CombineTransform(@pScene->WorldMatrix, @pScene->WorldMatrix, @m)
+	
+End Sub
+
+Sub SceneTranslate( _
+		ByVal pScene As Scene Ptr, _
+		ByVal dx As Single, _
+		ByVal dy As Single _
+	)
+	
+	Dim m As XFORM = Any
+	MatrixSetTranslate(@m, dx, dy)
+	
+	CombineTransform(@pScene->WorldMatrix, @pScene->WorldMatrix, @m)
+	
+End Sub
+
+Sub SceneLoadIdentity( _
+		ByVal pScene As Scene Ptr _
+	)
+	
+	MatrixSetIdentity(@pScene->WorldMatrix)
 	
 End Sub

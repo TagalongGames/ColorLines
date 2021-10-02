@@ -33,10 +33,44 @@ Declare Sub SceneTranslateBounds( _
 	ByVal pScreenBounds As RECT Ptr _
 )
 
+Declare Sub SceneShear( _
+	ByVal pScene As Scene Ptr, _
+	ByVal Horizontal As Single, _
+	ByVal Vertical As Single _
+)
+
 Declare Sub SceneScale( _
 	ByVal pScene As Scene Ptr, _
 	ByVal ScaleX As Single, _
 	ByVal ScaleY As Single _
+)
+
+Declare Sub SceneReflect( _
+	ByVal pScene As Scene Ptr, _
+	ByVal x As Boolean, _
+	ByVal y As Boolean _
+)
+
+Declare Sub SceneRRotate( _
+	ByVal pScene As Scene Ptr, _
+	ByVal AngleSine As Single, _
+	ByVal AngleCosine As Single _
+)
+
+Declare Sub SceneLRotate( _
+	ByVal pScene As Scene Ptr, _
+	ByVal AngleSine As Single, _
+	ByVal AngleCosine As Single _
+)
+
+Declare Sub SceneTranslate( _
+	ByVal pScene As Scene Ptr, _
+	ByVal dx As Single, _
+	ByVal dy As Single _
+)
+
+Declare Sub SceneLoadIdentity( _
+	ByVal pScene As Scene Ptr _
 )
 
 #endif
