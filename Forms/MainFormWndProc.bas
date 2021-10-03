@@ -110,6 +110,19 @@ Sub ColorLinesPathNotExist( _
 	
 End Sub
 
+Sub MoveSceneToCenterCoordinate( _
+	)
+	
+	Dim StageWidth As Integer = StageGetWidth(pStage)
+	Dim StageHeight As Integer = StageGetHeight(pStage)
+	
+	Dim dx As Integer = -1 * (StageWidth \ 2)
+	Dim dy As Integer = -1 * (StageHeight \ 2)
+	
+	SceneTranslate(pScene, CSng(dx), CSng(dy))
+	
+End Sub
+
 Sub SetSceneIsotropicViewPort( _
 		ByVal ViewPortWidth As Integer, _
 		ByVal ViewPortHeight As Integer _
@@ -133,19 +146,6 @@ Sub MoveSceneToCenterViewPort( _
 	
 	Dim dx As Integer = ViewPortWidth \ 2
 	Dim dy As Integer = ViewPortHeight \ 2
-	
-	SceneTranslate(pScene, CSng(dx), CSng(dy))
-	
-End Sub
-
-Sub MoveSceneToCenterCoordinate( _
-	)
-	
-	Dim StageWidth As Integer = StageGetWidth(pStage)
-	Dim StageHeight As Integer = StageGetHeight(pStage)
-	
-	Dim dx As Integer = -1 * (StageWidth \ 2)
-	Dim dy As Integer = -1 * (StageHeight \ 2)
 	
 	SceneTranslate(pScene, CSng(dx), CSng(dy))
 	
@@ -185,17 +185,18 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			If wParam <> SIZE_MINIMIZED Then
 				Dim ClientAreaWidth As UINT = LOWORD(lParam)
 				Dim ClientAreaHeight As UINT = HIWORD(lParam)
+				Dim ViewPortWidth As Integer = ClientAreaWidth
+				Dim ViewPortHeight As Integer = ClientAreaHeight
 				
 				If pScene <> NULL Then
 					DestroyScene(pScene)
 				End If
 				pScene = CreateScene(hWin, ClientAreaWidth, ClientAreaHeight)
-				Dim ViewPortWidth As Integer = ClientAreaWidth
-				Dim ViewPortHeight As Integer = ClientAreaHeight
 				
 				MoveSceneToCenterCoordinate()
 				SetSceneIsotropicViewPort(ViewPortWidth, ViewPortHeight)
 				MoveSceneToCenterViewPort(ViewPortWidth, ViewPortHeight)
+				
 				SceneRender(pScene, pStage)
 				
 			End If
@@ -203,7 +204,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 		Case WM_COMMAND
 			Select Case HiWord(wParam)
 				
-				Case 0 ' Меню или кнопка
+				Case 0
 					
 					Select Case LoWord(wParam)
 						
@@ -230,7 +231,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 							
 					End Select
 					
-				Case 1 ' Акселератор
+				Case 1
 					
 					Select Case LoWord(wParam)
 						

@@ -314,7 +314,6 @@ Sub SceneClear( _
 		ByVal pScene As Scene Ptr _
 	)
 	
-	' Прямоугольник обновления
 	Dim SceneRectangle As RECT = Any
 	SetRect(@SceneRectangle, 0, 0, pScene->Width, pScene->Height)
 	
@@ -345,12 +344,11 @@ Function CreateScene( _
 		ReleaseDC(hWin, WindowDC)
 	End Scope
 	
+	SetGraphicsMode(pScene->DeviceContext, GM_ADVANCED)
 	pScene->OldBitmap = SelectObject(pScene->DeviceContext, pScene->Bitmap)
 	
 	pScene->Width = SceneWidth
 	pScene->Height = SceneHeight
-	
-	SetGraphicsMode(pScene->DeviceContext, GM_ADVANCED)
 	
 	MatrixSetIdentity(@pScene->WorldMatrix)
 	
@@ -382,13 +380,10 @@ Sub SceneRender( _
 	
 	SceneClear(pScene)
 	
-	' Старая матрица
 	Dim OldMatrix As XFORM = Any
 	GetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
 	ModifyWorldTransform(pScene->DeviceContext, @pScene->WorldMatrix, MWT_LEFTMULTIPLY)
-	
-	' Рисуем
 	
 	Scope
 		Dim Buffer(511) As WCHAR = Any
@@ -415,7 +410,6 @@ Sub SceneRender( _
 			lstrlenw(@Buffer(0)) _
 		)
 	End Scope
-	
 	
 	Dim OldPen As HGDIOBJ = SelectObject(pScene->DeviceContext, Cast(HPEN, GetStockObject(NULL_PEN)))
 	' Ячейки

@@ -37,9 +37,10 @@
 
 #define IDM_GAME_NEW                 01001
 #define IDM_GAME_UNDO                01002
-#define IDM_GAME_STATISTICS          01003
-#define IDM_GAME_SETTINGS            01004
-#define IDM_GAME_EXIT                01005
+#define IDM_GAME_REDO                01003
+#define IDM_GAME_STATISTICS          01004
+#define IDM_GAME_SETTINGS            01005
+#define IDM_GAME_EXIT                01006
 #define IDM_HELP_CONTENTS            01101
 #define IDM_HELP_ABOUT               01102
 
@@ -47,8 +48,9 @@
 
 #define IDM_GAME_NEW_ACS             02001
 #define IDM_GAME_UNDO_ACS            02002
-#define IDM_GAME_STATISTICS_ACS      02003
-#define IDM_GAME_SETTINGS_ACS        02004
+#define IDM_GAME_REDO_ACS            02003
+#define IDM_GAME_STATISTICS_ACS      02004
+#define IDM_GAME_SETTINGS_ACS        02005
 
 #define IDS_WINDOWTITLE              20001
 
