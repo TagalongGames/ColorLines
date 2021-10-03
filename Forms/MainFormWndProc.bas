@@ -123,31 +123,28 @@ Sub MoveSceneToCenterCoordinate( _
 	
 End Sub
 
-Sub SetSceneIsotropicViewPort( _
-		ByVal ViewPortWidth As Integer, _
-		ByVal ViewPortHeight As Integer _
+Sub SetSceneIsotropicExtent( _
+		ByVal HorizontalExtent As Integer, _
+		ByVal VerticalExtent As Integer _
 	)
 	
 	Dim StageWidth As Integer = StageGetWidth(pStage)
 	Dim StageHeight As Integer = StageGetHeight(pStage)
 	
-	Dim fAspectX As Single = max(1.0, CSng(ViewPortWidth) / CSng(StageWidth))
-	Dim fAspectY As Single = max(1.0, CSng(ViewPortHeight) / CSng(StageHeight))
+	Dim fAspectX As Single = max(1.0, CSng(HorizontalExtent) / CSng(StageWidth))
+	Dim fAspectY As Single = max(1.0, CSng(VerticalExtent) / CSng(StageHeight))
 	Dim fIsotropicAspect As Single = min(fAspectX, fAspectY)
 	
 	SceneScale(pScene, fIsotropicAspect, fIsotropicAspect)
 	
 End Sub
 
-Sub MoveSceneToCenterViewPort( _
-		ByVal ViewPortWidth As Integer, _
-		ByVal ViewPortHeight As Integer _
+Sub SetSceneViewportOrg( _
+		ByVal x As Integer, _
+		ByVal y As Integer _
 	)
 	
-	Dim dx As Integer = ViewPortWidth \ 2
-	Dim dy As Integer = ViewPortHeight \ 2
-	
-	SceneTranslate(pScene, CSng(dx), CSng(dy))
+	SceneTranslate(pScene, CSng(x), CSng(y))
 	
 End Sub
 
@@ -185,8 +182,8 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			If wParam <> SIZE_MINIMIZED Then
 				Dim ClientAreaWidth As UINT = LOWORD(lParam)
 				Dim ClientAreaHeight As UINT = HIWORD(lParam)
-				Dim ViewPortWidth As Integer = ClientAreaWidth
-				Dim ViewPortHeight As Integer = ClientAreaHeight
+				Dim SceneHorizontalExtent As Integer = ClientAreaWidth
+				Dim SceneVerticalExtent As Integer = ClientAreaHeight
 				
 				If pScene <> NULL Then
 					DestroyScene(pScene)
@@ -194,8 +191,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				pScene = CreateScene(hWin, ClientAreaWidth, ClientAreaHeight)
 				
 				MoveSceneToCenterCoordinate()
-				SetSceneIsotropicViewPort(ViewPortWidth, ViewPortHeight)
-				MoveSceneToCenterViewPort(ViewPortWidth, ViewPortHeight)
+				SetSceneIsotropicExtent(SceneHorizontalExtent, SceneVerticalExtent)
+				Dim dx As Integer = ClientAreaWidth \ 2
+				Dim dy As Integer = ClientAreaHeight \ 2
+				SetSceneViewportOrg(dx, dy)
 				
 				SceneRender(pScene, pStage)
 				
