@@ -77,13 +77,10 @@ Declare Sub DestroyStage( _
 	ByVal pStage As Stage Ptr _
 )
 
-Declare Function StageGetWidth( _
-	ByVal pStage As Stage Ptr _
-)As Integer
-
-Declare Function StageGetHeight( _
-	ByVal pStage As Stage Ptr _
-)As Integer
+Declare Sub StageGetBounds( _
+	ByVal pStage As Stage Ptr, _
+	ByVal pBounds As RECT Ptr _
+)
 
 Declare Function StageGetRandomEmptyCellCoord( _
 	ByVal pStage As Stage Ptr, _

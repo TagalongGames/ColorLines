@@ -113,8 +113,11 @@ End Sub
 Sub MoveSceneToCenterCoordinate( _
 	)
 	
-	Dim StageWidth As Integer = StageGetWidth(pStage)
-	Dim StageHeight As Integer = StageGetHeight(pStage)
+	Dim rcStage As RECT = Any
+	StageGetBounds(pStage, @rcStage)
+	
+	Dim StageWidth As Long = rcStage.right + (-1 * rcStage.left)
+	Dim StageHeight As Long = rcStage.bottom + (-1 * rcStage.top)
 	
 	Dim dx As Integer = -1 * (StageWidth \ 2)
 	Dim dy As Integer = -1 * (StageHeight \ 2)
@@ -128,8 +131,11 @@ Sub SetSceneIsotropicExtent( _
 		ByVal VerticalExtent As Integer _
 	)
 	
-	Dim StageWidth As Integer = StageGetWidth(pStage)
-	Dim StageHeight As Integer = StageGetHeight(pStage)
+	Dim rcStage As RECT = Any
+	StageGetBounds(pStage, @rcStage)
+	
+	Dim StageWidth As Long = rcStage.right + (-1 * rcStage.left)
+	Dim StageHeight As Long = rcStage.bottom + (-1 * rcStage.top)
 	
 	Dim fAspectX As Single = max(1.0, CSng(HorizontalExtent) / CSng(StageWidth))
 	Dim fAspectY As Single = max(1.0, CSng(VerticalExtent) / CSng(StageHeight))

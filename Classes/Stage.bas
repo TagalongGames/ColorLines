@@ -167,21 +167,20 @@ Sub DestroyStage( _
 	
 End Sub
 
-Function StageGetWidth( _
-		ByVal pStage As Stage Ptr _
-	)As Integer
+Sub StageGetBounds( _
+		ByVal pStage As Stage Ptr, _
+		ByVal pBounds As RECT Ptr _
+	)
 	
-	Return CellWidth * 9 + CellWidth + CellWidth
+	SetRect( _
+		pBounds, _
+		0, _
+		0, _
+		CellWidth * 9 + CellWidth + CellWidth, _
+		CellHeight * 9 _
+	)
 	
-End Function
-
-Function StageGetHeight( _
-		ByVal pStage As Stage Ptr _
-	)As Integer
-	
-	Return CellHeight * 9
-	
-End Function
+End Sub
 
 Function StageGetRandomEmptyCellCoord( _
 		ByVal pStage As Stage Ptr, _
