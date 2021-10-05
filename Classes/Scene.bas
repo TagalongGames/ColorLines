@@ -50,10 +50,14 @@ End Type
 
 Type SceneBrushes
 	
-	GrayBrush As HBRUSH
-	DarkGrayBrush As HBRUSH
+	ControlDarkPen As HPEN
+	ControlDarkDarkPen As HPEN
+	ControlLightPen As HPEN
+	ControlLightLightPen As HPEN
+	
 	DashPen As HPEN
-	BoundingPen As HPEN
+	BallBoundingPen As HPEN
+	CellBoundingPen As HPEN
 	
 End Type
 
@@ -210,103 +214,87 @@ Sub DrawCell( _
 	
 	ModifyWorldTransform(hDC, @pCell->PositionMatrix, MWT_LEFTMULTIPLY)
 	
-	Dim OldBrush As HGDIOBJ = Any
+	Dim LocalBounds As RECT = Any
+	CopyRect(@LocalBounds, @pCell->Bounds)
+	' InflateRect(@LocalBounds, -1, -1)
 	
-	Dim MarginX As Long = 0
-	Dim MarginY As Long = 0
+	Dim OldPen As HGDIOBJ = NULL
 	
 	If pCell->Selected Then
-		' Чёрный прямоугольник
-		OldBrush = SelectObject(hDC, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
-		Rectangle( _
-			hDC, _
-			pCell->Bounds.left, _
-			pCell->Bounds.top, _
-			pCell->Bounds.right, _
-			pCell->Bounds.bottom _
-		)
-		SelectObject(hDC, OldBrush)
-		MarginX = 1
-		MarginY = 1
+		OldPen = SelectObject(hDC, pBrushes->CellBoundingPen)
 	End If
 	
-	' Тёмно-серый прямоугольник
-	OldBrush = SelectObject(hDC, Cast(HBRUSH, GetStockObject(DKGRAY_BRUSH)))
 	Rectangle( _
 		hDC, _
-		pCell->Bounds.left + MarginX, _
-		pCell->Bounds.top + MarginY, _
-		pCell->Bounds.right - MarginX, _
-		pCell->Bounds.bottom - MarginY _
-	)
-	
-	' Белый прямоугольник
-	SelectObject(hDC, Cast(HBRUSH, GetStockObject(WHITE_BRUSH)))
-	If pCell->Pressed Then
-		Rectangle( _
-			hDC, _
-			pCell->Bounds.left - 1 + MarginX, _
-			pCell->Bounds.top + MarginY, _
-			pCell->Bounds.right - 1 - MarginX, _
-			pCell->Bounds.bottom - MarginY _
-		)
-	Else
-		Rectangle( _
-			hDC, _
-			pCell->Bounds.left + MarginX, _
-			pCell->Bounds.top + MarginY, _
-			pCell->Bounds.right - 1 - MarginX, _
-			pCell->Bounds.bottom - 1 - MarginY _
-		)
-	End If
-	
-	' Серый прямоугольник
-	SelectObject(hDC, Cast(HBRUSH, GetStockObject(GRAY_BRUSH)))
-	If pCell->Pressed Then
-		Rectangle( _
-			hDC, _
-			pCell->Bounds.left - 1 + MarginX, _
-			pCell->Bounds.top - 1 + MarginY, _
-			pCell->Bounds.right + 1 - MarginX, _
-			pCell->Bounds.bottom + 1 - MarginY _
-		)
-	Else
-		Rectangle( _
-			hDC, _
-			pCell->Bounds.left + 1 + MarginX, _
-			pCell->Bounds.top + 1 + MarginY, _
-			pCell->Bounds.right - 1 - MarginX, _
-			pCell->Bounds.bottom - 1 - MarginY _
-		)
-	End If
-	
-	' Светло-серый прямоугольник
-	SelectObject(hDC, Cast(HBRUSH, GetStockObject(LTGRAY_BRUSH)))
-	Rectangle( _
-		hDC, _
-		pCell->Bounds.left + 1 + MarginX, _
-		pCell->Bounds.top + 1 + MarginY, _
-		pCell->Bounds.right - 2 - MarginX, _
-		pCell->Bounds.bottom - 2 - MarginY _
+		LocalBounds.left, _
+		LocalBounds.top, _
+		LocalBounds.right, _
+		LocalBounds.bottom _
 	)
 	
 	If pCell->Selected Then
-		' Рамка выделения
-		Dim OldOldPen As HGDIOBJ = SelectObject(hDC, pBrushes->DashPen)
-		SelectObject(hDC, Cast(HBRUSH, GetStockObject(HOLLOW_BRUSH)))
-		MarginX += 4
-		MarginY += 4
-		Rectangle( _
-			hDC, _
-			pCell->Bounds.left + MarginX - 1, _
-			pCell->Bounds.top + MarginY - 1, _
-			pCell->Bounds.right - MarginX, _
-			pCell->Bounds.bottom - MarginY _
-		)
-		SelectObject(hDC, OldOldPen)
+		SelectObject(hDC, OldPen)
+		InflateRect(@LocalBounds, -1, -1)
 	End If
 	
-	SelectObject(hDC, OldBrush)
+	MoveToEx(hDC, LocalBounds.left, LocalBounds.bottom, NULL)
+	
+	Scope
+		If pCell->Pressed Then
+			OldPen = SelectObject(hDC, pBrushes->ControlDarkDarkPen)
+		Else
+			OldPen = SelectObject(hDC, pBrushes->ControlLightLightPen)
+		End If
+		LineTo(hDC, LocalBounds.left, LocalBounds.top)
+		LineTo(hDC, LocalBounds.top, LocalBounds.right)
+		
+		If pCell->Pressed Then
+			OldPen = SelectObject(hDC, pBrushes->ControlLightLightPen)
+		Else
+			OldPen = SelectObject(hDC, pBrushes->ControlDarkDarkPen)
+		End If
+		LineTo(hDC, LocalBounds.right, LocalBounds.bottom)
+		LineTo(hDC, LocalBounds.bottom, LocalBounds.left)
+	End Scope
+	
+	InflateRect(@LocalBounds, -1, -1)
+	MoveToEx(hDC, LocalBounds.left, LocalBounds.bottom, NULL)
+	
+	Scope
+		
+		If pCell->Pressed Then
+			OldPen = SelectObject(hDC, pBrushes->ControlDarkPen)
+		Else
+			OldPen = SelectObject(hDC, pBrushes->ControlLightPen)
+		End If
+		LineTo(hDC, LocalBounds.left, LocalBounds.top)
+		LineTo(hDC, LocalBounds.top, LocalBounds.right)
+		
+		If pCell->Pressed Then
+			OldPen = SelectObject(hDC, pBrushes->ControlLightPen)
+		Else
+			OldPen = SelectObject(hDC, pBrushes->ControlDarkPen)
+		End If
+		LineTo(hDC, LocalBounds.right, LocalBounds.bottom)
+		LineTo(hDC, LocalBounds.bottom, LocalBounds.left)
+	End Scope
+	
+	InflateRect(@LocalBounds, -2, -2)
+	If pCell->Pressed = False Then
+		OffsetRect(@LocalBounds, -1, -1)
+	End If
+	
+	If pCell->Selected Then
+		OldPen = SelectObject(hDC, pBrushes->DashPen)
+		Rectangle( _
+			hDC, _
+			LocalBounds.left, _
+			LocalBounds.top, _
+			LocalBounds.right, _
+			LocalBounds.bottom _
+		)
+		SelectObject(hDC, OldPen)
+	End If
 	
 End Sub
 
@@ -317,7 +305,8 @@ Sub SceneClear( _
 	Dim SceneRectangle As RECT = Any
 	SetRect(@SceneRectangle, 0, 0, pScene->Width, pScene->Height)
 	
-	FillRect(pScene->DeviceContext, @SceneRectangle, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
+	FillRect(pScene->DeviceContext, @SceneRectangle, GetSysColorBrush(COLOR_WINDOW))
+	' FillRect(pScene->DeviceContext, @SceneRectangle, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
 	
 End Sub
 
@@ -332,10 +321,17 @@ Function CreateScene( _
 		Return NULL
 	End If
 	
-	pScene->Brushes.GrayBrush = CreateSolidBrush(rgbGray)
-	pScene->Brushes.DarkGrayBrush = CreateSolidBrush(rgbDarkGray)
-	pScene->Brushes.DashPen = CreatePen(PS_DOT, 1, rgbBlack)
-	pScene->Brushes.BoundingPen = CreatePen(PS_SOLID, 1, rgbBlack)
+	' pScene->Brushes.ControlDarkPen = CreatePen(PS_SOLID, 1, GetSysColor(COLOR_3DSHADOW))
+	' pScene->Brushes.ControlDarkDarkPen = CreatePen(PS_SOLID, 1, GetSysColor(COLOR_3DDKSHADOW))
+	' pScene->Brushes.ControlLightPen = CreatePen(PS_SOLID, 1, GetSysColor(COLOR_3DLIGHT))
+	' pScene->Brushes.ControlLightLightPen = CreatePen(PS_SOLID, 1, GetSysColor(COLOR_3DHIGHLIGHT))
+	pScene->Brushes.ControlDarkPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DSHADOW))
+	pScene->Brushes.ControlDarkDarkPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DDKSHADOW))
+	pScene->Brushes.ControlLightPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DLIGHT))
+	pScene->Brushes.ControlLightLightPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DHIGHLIGHT))
+	pScene->Brushes.DashPen = CreatePen(PS_DOT, 0, rgbBlack)
+	pScene->Brushes.BallBoundingPen = CreatePen(PS_SOLID, 1, rgbBlack)
+	pScene->Brushes.CellBoundingPen = CreatePen(PS_SOLID, 0, rgbBlack)
 	
 	Scope
 		Dim WindowDC As HDC = GetDC(hWin)
@@ -360,10 +356,13 @@ Sub DestroyScene( _
 		ByVal pScene As Scene Ptr _
 	)
 	
-	DeleteObject(pScene->Brushes.GrayBrush)
-	DeleteObject(pScene->Brushes.DarkGrayBrush)
+	DeleteObject(pScene->Brushes.ControlDarkPen)
+	DeleteObject(pScene->Brushes.ControlDarkDarkPen)
+	DeleteObject(pScene->Brushes.ControlLightPen)
+	DeleteObject(pScene->Brushes.ControlLightLightPen)
 	DeleteObject(pScene->Brushes.DashPen)
-	DeleteObject(pScene->Brushes.BoundingPen)
+	DeleteObject(pScene->Brushes.BallBoundingPen)
+	DeleteObject(pScene->Brushes.CellBoundingPen)
 	
 	SelectObject(pScene->DeviceContext, pScene->OldBitmap)
 	DeleteObject(pScene->Bitmap)
@@ -412,6 +411,7 @@ Sub SceneRender( _
 	End Scope
 	
 	Dim OldPen As HGDIOBJ = SelectObject(pScene->DeviceContext, Cast(HPEN, GetStockObject(NULL_PEN)))
+	Dim OldBrush As HGDIOBJ = SelectObject(pScene->DeviceContext, GetSysColorBrush(COLOR_BTNFACE))
 	' Ячейки
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
@@ -440,11 +440,12 @@ Sub SceneRender( _
 		
 		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 	Next
+	SelectObject(pScene->DeviceContext, OldBrush)
 	SelectObject(pScene->DeviceContext, OldPen)
 	
 	' Шары
-	OldPen = SelectObject(pScene->DeviceContext, pScene->Brushes.BoundingPen)
-	Dim OldBrush As HBRUSH = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(NULL_BRUSH)))
+	OldPen = SelectObject(pScene->DeviceContext, pScene->Brushes.BallBoundingPen)
+	OldBrush = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(NULL_BRUSH)))
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			Dim OldWorldMatrix As XFORM = Any
@@ -488,8 +489,8 @@ Sub SceneRender( _
 		
 		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 	End Scope
-	SelectObject(pScene->DeviceContext, OldPen)
 	SelectObject(pScene->DeviceContext, OldBrush)
+	SelectObject(pScene->DeviceContext, OldPen)
 	
 	SetWorldTransform(pScene->DeviceContext, @OldMatrix)
 	
@@ -535,6 +536,7 @@ Sub SceneTranslateBounds( _
 		RightBottomSceneVectorI.X, _
 		RightBottomSceneVectorI.Y _
 	)
+	InflateRect(pScreenBounds, 1, 1)
 	
 End Sub
 
