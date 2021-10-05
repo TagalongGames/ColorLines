@@ -77,8 +77,8 @@ Function CreateStage( _
 				)
 				MatrixApplyTranslate( _
 					@pStage->Lines(j, i).Ball.PositionMatrix, _
-					CSng(i * CellWidth + CellWidth \ 2), _
-					CSng(j * CellHeight + CellHeight \ 2) _
+					CSng(i * CellWidth + CellWidth \ 2 - 1), _
+					CSng(j * CellHeight + CellHeight \ 2 - 1) _
 				)
 				
 				pStage->Lines(j, i).Ball.Color = BallColors.Red
@@ -115,8 +115,8 @@ Function CreateStage( _
 			)
 			MatrixApplyTranslate( _
 				@pStage->Tablo(j).Ball.PositionMatrix, _
-				CSng(10 * CellWidth + CellWidth \ 2), _
-				CSng((j + 1) * CellHeight + CellHeight \ 2) _
+				CSng(10 * CellWidth + CellWidth \ 2 - 1), _
+				CSng((j + 1) * CellHeight + CellHeight \ 2 - 1) _
 			)
 			
 			Dim RandomColor As BallColors = GetRandomBallColor()

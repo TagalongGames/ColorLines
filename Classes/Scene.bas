@@ -131,12 +131,21 @@ Sub DrawBall( _
 		ByVal pScene As Scene Ptr, _
 		ByVal hDC As HDC, _
 		ByVal pBrushes As SceneBrushes Ptr, _
-		ByVal pBall As ColorBall Ptr _
+		ByVal pBall As ColorBall Ptr, _
+		ByVal Pressed As Boolean _
 	)
 	
-	ModifyWorldTransform(hDC, @pBall->PositionMatrix, MWT_LEFTMULTIPLY)
-	
 	If pBall->Visible Then
+		
+		If Pressed Then
+			MatrixApplyTranslate( _
+				@pBall->PositionMatrix, _
+				CSng(1), _
+				CSng(1) _
+			)
+		End If
+		
+		ModifyWorldTransform(hDC, @pBall->PositionMatrix, MWT_LEFTMULTIPLY)
 		
 		Dim WorldMatrix As XFORM = Any
 		CombineTransform(@WorldMatrix, @pBall->PositionMatrix, @pScene->WorldMatrix)
@@ -202,6 +211,13 @@ Sub DrawBall( _
 			pBall->Bounds.bottom _
 		)
 		
+		If Pressed Then
+			MatrixApplyTranslate( _
+				@pBall->PositionMatrix, _
+				CSng(-1), _
+				CSng(-1) _
+			)
+		End If
 	End If
 	
 End Sub
@@ -455,7 +471,8 @@ Sub SceneRender( _
 				pScene, _
 				pScene->DeviceContext, _
 				@pScene->Brushes, _
-				@pStage->Lines(j, i).Ball _
+				@pStage->Lines(j, i).Ball, _
+				pStage->Lines(j, i).Pressed _
 			)
 			
 			SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
@@ -470,7 +487,8 @@ Sub SceneRender( _
 			pScene, _
 			pScene->DeviceContext, _
 			@pScene->Brushes, _
-			@pStage->Tablo(i).Ball _
+			@pStage->Tablo(i).Ball, _
+			pStage->Tablo(i).Pressed _
 		)
 		
 		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
@@ -484,7 +502,8 @@ Sub SceneRender( _
 			pScene, _
 			pScene->DeviceContext, _
 			@pScene->Brushes, _
-			@pStage->MovedBall _
+			@pStage->MovedBall, _
+			False _
 		)
 		
 		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)

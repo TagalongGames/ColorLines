@@ -79,12 +79,23 @@ Sub ColorLinesScoreChanged( _
 		ByVal pContext As Any Ptr, _
 		ByVal Added As Integer _
 	)
+	
+	Dim pUpdateContext As UpdateContext Ptr = CPtr(UpdateContext Ptr, pContext)
+	
+	SceneRender( _
+		pScene, _
+		pStage _
+	)
+	
+	InvalidateRect(pUpdateContext->hWin, NULL, FALSE)
+	
 End Sub
 
 Sub ColorLinesHiScoreChanged( _
 		ByVal pContext As Any Ptr, _
 		ByVal Added As Integer _
 	)
+	
 End Sub
 
 Sub ColorLinesStageAnimated( _
