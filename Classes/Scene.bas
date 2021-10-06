@@ -182,8 +182,6 @@ Sub DrawBall( _
 			vertex(1).Blue  = c.Blue
 			vertex(1).Alpha = &hFF00
 			
-			' Create a GRADIENT_RECT structure that 
-			' references the TRIVERTEX vertices. 
 			Dim gRect As GRADIENT_RECT = Any
 			gRect.UpperLeft  = 0
 			gRect.LowerRight = 1
@@ -192,7 +190,6 @@ Sub DrawBall( _
 				SelectClipRgn(hDC, elRgn2)
 			End If
 			
-			' Draw a shaded rectangle. 
 			GradientFill(hDC, @vertex(0), 2, @gRect, 1, GRADIENT_FILL_RECT_H)
 			
 			SelectClipRgn(hDC, NULL)
@@ -232,7 +229,6 @@ Sub DrawCell( _
 	
 	Dim LocalBounds As RECT = Any
 	CopyRect(@LocalBounds, @pCell->Bounds)
-	' InflateRect(@LocalBounds, -1, -1)
 	
 	Dim OldPen As HGDIOBJ = NULL
 	
@@ -322,7 +318,6 @@ Sub SceneClear( _
 	SetRect(@SceneRectangle, 0, 0, pScene->Width, pScene->Height)
 	
 	FillRect(pScene->DeviceContext, @SceneRectangle, GetSysColorBrush(COLOR_WINDOW))
-	' FillRect(pScene->DeviceContext, @SceneRectangle, Cast(HBRUSH, GetStockObject(BLACK_BRUSH)))
 	
 End Sub
 
@@ -337,10 +332,6 @@ Function CreateScene( _
 		Return NULL
 	End If
 	
-	' pScene->Brushes.ControlDarkPen = CreatePen(PS_SOLID, 1, GetSysColor(COLOR_3DSHADOW))
-	' pScene->Brushes.ControlDarkDarkPen = CreatePen(PS_SOLID, 1, GetSysColor(COLOR_3DDKSHADOW))
-	' pScene->Brushes.ControlLightPen = CreatePen(PS_SOLID, 1, GetSysColor(COLOR_3DLIGHT))
-	' pScene->Brushes.ControlLightLightPen = CreatePen(PS_SOLID, 1, GetSysColor(COLOR_3DHIGHLIGHT))
 	pScene->Brushes.ControlDarkPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DSHADOW))
 	pScene->Brushes.ControlDarkDarkPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DDKSHADOW))
 	pScene->Brushes.ControlLightPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DLIGHT))
@@ -428,7 +419,6 @@ Sub SceneRender( _
 	
 	Dim OldPen As HGDIOBJ = SelectObject(pScene->DeviceContext, Cast(HPEN, GetStockObject(NULL_PEN)))
 	Dim OldBrush As HGDIOBJ = SelectObject(pScene->DeviceContext, GetSysColorBrush(COLOR_BTNFACE))
-	' Ячейки
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			Dim OldWorldMatrix As XFORM = Any
@@ -443,7 +433,6 @@ Sub SceneRender( _
 			SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 		Next
 	Next
-	' Табло
 	For i As Integer = 0 To 2
 		Dim OldWorldMatrix As XFORM = Any
 		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
@@ -459,7 +448,6 @@ Sub SceneRender( _
 	SelectObject(pScene->DeviceContext, OldBrush)
 	SelectObject(pScene->DeviceContext, OldPen)
 	
-	' Шары
 	OldPen = SelectObject(pScene->DeviceContext, pScene->Brushes.BallBoundingPen)
 	OldBrush = SelectObject(pScene->DeviceContext, Cast(HBRUSH, GetStockObject(NULL_BRUSH)))
 	For j As Integer = 0 To 8
@@ -478,7 +466,6 @@ Sub SceneRender( _
 			SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 		Next
 	Next
-	' Шары в табле
 	For i As Integer = 0 To 2
 		Dim OldWorldMatrix As XFORM = Any
 		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
@@ -493,7 +480,6 @@ Sub SceneRender( _
 		
 		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
 	Next
-	' Двигающийся шар
 	Scope
 		Dim OldWorldMatrix As XFORM = Any
 		GetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
