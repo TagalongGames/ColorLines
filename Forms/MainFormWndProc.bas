@@ -5,6 +5,7 @@
 #include once "GameModel.bi"
 #include once "Resources.RH"
 #include once "Scene.bi"
+#include once "Settings.bi"
 #include once "Stage.bi"
 
 Const ANIMATION_TIMER_ID As UINT_PTR = 1
@@ -170,7 +171,8 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 	Select Case wMsg
 		
 		Case WM_CREATE
-			pStage = CreateStage(0)
+			Dim HiScore As Integer = SettingsGetHiScore()
+			pStage = CreateStage(HiScore)
 			If pStage = NULL Then
 				Return -1
 			End If
@@ -286,6 +288,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				DestroyScene(pScene)
 			End If
 			If pStage <> NULL Then
+				SettingsSetHiScore(pStage->HiScore)
 				DestroyStage(pStage)
 			End If
 			If pModel <> NULL Then
