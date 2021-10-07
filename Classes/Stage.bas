@@ -125,9 +125,6 @@ Function CreateStage( _
 	For i As Integer = 0 To 2
 		Dim pt As POINT = Any
 		StageGetRandomEmptyCellCoord(pStage, @pt)
-		
-		Dim RandomColor As BallColors = GetRandomBallColor()
-		pStage->Lines(pt.y, pt.x).Ball.Color = RandomColor
 		pStage->Lines(pt.y, pt.x).Ball.Visible = True
 	Next
 	
