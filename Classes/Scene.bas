@@ -332,23 +332,24 @@ Function CreateScene( _
 		Return NULL
 	End If
 	
-	pScene->Brushes.ControlDarkPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DSHADOW))
-	pScene->Brushes.ControlDarkDarkPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DDKSHADOW))
-	pScene->Brushes.ControlLightPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DLIGHT))
-	pScene->Brushes.ControlLightLightPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DHIGHLIGHT))
-	pScene->Brushes.DashPen = CreatePen(PS_DOT, 0, rgbBlack)
-	pScene->Brushes.BallBoundingPen = CreatePen(PS_SOLID, 1, rgbBlack)
-	pScene->Brushes.CellBoundingPen = CreatePen(PS_SOLID, 0, rgbBlack)
-	
 	Scope
 		Dim WindowDC As HDC = GetDC(hWin)
 		pScene->DeviceContext = CreateCompatibleDC(WindowDC)
+		SetGraphicsMode(pScene->DeviceContext, GM_ADVANCED)
 		pScene->Bitmap = CreateCompatibleBitmap(WindowDC, SceneWidth, SceneHeight)
+		pScene->OldBitmap = SelectObject(pScene->DeviceContext, pScene->Bitmap)
 		ReleaseDC(hWin, WindowDC)
 	End Scope
 	
-	SetGraphicsMode(pScene->DeviceContext, GM_ADVANCED)
-	pScene->OldBitmap = SelectObject(pScene->DeviceContext, pScene->Bitmap)
+	Scope
+		pScene->Brushes.ControlDarkPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DSHADOW))
+		pScene->Brushes.ControlDarkDarkPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DDKSHADOW))
+		pScene->Brushes.ControlLightPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DLIGHT))
+		pScene->Brushes.ControlLightLightPen = CreatePen(PS_SOLID, 0, GetSysColor(COLOR_3DHIGHLIGHT))
+		pScene->Brushes.DashPen = CreatePen(PS_DOT, 0, rgbBlack)
+		pScene->Brushes.BallBoundingPen = CreatePen(PS_SOLID, 1, rgbBlack)
+		pScene->Brushes.CellBoundingPen = CreatePen(PS_SOLID, 0, rgbBlack)
+	End Scope
 	
 	pScene->Width = SceneWidth
 	pScene->Height = SceneHeight
