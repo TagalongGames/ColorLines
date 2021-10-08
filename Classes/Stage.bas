@@ -194,3 +194,103 @@ Function StageGetRandomEmptyCellCoord( _
 	Return True
 	
 End Function
+
+Function RowSequenceLength( _
+		ByVal pStage As Stage Ptr, _
+		ByVal X As Integer, _
+		ByVal Y As Integer, _
+		ByVal BallColor As BallColors _
+	)As Integer
+	
+	If X > 8 Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Visible = False Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+		Return 0
+	End If
+	
+	Return 1 + RowSequenceLength(pStage, X + 1, Y, BallColor)
+	
+End Function
+
+Function ColSequenceLength( _
+		ByVal pStage As Stage Ptr, _
+		ByVal X As Integer, _
+		ByVal Y As Integer, _
+		ByVal BallColor As BallColors _
+	)As Integer
+	
+	If Y > 8 Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Visible = False Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+		Return 0
+	End If
+	
+	Return 1 + ColSequenceLength(pStage, X, Y + 1, BallColor)
+	
+End Function
+
+Function ForwardDiagonalSequenceLength( _
+		ByVal pStage As Stage Ptr, _
+		ByVal X As Integer, _
+		ByVal Y As Integer, _
+		ByVal BallColor As BallColors _
+	)As Integer
+	
+	If Y > 8 Then
+		Return 0
+	End If
+	
+	If X > 8 Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Visible = False Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+		Return 0
+	End If
+	
+	Return 1 + ForwardDiagonalSequenceLength(pStage, X + 1, Y + 1, BallColor)
+	
+End Function
+
+Function BackwardDiagonalSequenceLength( _
+		ByVal pStage As Stage Ptr, _
+		ByVal X As Integer, _
+		ByVal Y As Integer, _
+		ByVal BallColor As BallColors _
+	)As Integer
+	
+	If Y > 8 Then
+		Return 0
+	End If
+	
+	If X < 0 Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Visible = False Then
+		Return 0
+	End If
+	
+	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+		Return 0
+	End If
+	
+	Return 1 + BackwardDiagonalSequenceLength(pStage, X - 1, Y + 1, BallColor)
+	
+End Function

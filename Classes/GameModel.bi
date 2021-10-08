@@ -6,6 +6,7 @@
 
 Enum StageCommands
 	Undo
+	Redo
 End Enum
 
 Type StageEvents

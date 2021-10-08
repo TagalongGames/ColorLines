@@ -91,4 +91,32 @@ Declare Function GetRandomBoolean()As Boolean
 
 Declare Function GetRandomBallColor()As BallColors
 
+Declare Function RowSequenceLength( _
+	ByVal pStage As Stage Ptr, _
+	ByVal X As Integer, _
+	ByVal Y As Integer, _
+	ByVal BallColor As BallColors _
+)As Integer
+
+Declare Function ColSequenceLength( _
+	ByVal pStage As Stage Ptr, _
+	ByVal X As Integer, _
+	ByVal Y As Integer, _
+	ByVal BallColor As BallColors _
+)As Integer
+
+Declare Function ForwardDiagonalSequenceLength( _
+	ByVal pStage As Stage Ptr, _
+	ByVal X As Integer, _
+	ByVal Y As Integer, _
+	ByVal BallColor As BallColors _
+)As Integer
+
+Declare Function BackwardDiagonalSequenceLength( _
+	ByVal pStage As Stage Ptr, _
+	ByVal X As Integer, _
+	ByVal Y As Integer, _
+	ByVal BallColor As BallColors _
+)As Integer
+
 #endif

@@ -1,17 +1,6 @@
 #include once "GameModel.bi"
 #include once "crt.bi"
 
-Enum StageKeys
-	Tab
-	ShiftTab
-	KeyReturn
-	Left
-	Up
-	Right
-	Down
-	Escape
-End Enum
-
 ' Тип ячейки в лабиринте
 Enum SquareLType
 	' Свободная непомеченная ячейка
@@ -21,6 +10,33 @@ Enum SquareLType
 	' Стартовая ячейка
 	Start = 0
 End Enum
+
+Type MoveCommand
+	' Старые координаты шара
+	OldBallCoord As POINT
+	' Новые координаты шара
+	NewBallCoord As POINT = Any
+	' Путь шара
+	BallPath(9 * 9 - 1) As POINT
+	
+	' Удалённые шары
+	RemovedBallsCount As Integer
+	RemovedBallsCoord(9 * 9 - 1) As POINT
+	RemovedBallsColor(9 * 9 - 1) As BallColors
+	
+	' Шары, извлечённые из табла
+	ExtractedBalls(2) As ColorBall
+	
+	' Удалённые шары после извлечения из табла
+	RemovedBalls2Count As Integer
+	RemovedBalls2Coord(9 * 9 - 1) As POINT
+	RemovedBalls2Color(9 * 9 - 1) As BallColors
+	
+	' Старый счёт
+	Score As Integer
+	HiScore As Integer
+	
+End Type
 
 Type _GameModel
 	Events As StageEvents
@@ -160,105 +176,6 @@ Function GetLeePath( _
 	
 End Function
 
-Function RowSequenceLength( _
-		ByVal pStage As Stage Ptr, _
-		ByVal X As Integer, _
-		ByVal Y As Integer, _
-		ByVal BallColor As BallColors _
-	)As Integer
-	
-	If X > 8 Then
-		Return 0
-	End If
-	
-	If pStage->Lines(Y, X).Ball.Visible = False Then
-		Return 0
-	End If
-	
-	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
-		Return 0
-	End If
-	
-	Return 1 + RowSequenceLength(pStage, X + 1, Y, BallColor)
-	
-End Function
-
-Function ColSequenceLength( _
-		ByVal pStage As Stage Ptr, _
-		ByVal X As Integer, _
-		ByVal Y As Integer, _
-		ByVal BallColor As BallColors _
-	)As Integer
-	
-	If Y > 8 Then
-		Return 0
-	End If
-	
-	If pStage->Lines(Y, X).Ball.Visible = False Then
-		Return 0
-	End If
-	
-	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
-		Return 0
-	End If
-	
-	Return 1 + ColSequenceLength(pStage, X, Y + 1, BallColor)
-	
-End Function
-
-Function ForwardDiagonalSequenceLength( _
-		ByVal pStage As Stage Ptr, _
-		ByVal X As Integer, _
-		ByVal Y As Integer, _
-		ByVal BallColor As BallColors _
-	)As Integer
-	
-	If Y > 8 Then
-		Return 0
-	End If
-	
-	If X > 8 Then
-		Return 0
-	End If
-	
-	If pStage->Lines(Y, X).Ball.Visible = False Then
-		Return 0
-	End If
-	
-	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
-		Return 0
-	End If
-	
-	Return 1 + ForwardDiagonalSequenceLength(pStage, X + 1, Y + 1, BallColor)
-	
-End Function
-
-Function BackwardDiagonalSequenceLength( _
-		ByVal pStage As Stage Ptr, _
-		ByVal X As Integer, _
-		ByVal Y As Integer, _
-		ByVal BallColor As BallColors _
-	)As Integer
-	
-	If Y > 8 Then
-		Return 0
-	End If
-	
-	If X < 0 Then
-		Return 0
-	End If
-	
-	If pStage->Lines(Y, X).Ball.Visible = False Then
-		Return 0
-	End If
-	
-	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
-		Return 0
-	End If
-	
-	Return 1 + BackwardDiagonalSequenceLength(pStage, X - 1, Y + 1, BallColor)
-	
-End Function
 
 Function RemoveLines( _
 		ByVal pModel As GameModel Ptr, _
@@ -691,8 +608,6 @@ Sub GameModelKeyDown( _
 		
 		Case VK_TAB
 			' Прыжок на следующий шар
-			
-		Case StageKeys.ShiftTab
 			' Если Shift+TAB то на предыдущий шар
 			' Ctrl+Стрелка переход к следующему шару
 			' Home, End, Ctrl+Home, Ctrl+End, PageUp, PageDown
