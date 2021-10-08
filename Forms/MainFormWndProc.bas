@@ -177,6 +177,13 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				Return -1
 			End If
 			
+			Dim ScreenWidth As Long = GetSystemMetrics(SM_CXSCREEN)
+			Dim ScreenHeight As Long = GetSystemMetrics(SM_CYSCREEN)
+			pScene = CreateScene(hWin, ScreenWidth, ScreenHeight)
+			If pScene = NULL Then
+				Return -1
+			End If
+			
 			Dim pContext As UpdateContext Ptr = Allocate(SizeOf(UpdateContext))
 			If pContext = NULL Then
 				Return -1
@@ -197,6 +204,14 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				Return -1
 			End If
 			
+			/'
+			EnableMenuItem(
+				HMENU hmenu,
+				UINT idItem, 
+				UINT uEnable = MF_ENABLED или MF_GRAYED
+			)
+			'/
+			
 		Case WM_SIZE
 			If wParam <> SIZE_MINIMIZED Then
 				Dim ClientAreaWidth As UINT = LOWORD(lParam)
@@ -204,11 +219,7 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 				Dim SceneHorizontalExtent As Integer = ClientAreaWidth
 				Dim SceneVerticalExtent As Integer = ClientAreaHeight
 				
-				If pScene <> NULL Then
-					DestroyScene(pScene)
-				End If
-				pScene = CreateScene(hWin, ClientAreaWidth, ClientAreaHeight)
-				
+				SceneLoadIdentity(pScene)
 				MoveSceneToCenterCoordinate()
 				SetSceneIsotropicExtent(SceneHorizontalExtent, SceneVerticalExtent)
 				Dim dx As Integer = ClientAreaWidth \ 2
@@ -231,6 +242,9 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 							
 						Case IDM_GAME_UNDO
 							GameModelCommand(pModel, pStage, StageCommands.Undo)
+							
+						Case IDM_GAME_REDO
+							GameModelCommand(pModel, pStage, StageCommands.Redo)
 							
 						' Case IDM_GAME_STATISTICS
 							' MainFormMenuStatistics_Click(hWin)
@@ -258,6 +272,9 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 							
 						Case IDM_GAME_UNDO_ACS
 							GameModelCommand(pModel, pStage, StageCommands.Undo)
+							
+						Case IDM_GAME_REDO_ACS
+							GameModelCommand(pModel, pStage, StageCommands.Redo)
 							
 						' Case IDM_GAME_STATISTICS_ACS
 							' MainFormMenuStatistics_Click(hWin)
