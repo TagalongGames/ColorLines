@@ -1,15 +1,93 @@
 #include once "InputHandler.bi"
+#include once "CreateInstance.bi"
+#include once "EmptyCommand.bi"
+#include once "MoveSelectionRectangleCommand.bi"
 
 Type _InputHandler
 	pStage As Stage Ptr
 	pScene As Scene Ptr
-	SelectedCellX As Integer
-	SelectedCellY As Integer
+	pModel As GameModel Ptr
+	pEmptyCommand As ICommand Ptr
 	SelectedBallX As Integer
 	SelectedBallY As Integer
 	PressedCellX As Integer
 	PressedCellY As Integer
 End Type
+
+Function GetDirection( _
+		ByVal KeyCode As Integer _
+	)As MoveSelectionRectangleDirection
+	
+	Select Case KeyCode
+		
+		Case VK_TAB
+			If GetKeyState(VK_SHIFT) = 0 Then
+				Return MoveSelectionRectangleDirection.JumpNextRight
+			Else
+				Return MoveSelectionRectangleDirection.JumpNextLeft
+			End If
+			
+		Case VK_LEFT
+			If GetKeyState(VK_CONTROL) = 0 Then
+				Return MoveSelectionRectangleDirection.Left
+			Else
+				Return MoveSelectionRectangleDirection.JumpNextLeft
+			End If
+			
+		Case VK_UP
+			If GetKeyState(VK_CONTROL) = 0 Then
+				Return MoveSelectionRectangleDirection.Up
+			Else
+				Return MoveSelectionRectangleDirection.JumpNextUp
+			End If
+			
+		Case VK_RIGHT
+			If GetKeyState(VK_CONTROL) = 0 Then
+				Return MoveSelectionRectangleDirection.Right
+			Else
+				Return MoveSelectionRectangleDirection.JumpNextRight
+			End If
+			
+		Case VK_DOWN
+			If GetKeyState(VK_CONTROL) = 0 Then
+				Return MoveSelectionRectangleDirection.Down
+			Else
+				Return MoveSelectionRectangleDirection.JumpNextDown
+			End If
+			
+		Case VK_HOME
+			If GetKeyState(VK_CONTROL) = 0 Then
+				Return MoveSelectionRectangleDirection.JumpBeginLeft
+			Else
+				Return MoveSelectionRectangleDirection.JumpBeginStage
+			End If
+			
+		Case VK_END
+			If GetKeyState(VK_CONTROL) = 0 Then
+				Return MoveSelectionRectangleDirection.JumpEndRight
+			Else
+				Return MoveSelectionRectangleDirection.JumpEndStage
+			End If
+			
+		Case VK_PRIOR
+			If GetKeyState(VK_CONTROL) = 0 Then
+				Return MoveSelectionRectangleDirection.JumpNextUp
+			Else
+				Return MoveSelectionRectangleDirection.JumpBeginUp
+			End If
+			
+		Case VK_NEXT
+			If GetKeyState(VK_CONTROL) = 0 Then
+				Return MoveSelectionRectangleDirection.JumpNextDown
+			Else
+				Return MoveSelectionRectangleDirection.JumpEndDown
+			End If
+			
+	End Select
+	
+	Return MoveSelectionRectangleDirection.JumpBeginStage
+	
+End Function
 
 Function GetCellFromPoint( _
 		ByVal pStage As Stage Ptr, _
@@ -41,18 +119,27 @@ End Function
 
 Function CreateInputHandler( _
 		ByVal pStage As Stage Ptr, _
-		ByVal pScene As Scene Ptr _
+		ByVal pScene As Scene Ptr, _
+		ByVal pModel As GameModel Ptr _
 	)As InputHandler Ptr
 	
 	Dim pHandler As InputHandler Ptr = Allocate(SizeOf(InputHandler))
 	If pHandler = NULL Then
 		Return NULL
 	End If
+	Dim hrCreate As HRESULT = CreateInstance( _
+		@CLSID_EMPTYCOMMAND, _
+		@IID_ICommand, _
+		@pHandler->pEmptyCommand _
+	)
+	If FAILED(hrCreate) Then
+		Deallocate(pHandler)
+		Return NULL
+	End If
 	
 	pHandler->pStage = pStage
 	pHandler->pScene = pScene
-	pHandler->SelectedCellX = 0
-	pHandler->SelectedCellY = 0
+	pHandler->pModel = pModel
 	pHandler->SelectedBallX = 0
 	pHandler->SelectedBallY = 0
 	pHandler->PressedCellX = 0
@@ -66,35 +153,45 @@ Sub DestroyInputHandler( _
 		ByVal pHandler As InputHandler Ptr _
 	)
 	
+	ICommand_Release(pHandler->pEmptyCommand)
 	Deallocate(pHandler)
 	
 End Sub
 
-Sub InputHandlerLMouseDown( _
+Function InputHandlerLMouseDown( _
 		ByVal pHandler As InputHandler Ptr, _
-		ByVal pp As POINT Ptr _
-	)
+		ByVal pp As POINT Ptr, _
+		ByVal ppvObject As Any Ptr Ptr _
+	)As HRESULT
 	
 	Dim CellCoord As Point = Any
-	If GetCellFromPoint(pHandler->pStage, pHandler->pScene, pp, @CellCoord) Then
+	Dim CellExists As Boolean = GetCellFromPoint( _
+		pHandler->pStage, _
+		pHandler->pScene, _
+		pp, _
+		@CellCoord _
+	)
+	If CellExists Then
 		' Развыбрать старую ячейку
-		Dim pts(1) As POINT = Any
-		pts(0).x = pHandler->SelectedCellX
-		pts(0).y = pHandler->SelectedCellY
-		pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = False
+		' Dim pts(1) As POINT = Any
+		' pts(0).x = pHandler->SelectedCellX
+		' pts(0).y = pHandler->SelectedCellY
+		
+		' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = False
 		
 		' Выбрать новую ячейку
-		pHandler->SelectedCellX = CellCoord.x
-		pHandler->SelectedCellY = CellCoord.y
-		pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
+		' pHandler->SelectedCellX = CellCoord.x
+		' pHandler->SelectedCellY = CellCoord.y
 		
-		' Нажать кнопку
-		pHandler->PressedCellX = CellCoord.x
-		pHandler->PressedCellY = CellCoord.y
-		pHandler->pStage->Lines(pHandler->PressedCellY, pHandler->PressedCellX).Pressed = True
+		' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
 		
-		pts(1).x = CellCoord.x
-		pts(1).y = CellCoord.y
+		Return InputHandlerKeyDown( _
+			pHandler, _
+			VK_SPACE, _
+			ppvObject _
+		)
+		' pts(1).x = CellCoord.x
+		' pts(1).y = CellCoord.y
 		
 		' pModel->Events.OnLinesChanged( _
 			' pModel->Context, _
@@ -104,145 +201,201 @@ Sub InputHandlerLMouseDown( _
 		
 	End If
 	
-End Sub
+	ICommand_AddRef(pHandler->pEmptyCommand)
+	*ppvObject = pHandler->pEmptyCommand
+	Return S_FALSE
+	
+End Function
 
-Sub InputHandlerLMouseUp( _
+Function InputHandlerLMouseUp( _
 		ByVal pHandler As InputHandler Ptr, _
-		ByVal pp As POINT Ptr _
-	)
+		ByVal pp As POINT Ptr, _
+		ByVal ppvObject As Any Ptr Ptr _
+	)As HRESULT
 	
 	Dim CellCoord As Point = Any
-	If GetCellFromPoint(pHandler->pStage, pHandler->pScene, pp, @CellCoord) Then
-		InputHandlerKeyUp( _
+	Dim CellExists As Boolean = GetCellFromPoint( _
+		pHandler->pStage, _
+		pHandler->pScene, _
+		pp, _
+		@CellCoord _
+	)
+	If CellExists Then
+		Return InputHandlerKeyUp( _
 			pHandler, _
-			VK_SPACE _
+			VK_SPACE, _
+			ppvObject _
 		)
 	End If
 	
-End Sub
+	ICommand_AddRef(pHandler->pEmptyCommand)
+	*ppvObject = pHandler->pEmptyCommand
+	Return S_FALSE
+	
+End Function
 
-Sub InputHandlerKeyDown( _
+Function InputHandlerKeyDown( _
 		ByVal pHandler As InputHandler Ptr, _
-		ByVal Key As Integer _
-	)
+		ByVal Key As Integer, _
+		ByVal ppvObject As Any Ptr Ptr _
+	)As HRESULT
 	
 	Select Case Key
 		
-		Case VK_TAB
-			' Прыжок на следующий шар
-			' Если Shift+TAB то на предыдущий шар
+		Case VK_TAB, VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN, VK_HOME, VK_END, VK_PRIOR, VK_NEXT
 			' Ctrl+Стрелка переход к следующему шару
-			' Home, End, Ctrl+Home, Ctrl+End, PageUp, PageDown
+			Dim pCommand As IMoveSelectionRectangleCommand Ptr = Any
+			Dim hrCreate As HRESULT = CreateInstance( _
+				@CLSID_MOVESELECTIONRECTANGLECOMMAND, _
+				@IID_IMoveSelectionRectangleCommand, _
+				@pCommand _
+			)
+			If FAILED(hrCreate) Then
+				*ppvObject = NULL
+				Return hrCreate
+			End If
 			
-		Case VK_SPACE, VK_RETURN
-			pHandler->PressedCellX = pHandler->SelectedCellX
-			pHandler->PressedCellY = pHandler->SelectedCellY
-			pHandler->pStage->Lines(pHandler->PressedCellY, pHandler->PressedCellX).Pressed = True
+			' Сохранить координаты ячейки в команде
+			Dim SelectedCellCoord As POINT = Any
+			GameModelGetSelectedCell( _
+				pHandler->pModel, _
+				@SelectedCellCoord _
+			)
+			IMoveSelectionRectangleCommand_SetSelectedCellCoord(pCommand, @SelectedCellCoord)
 			
-			Dim pts As POINT = Any
-			pts.x = pHandler->PressedCellX
-			pts.y = pHandler->PressedCellY
+			' Указать команде направление движения
+			Dim Direction As MoveSelectionRectangleDirection = GetDirection(Key)
+			IMoveSelectionRectangleCommand_SetMoveDirection(pCommand, Direction)
+			
+			' Вернуть команду
+			
+			' Dim pts(1) As POINT = Any
+			' pts(0).x = pHandler->SelectedCellX
+			' pts(0).y = pHandler->SelectedCellY
+			
+			' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = False
+			
+			' pHandler->SelectedCellX -= 1
+			' If pHandler->SelectedCellX < 0 Then
+				' pHandler->SelectedCellX = 8
+			' End If
+			' pts(1).x = pHandler->SelectedCellX
+			' pts(1).y = pHandler->SelectedCellY
+			
+			' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
+			
+			' pModel->Events.OnLinesChanged( _
+				' pModel->Context, _
+				' @pts(0), _
+				' 2 _
+			' )
+			
+			*ppvObject = pCommand
+			Return S_OK
+			
+		' Case VK_UP
+			' Dim pts(1) As POINT = Any
+			' pts(0).x = pHandler->SelectedCellX
+			' pts(0).y = pHandler->SelectedCellY
+			
+			' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = False
+			
+			' pHandler->SelectedCellY -= 1
+			' If pHandler->SelectedCellY < 0 Then
+				' pHandler->SelectedCellY = 8
+			' End If
+			' pts(1).x = pHandler->SelectedCellX
+			' pts(1).y = pHandler->SelectedCellY
+			
+			' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
+			
+			' pModel->Events.OnLinesChanged( _
+				' pModel->Context, _
+				' @pts(0), _
+				' 2 _
+			' )
+			
+		' Case VK_RIGHT
+			' Dim pts(1) As POINT = Any
+			' pts(0).x = pHandler->SelectedCellX
+			' pts(0).y = pHandler->SelectedCellY
+			
+			' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = False
+			
+			' pHandler->SelectedCellX += 1
+			' If pHandler->SelectedCellX > 8 Then
+				' pHandler->SelectedCellX = 0
+			' End If
+			' pts(1).x = pHandler->SelectedCellX
+			' pts(1).y = pHandler->SelectedCellY
+			
+			' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
+			
+			' pModel->Events.OnLinesChanged( _
+				' pModel->Context, _
+				' @pts(0), _
+				' 2 _
+			' )
+			
+		' Case VK_DOWN
+			' Dim pts(1) As POINT = Any
+			' pts(0).x = pHandler->SelectedCellX
+			' pts(0).y = pHandler->SelectedCellY
+			
+			' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = False
+			
+			' pHandler->SelectedCellY += 1
+			' If pHandler->SelectedCellY > 8 Then
+				' pHandler->SelectedCellY = 0
+			' End If
+			' pts(1).x = pHandler->SelectedCellX
+			' pts(1).y = pHandler->SelectedCellY
+			
+			' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
+			
+			' pModel->Events.OnLinesChanged( _
+				' pModel->Context, _
+				' @pts(0), _
+				' 2 _
+			' )
+			
+		' Case VK_HOME
+			' Home, Ctrl+Home
+			
+		' Case VK_END
+			' End, Ctrl+End
+			
+		' Case VK_PRIOR
+			' PAGEUP
+			
+		' Case VK_NEXT
+			' PAGEDOWN
+			
+		' Case VK_ESCAPE
+			' Снять выбор шара
+			' pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected = False
+			
+			' Dim pts As POINT = Any
+			' pts.x = pHandler->SelectedBallX
+			' pts.y = pHandler->SelectedBallY
+			
 			' pModel->Events.OnLinesChanged( _
 				' pModel->Context, _
 				' @pts, _
 				' 1 _
 			' )
 			
-		Case VK_LEFT
-			Dim pts(1) As POINT = Any
-			pts(0).x = pHandler->SelectedCellX
-			pts(0).y = pHandler->SelectedCellY
+		' Case VK_SPACE, VK_RETURN
+			' Нажать кнопку
+			' pHandler->PressedCellX = pHandler->SelectedCellX
+			' pHandler->PressedCellY = pHandler->SelectedCellY
 			
-			pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = False
+			' pHandler->pStage->Lines(pHandler->PressedCellY, pHandler->PressedCellX).Pressed = True
 			
-			pHandler->SelectedCellX -= 1
-			If pHandler->SelectedCellX < 0 Then
-				pHandler->SelectedCellX = 8
-			End If
-			pts(1).x = pHandler->SelectedCellX
-			pts(1).y = pHandler->SelectedCellY
+			' Dim pts As POINT = Any
+			' pts.x = pHandler->PressedCellX
+			' pts.y = pHandler->PressedCellY
 			
-			pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
-			
-			' pModel->Events.OnLinesChanged( _
-				' pModel->Context, _
-				' @pts(0), _
-				' 2 _
-			' )
-			
-		Case VK_UP
-			Dim pts(1) As POINT = Any
-			pts(0).x = pHandler->SelectedCellX
-			pts(0).y = pHandler->SelectedCellY
-			
-			pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = False
-			
-			pHandler->SelectedCellY -= 1
-			If pHandler->SelectedCellY < 0 Then
-				pHandler->SelectedCellY = 8
-			End If
-			pts(1).x = pHandler->SelectedCellX
-			pts(1).y = pHandler->SelectedCellY
-			
-			pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
-			
-			' pModel->Events.OnLinesChanged( _
-				' pModel->Context, _
-				' @pts(0), _
-				' 2 _
-			' )
-			
-		Case VK_RIGHT
-			Dim pts(1) As POINT = Any
-			pts(0).x = pHandler->SelectedCellX
-			pts(0).y = pHandler->SelectedCellY
-			
-			pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = False
-			
-			pHandler->SelectedCellX += 1
-			If pHandler->SelectedCellX > 8 Then
-				pHandler->SelectedCellX = 0
-			End If
-			pts(1).x = pHandler->SelectedCellX
-			pts(1).y = pHandler->SelectedCellY
-			
-			pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
-			
-			' pModel->Events.OnLinesChanged( _
-				' pModel->Context, _
-				' @pts(0), _
-				' 2 _
-			' )
-			
-		Case VK_DOWN
-			Dim pts(1) As POINT = Any
-			pts(0).x = pHandler->SelectedCellX
-			pts(0).y = pHandler->SelectedCellY
-			
-			pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = False
-			
-			pHandler->SelectedCellY += 1
-			If pHandler->SelectedCellY > 8 Then
-				pHandler->SelectedCellY = 0
-			End If
-			pts(1).x = pHandler->SelectedCellX
-			pts(1).y = pHandler->SelectedCellY
-			
-			pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
-			
-			' pModel->Events.OnLinesChanged( _
-				' pModel->Context, _
-				' @pts(0), _
-				' 2 _
-			' )
-			
-		Case VK_ESCAPE
-			' Снять выбор шара
-			pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected = False
-			
-			Dim pts As POINT = Any
-			pts.x = pHandler->SelectedBallX
-			pts.y = pHandler->SelectedBallY
 			' pModel->Events.OnLinesChanged( _
 				' pModel->Context, _
 				' @pts, _
@@ -251,28 +404,34 @@ Sub InputHandlerKeyDown( _
 			
 	End Select
 	
-End Sub
-
-Sub InputHandlerKeyUp( _
-		ByVal pHandler As InputHandler Ptr, _
-		ByVal Key As Integer _
-	)
+	ICommand_AddRef(pHandler->pEmptyCommand)
+	*ppvObject = pHandler->pEmptyCommand
+	Return S_FALSE
 	
-	Select Case Key
+End Function
+
+Function InputHandlerKeyUp( _
+		ByVal pHandler As InputHandler Ptr, _
+		ByVal Key As Integer, _
+		ByVal ppvObject As Any Ptr Ptr _
+	)As HRESULT
+	
+	' Select Case Key
 		
-		Case VK_SPACE, VK_RETURN
+		' Case VK_SPACE, VK_RETURN
 			' Отпустить кнопку
-			pHandler->pStage->Lines(pHandler->PressedCellY, pHandler->PressedCellX).Pressed = False
+			' pHandler->pStage->Lines(pHandler->PressedCellY, pHandler->PressedCellX).Pressed = False
 			
 			' Если шар виден, то выбрать его
-			If pHandler->pStage->Lines(pHandler->PressedCellY, pHandler->PressedCellX).Ball.Visible Then
+			' If pHandler->pStage->Lines(pHandler->PressedCellY, pHandler->PressedCellX).Ball.Visible Then
 				
 				' Развыбрать старый шар
-				pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected = False
+				' pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected = False
 				
-				Dim pts As POINT = Any
-				pts.x = pHandler->SelectedBallX
-				pts.y = pHandler->SelectedBallY
+				' Dim pts As POINT = Any
+				' pts.x = pHandler->SelectedBallX
+				' pts.y = pHandler->SelectedBallY
+				
 				' pModel->Events.OnLinesChanged( _
 					' pModel->Context, _
 					' @pts, _
@@ -280,23 +439,23 @@ Sub InputHandlerKeyUp( _
 				' )
 				
 				' Выбрать новый шар
-				pHandler->SelectedBallX = pHandler->PressedCellX
-				pHandler->SelectedBallY = pHandler->PressedCellY
-				pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected = Not pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected
+				' pHandler->SelectedBallX = pHandler->PressedCellX
+				' pHandler->SelectedBallY = pHandler->PressedCellY
+				' pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected = Not pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected
 				
-			Else
+			' Else
 				' Если есть выделенный шар
 				' то переместить его на новое место
-				Dim BallSelected As Boolean = pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected
-				Dim BallVisible As Boolean = pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Visible
-				If BallSelected AndAlso BallVisible Then
+				' Dim BallSelected As Boolean = pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected
+				' Dim BallVisible As Boolean = pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Visible
+				' If BallSelected AndAlso BallVisible Then
 					
-					Dim OldBallCoord As POINT = Any
-					OldBallCoord.x = pHandler->SelectedBallX
-					OldBallCoord.y = pHandler->SelectedBallY
-					Dim NewBallCoord As POINT = Any
-					NewBallCoord.x = pHandler->PressedCellX
-					NewBallCoord.y = pHandler->PressedCellY
+					' Dim OldBallCoord As POINT = Any
+					' OldBallCoord.x = pHandler->SelectedBallX
+					' OldBallCoord.y = pHandler->SelectedBallY
+					' Dim NewBallCoord As POINT = Any
+					' NewBallCoord.x = pHandler->PressedCellX
+					' NewBallCoord.y = pHandler->PressedCellY
 					
 					' Dim Executed As Boolean = MoveBallCommandExecute( _
 						' @pModel->Commands(pModel->CommandsIndex), _
@@ -315,18 +474,23 @@ Sub InputHandlerKeyUp( _
 							' pModel->Context _
 						' )
 					' End If
-				End If
-			End If
+				' End If
+			' End If
 			
-			Dim pts As POINT = Any
-			pts.x = pHandler->PressedCellX
-			pts.y = pHandler->PressedCellY
+			' Dim pts As POINT = Any
+			' pts.x = pHandler->PressedCellX
+			' pts.y = pHandler->PressedCellY
+			
 			' pModel->Events.OnLinesChanged( _
 				' pModel->Context, _
 				' @pts, _
 				' 1 _
 			' )
 			
-	End Select
+	' End Select
 	
-End Sub
+	ICommand_AddRef(pHandler->pEmptyCommand)
+	*ppvObject = pHandler->pEmptyCommand
+	Return S_FALSE
+	
+End Function
