@@ -1,185 +1,25 @@
 #include once "GameModel.bi"
+#include once "GameAlgorithm.bi"
 #include once "crt.bi"
 
-' Тип ячейки в лабиринте
-Enum SquareLType
-	' Свободная непомеченная ячейка
-	Blank = -2
-	' Непроходимая ячейка, стена
-	Wall = -1
-	' Стартовая ячейка
-	Start = 0
-End Enum
-
-Type MoveCommand
-	' Старые координаты шара
-	OldBallCoord As POINT
-	' Новые координаты шара
-	NewBallCoord As POINT = Any
-	' Путь шара
-	BallPath(9 * 9 - 1) As POINT
-	
-	' Удалённые шары
-	RemovedBallsCount As Integer
-	RemovedBallsCoord(9 * 9 - 1) As POINT
-	RemovedBallsColor(9 * 9 - 1) As BallColors
-	
-	' Шары, извлечённые из табла
-	ExtractedBalls(2) As ColorBall
-	
-	' Удалённые шары после извлечения из табла
-	RemovedBalls2Count As Integer
-	RemovedBalls2Coord(9 * 9 - 1) As POINT
-	RemovedBalls2Color(9 * 9 - 1) As BallColors
-	
-	' Старый счёт
-	Score As Integer
-	HiScore As Integer
-	
-End Type
-
 Type _GameModel
+	pStage As Stage Ptr
 	Events As StageEvents
 	Context As Any Ptr
-	SelectedCellX As Integer
-	SelectedCellY As Integer
-	SelectedBallX As Integer
-	SelectedBallY As Integer
-	PressedCellX As Integer
-	PressedCellY As Integer
-	Dim Grid(9 * 9 - 1) As Integer
-	Dim pPath(9 * 9 - 1) As POINT
+	Grid(9 * 9 - 1) As Integer
+	SelectedCellCoord As POINT
 End Type
 
-/'
-	
-	волновой алгоритм Ли нахождения пути в лабиринте
-	
-	
-	ptStart — точка отправления.
-	ptEnd — точка назначения.
-	StageHeight — высота лабиринта (количество клеток по вертикали)
-	StageWidth — ширина лабиринта (количество клеток по горизонтали)
-	Grid — указатель на массив специальным образом сформированного лабиринта
-	pPath — указатель на массив (одномерный) координат пути
-	Массив pPath должен иметь размерность StageHeight * StageWidth элементов, чтобы вместить весь путь
-	Сюда функция запишет координаты пути, если он существует
-	IncludeDiagonalPath — флаг, определающий включение диагональных путей
-	
-	Возвращает количество точек в пути, 0 если пути не существует
-	
-	Замечания
-	Координаты в лабиринте начинаются с нуля
-	Координаты в лабиринте указываются «слоями» по ширине. [y * StageWidth + x]
-	Лабиринт необходимо соответствующим образом подготовить
-	Для этого все свободные клетки должны иметь значение SquareLType.Blank
-	Все непроходимые клетки (стены) должны иметь значение SquareLType.Wall
-	Стартовая клетка должна быть помечена SquareLType.Start
-	Необходимо помнить, что значения ячеек лабиринта Greed в процессе работы функции
-	будут изменены (желательно отправлять копию оригинального лабиринта)
-	
-'/
-Function GetLeePath( _
-		ByVal ptStart As POINT, _
-		ByVal ptEnd As POINT, _
-		ByVal StageWidth As Integer, _
-		ByVal StageHeight As Integer, _
-		ByVal Grid As Integer Ptr, _
-		ByVal IncludeDiagonalPath As Boolean, _
-		ByVal pPath As POINT Ptr _
-	)As Integer
-	
-	' смещения, соответствующие соседям ячейки
-	' справа, снизу, слева, сверху и диагональные
-	Dim dx(7) As Integer = {1, 0, -1, 0, 1, -1, -1, 1}
-	Dim dy(7) As Integer = {0, 1, 0, -1, 1, 1, -1, -1}
-	
-	Dim MaxK As Integer = Any
-	If IncludeDiagonalPath Then
-		MaxK = 7
-	Else
-		MaxK = 3
-	End If
-	
-	Dim d As Integer, x As Integer, y As Integer, stopp As Integer
-	
-	' распространение волны
-	
-	Do
-		' предполагаем, что все свободные клетки уже помечены
-		stopp = 1
-		
-		For y = 0 To StageHeight - 1
-			For x = 0 To StageWidth - 1
-				
-				' ячейка (x, y) помечена числом d
-				If Grid[y * StageWidth + x] = d Then
-					' проходим по всем непомеченным соседям
-					For k As Integer = 0 To MaxK
-						' Чтобы не вылезти за границы массива
-						If y + dy(k) >= 0 AndAlso y + dy(k) < StageHeight AndAlso x + dx(k) >= 0 AndAlso x + dx(k) < StageWidth Then
-							'y * StageWidth + x
-							If Grid[(y + dy(k)) * StageWidth + x + dx(k)] = SquareLType.Blank Then
-								' найдены непомеченные клетки
-								stopp = 0
-								' распространяем волну
-								Grid[(y + dy(k)) * StageWidth + x + dx(k)] = d + 1
-							End If
-						End If
-					Next
-				End If
-				
-			Next
-		Next
-		
-		d += 1
-		
-	Loop While stopp = 0 AndAlso Grid[ptEnd.y * StageWidth + ptEnd.x] = SquareLType.Blank
-	
-	If Grid[ptEnd.y * StageWidth + ptEnd.x] = SquareLType.Blank Then
-		' путь не найден
-		Return 0
-	End If
-	
-	' восстановление пути
-	
-	' длина кратчайшего пути из (StartX, StartY) в (EndX, EndY)
-	Dim PathLen As Integer = Grid[ptEnd.y * StageWidth + ptEnd.x]
-	x = ptEnd.x
-	y = ptEnd.y
-	d = PathLen
-	
-	Do While d > 0
-		' записываем ячейку (x, y) в путь
-		pPath[d].x = x
-		pPath[d].y = y
-		d -= 1
-		
-		For k As Integer = 0 To MaxK
-			If y + dy(k) >= 0 AndAlso y + dy(k) < StageWidth AndAlso x + dx(k) >= 0 AndAlso x + dx(k) < StageWidth Then
-				If Grid[(y + dy(k)) * StageWidth + x + dx(k)] = d Then
-					x += dx(k)
-					' переходим в ячейку, которая на 1 ближе к старту
-					y += dy(k)
-					Exit For
-				End If
-			End If
-			
-		Next
-	Loop
-	
-	' Теперь путь будет с начала и до конца
-	pPath[d].x = ptStart.x
-	pPath[d].y = ptStart.y
-	
-	Return PathLen
-	
-End Function
-
+Declare Function MoveBall( _
+	ByVal pModel As GameModel Ptr, _
+	ByVal OldCoord As POINT Ptr, _
+	ByVal NewCoord As POINT Ptr, _
+	ByVal pPath As POINT Ptr, _
+	ByVal pPathLength As Integer Ptr _
+)As Boolean
 
 Function RemoveLines( _
-		ByVal pModel As GameModel Ptr, _
-		ByVal pStage As Stage Ptr _
+		ByVal pModel As GameModel Ptr _
 	)As Boolean
 	
 	' Cписок удаляемых ячеек
@@ -189,7 +29,7 @@ Function RemoveLines( _
 	' Строки
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			Dim Length As Integer = RowSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = RowSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
 			If Length >= 5 Then
 				For k As Integer = i To Length + i - 1
 					RemovedCells(RemovedCellsCount).x = k
@@ -203,7 +43,7 @@ Function RemoveLines( _
 	' Столбцы
 	For i As Integer = 0 To 8
 		For j As Integer = 0 To 8
-			Dim Length As Integer = ColSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = ColSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
 			If Length >= 5 Then
 				For k As Integer = j To Length + j - 1
 					RemovedCells(RemovedCellsCount).x = i
@@ -219,7 +59,7 @@ Function RemoveLines( _
 		Dim i As Integer = 0
 		Dim j As Integer = t
 		Do While (i <= 8) OrElse (j <= 8)
-			Dim Length As Integer = ForwardDiagonalSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = ForwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
 			If Length >= 5 Then
 				For k As Integer = 0 To Length - 1
 					RemovedCells(RemovedCellsCount).x = i + k
@@ -238,7 +78,7 @@ Function RemoveLines( _
 		Dim i As Integer = t
 		Dim j As Integer = 0
 		Do While (i <= 8) OrElse (j <= 8)
-			Dim Length As Integer = ForwardDiagonalSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = ForwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
 			If Length >= 5 Then
 				For k As Integer = 0 To Length - 1
 					RemovedCells(RemovedCellsCount).x = i + k
@@ -258,7 +98,7 @@ Function RemoveLines( _
 		Dim i As Integer = t
 		Dim j As Integer = 0
 		Do While (i >= 0) OrElse (j <= 8)
-			Dim Length As Integer = BackwardDiagonalSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = BackwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
 			If Length >= 5 Then
 				For k As Integer = 0 To Length - 1
 					RemovedCells(RemovedCellsCount).x = i - k
@@ -277,7 +117,7 @@ Function RemoveLines( _
 		Dim i As Integer = 8
 		Dim j As Integer = t
 		Do While (i >= 0) OrElse (j <= 8)
-			Dim Length As Integer = BackwardDiagonalSequenceLength(pStage, i, j, pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = BackwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
 			If Length >= 5 Then
 				For k As Integer = 0 To Length - 1
 					RemovedCells(RemovedCellsCount).x = i - k
@@ -298,7 +138,7 @@ Function RemoveLines( _
 	End If
 	
 	For i As Integer = 0 To RemovedCellsCount - 1
-		pStage->Lines(RemovedCells(i).y, RemovedCells(i).x).Ball.Visible = False
+		pModel->pStage->Lines(RemovedCells(i).y, RemovedCells(i).x).Ball.Visible = False
 	Next
 	
 	pModel->Events.OnLinesChanged( _
@@ -307,14 +147,14 @@ Function RemoveLines( _
 		RemovedCellsCount _
 	)
 	
-	pStage->Score += RemovedCellsCount
+	pModel->pStage->Score += RemovedCellsCount
 	pModel->Events.OnScoreChanged( _
 		pModel->Context, _
 		RemovedCellsCount _
 	)
 	
-	If pStage->Score > pStage->HiScore Then
-		pStage->HiScore = pStage->Score
+	If pModel->pStage->Score > pModel->pStage->HiScore Then
+		pModel->pStage->HiScore = pModel->pStage->Score
 		pModel->Events.OnHiScoreChanged( _
 			pModel->Context, _
 			RemovedCellsCount _
@@ -326,13 +166,12 @@ Function RemoveLines( _
 End Function
 
 Sub GenerateTablo( _
-		ByVal pModel As GameModel Ptr, _
-		ByVal pStage As Stage Ptr _
+		ByVal pModel As GameModel Ptr _
 	)
 	
 	For i As Integer = 0 To 2
 		Dim RandomColor As BallColors = GetRandomBallColor()
-		pStage->Tablo(i).Ball.Color = RandomColor
+		pModel->pStage->Tablo(i).Ball.Color = RandomColor
 	Next
 	
 	pModel->Events.OnTabloChanged( _
@@ -342,8 +181,7 @@ Sub GenerateTablo( _
 End Sub
 
 Function ExtractBalls( _
-		ByVal pModel As GameModel Ptr, _
-		ByVal pStage As Stage Ptr _
+		ByVal pModel As GameModel Ptr _
 	)As Boolean
 	
 	Dim ExtractCount As Integer = 0
@@ -352,11 +190,11 @@ Function ExtractBalls( _
 		' Выбрать случайную свободную ячейку
 		' Если пустых нет, то вернуть ошибку
 		Dim pt As POINT = Any
-		Dim NotEmpty As Boolean = StageGetRandomEmptyCellCoord(pStage, @pt)
+		Dim NotEmpty As Boolean = StageGetRandomEmptyCellCoord(pModel->pStage, @pt)
 		
 		If NotEmpty Then
 			
-			Dim RandomColor As BallColors = pStage->Tablo(i).Ball.Color
+			Dim RandomColor As BallColors = pModel->pStage->Tablo(i).Ball.Color
 			
 			/'
 			Dim buffer As WString * (255 + 1) = Any
@@ -367,9 +205,9 @@ Function ExtractBalls( _
 			'/
 			
 			' Поместить на игровое поле
-			pStage->Lines(pt.y, pt.x).Ball.Color = RandomColor
-			pStage->Lines(pt.y, pt.x).Ball.Frame = AnimationFrames.Birth0
-			pStage->Lines(pt.y, pt.x).Ball.Visible = True
+			pModel->pStage->Lines(pt.y, pt.x).Ball.Color = RandomColor
+			pModel->pStage->Lines(pt.y, pt.x).Ball.Frame = AnimationFrames.Birth0
+			pModel->pStage->Lines(pt.y, pt.x).Ball.Visible = True
 			
 			ExtractCount += 1
 			
@@ -391,39 +229,43 @@ End Function
 
 Function MoveBall( _
 		ByVal pModel As GameModel Ptr, _
-		ByVal pStage As Stage Ptr, _
 		ByVal OldCoord As POINT Ptr, _
-		ByVal NewCoord As POINT Ptr _
+		ByVal NewCoord As POINT Ptr, _
+		ByVal pPath As POINT Ptr, _
+		ByVal pPathLength As Integer Ptr _
 	)As Boolean
 	
-	' Проверить наличие пути
-	For j As Integer = 0 To 8
-		For i As Integer = 0 To 8
-			If pStage->Lines(j, i).Ball.Visible Then
-				pModel->Grid(j * 9 + i) = SquareLType.Wall
-			Else
-				pModel->Grid(j * 9 + i) = SquareLType.Blank
-			End If
+	Scope
+		For j As Integer = 0 To 8
+			For i As Integer = 0 To 8
+				If pModel->pStage->Lines(j, i).Ball.Visible Then
+					pModel->Grid(j * 9 + i) = SquareLType.Wall
+				Else
+					pModel->Grid(j * 9 + i) = SquareLType.Blank
+				End If
+			Next
 		Next
-	Next
-	pModel->Grid(OldCoord->y * 9 + OldCoord->x) = SquareLType.Start
-	Dim Length As Integer = GetLeePath( _
+		pModel->Grid(OldCoord->y * 9 + OldCoord->x) = SquareLType.Start
+	End Scope
+	
+	' Получить путь
+	Dim PathLength As Integer = GetLeePath( _
 		*OldCoord, _
 		*NewCoord, _
 		9, _
 		9, _
 		@pModel->Grid(0), _
 		False, _
-		@pModel->pPath(0) _
+		pPath _
 	)
-	If Length = 0 Then
+	If PathLength = 0 Then
 		Return False
 	End If
 	
 	' Переместить шар
-	pStage->Lines(OldCoord->y, OldCoord->x).Ball.Visible = False
-	pStage->Lines(NewCoord->y, NewCoord->x).Ball.Color = pStage->Lines(OldCoord->y, OldCoord->x).Ball.Color
-	pStage->Lines(NewCoord->y, NewCoord->x).Ball.Visible = True
+	pModel->pStage->Lines(OldCoord->y, OldCoord->x).Ball.Visible = False
+	pModel->pStage->Lines(NewCoord->y, NewCoord->x).Ball.Color = pModel->pStage->Lines(OldCoord->y, OldCoord->x).Ball.Color
+	pModel->pStage->Lines(NewCoord->y, NewCoord->x).Ball.Visible = True
 	
 	Dim pts As POINT = Any
 	pts.x = OldCoord->x
@@ -439,6 +281,7 @@ Function MoveBall( _
 End Function
 
 Function CreateGameModel( _
+		ByVal pStage As Stage Ptr, _
 		ByVal pEvents As StageEvents Ptr, _
 		ByVal Context As Any Ptr _
 	)As GameModel Ptr
@@ -448,14 +291,14 @@ Function CreateGameModel( _
 		Return NULL
 	End If
 	
+	pModel->pStage = pStage
+	
 	pModel->Events = *pEvents
 	pModel->Context = Context
-	pModel->SelectedCellX = 0
-	pModel->SelectedCellY = 0
-	pModel->SelectedBallX = 0
-	pModel->SelectedBallY = 0
-	pModel->PressedCellX = 0
-	pModel->PressedCellY = 0
+	' pModel->Grid(9 * 9 - 1) = {0}
+	pModel->SelectedCellCoord.x = 0
+	pModel->SelectedCellCoord.y = 0
+	pStage->Lines(pModel->SelectedCellCoord.y, pModel->SelectedCellCoord.x).Selected = True
 	
 	Return pModel
 	
@@ -470,13 +313,12 @@ Sub DestroyGameModel( _
 End Sub
 
 Sub GameModelNewGame( _
-		ByVal pModel As GameModel Ptr, _
-		ByVal pStage As Stage Ptr _
+		ByVal pModel As GameModel Ptr _
 	)
 	
 	' Обнуление
 	
-	pStage->Score = 0
+	pModel->pStage->Score = 0
 	pModel->Events.OnScoreChanged( _
 		pModel->Context, _
 		0 _
@@ -486,9 +328,9 @@ Sub GameModelNewGame( _
 	
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			pStage->Lines(j, i).Ball.Frame = AnimationFrames.Stopped
-			pStage->Lines(j, i).Ball.Visible = False
-			pStage->Lines(j, i).Ball.Selected = False
+			pModel->pStage->Lines(j, i).Ball.Frame = AnimationFrames.Stopped
+			pModel->pStage->Lines(j, i).Ball.Visible = False
+			pModel->pStage->Lines(j, i).Ball.Selected = False
 			
 			pts(j * 9 + i).x = i
 			pts(j * 9 + i).y = j
@@ -501,314 +343,21 @@ Sub GameModelNewGame( _
 		9 * 9 _
 	)
 	
-	pStage->MovedBall.Frame = AnimationFrames.Stopped
-	pStage->MovedBall.Visible = False
+	pModel->pStage->MovedBall.Frame = AnimationFrames.Stopped
+	pModel->pStage->MovedBall.Visible = False
 	
 	pModel->Events.OnMovedBallChanged( _
 		pModel->Context _
 	)
 	
-	ExtractBalls(pModel, pStage)
+	ExtractBalls(pModel)
 	
-	GenerateTablo(pModel, pStage)
-	
-End Sub
-
-Function GetCellFromPoint( _
-		ByVal pStage As Stage Ptr, _
-		ByVal pScene As Scene Ptr, _
-		ByVal pp As POINT Ptr, _
-		ByVal ppCell As POINT Ptr _
-	)As Boolean
-	
-	For j As Integer = 0 To 8
-		For i As Integer = 0 To 8
-			Dim ScreenRectangle As RECT = Any
-			SceneTranslateBounds( _
-				pScene, _
-				@pStage->Lines(j, i).Bounds, _
-				@pStage->Lines(j, i).PositionMatrix, _
-				@ScreenRectangle _
-			)
-			If PtInRect(@ScreenRectangle, *pp) Then
-				ppCell->x = i
-				ppCell->y = j
-				Return True
-			End If
-		Next
-	Next
-	
-	Return False
-	
-End Function
-
-Sub GameModelLMouseDown( _
-		ByVal pModel As GameModel Ptr, _
-		ByVal pStage As Stage Ptr, _
-		ByVal pScene As Scene Ptr, _
-		ByVal pp As POINT Ptr _
-	)
-	
-	Dim CellCoord As Point = Any
-	If GetCellFromPoint(pStage, pScene, pp, @CellCoord) Then
-		' Развыбрать старую ячейку
-		Dim pts(1) As POINT = Any
-		pts(0).x = pModel->SelectedCellX
-		pts(0).y = pModel->SelectedCellY
-		pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
-		
-		' Выбрать новую ячейку
-		pModel->SelectedCellX = CellCoord.x
-		pModel->SelectedCellY = CellCoord.y
-		pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
-		
-		' Нажать кнопку
-		pModel->PressedCellX = CellCoord.x
-		pModel->PressedCellY = CellCoord.y
-		pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = True
-		
-		pts(1).x = CellCoord.x
-		pts(1).y = CellCoord.y
-		
-		pModel->Events.OnLinesChanged( _
-			pModel->Context, _
-			@pts(0), _
-			2 _
-		)
-		
-	End If
-	
-End Sub
-
-Sub GameModelLMouseUp( _
-		ByVal pModel As GameModel Ptr, _
-		ByVal pStage As Stage Ptr, _
-		ByVal pScene As Scene Ptr, _
-		ByVal pp As POINT Ptr _
-	)
-	
-	Dim CellCoord As Point = Any
-	If GetCellFromPoint(pStage, pScene, pp, @CellCoord) Then
-		GameModelKeyUp( _
-			pModel, _
-			pStage, _
-			VK_SPACE _
-		)
-	End If
-	
-End Sub
-
-Sub GameModelKeyDown( _
-		ByVal pModel As GameModel Ptr, _
-		ByVal pStage As Stage Ptr, _
-		ByVal Key As Integer _
-	)
-	
-	Select Case Key
-		
-		Case VK_TAB
-			' Прыжок на следующий шар
-			' Если Shift+TAB то на предыдущий шар
-			' Ctrl+Стрелка переход к следующему шару
-			' Home, End, Ctrl+Home, Ctrl+End, PageUp, PageDown
-			
-		Case VK_SPACE, VK_RETURN
-			pModel->PressedCellX = pModel->SelectedCellX
-			pModel->PressedCellY = pModel->SelectedCellY
-			pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = True
-			
-			Dim pts As POINT = Any
-			pts.x = pModel->PressedCellX
-			pts.y = pModel->PressedCellY
-			pModel->Events.OnLinesChanged( _
-				pModel->Context, _
-				@pts, _
-				1 _
-			)
-			
-		Case VK_LEFT
-			Dim pts(1) As POINT = Any
-			pts(0).x = pModel->SelectedCellX
-			pts(0).y = pModel->SelectedCellY
-			
-			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
-			
-			pModel->SelectedCellX -= 1
-			If pModel->SelectedCellX < 0 Then
-				pModel->SelectedCellX = 8
-			End If
-			pts(1).x = pModel->SelectedCellX
-			pts(1).y = pModel->SelectedCellY
-			
-			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
-			
-			pModel->Events.OnLinesChanged( _
-				pModel->Context, _
-				@pts(0), _
-				2 _
-			)
-			
-		Case VK_UP
-			Dim pts(1) As POINT = Any
-			pts(0).x = pModel->SelectedCellX
-			pts(0).y = pModel->SelectedCellY
-			
-			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
-			
-			pModel->SelectedCellY -= 1
-			If pModel->SelectedCellY < 0 Then
-				pModel->SelectedCellY = 8
-			End If
-			pts(1).x = pModel->SelectedCellX
-			pts(1).y = pModel->SelectedCellY
-			
-			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
-			
-			pModel->Events.OnLinesChanged( _
-				pModel->Context, _
-				@pts(0), _
-				2 _
-			)
-			
-		Case VK_RIGHT
-			Dim pts(1) As POINT = Any
-			pts(0).x = pModel->SelectedCellX
-			pts(0).y = pModel->SelectedCellY
-			
-			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
-			
-			pModel->SelectedCellX += 1
-			If pModel->SelectedCellX > 8 Then
-				pModel->SelectedCellX = 0
-			End If
-			pts(1).x = pModel->SelectedCellX
-			pts(1).y = pModel->SelectedCellY
-			
-			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
-			
-			pModel->Events.OnLinesChanged( _
-				pModel->Context, _
-				@pts(0), _
-				2 _
-			)
-			
-		Case VK_DOWN
-			Dim pts(1) As POINT = Any
-			pts(0).x = pModel->SelectedCellX
-			pts(0).y = pModel->SelectedCellY
-			
-			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
-			
-			pModel->SelectedCellY += 1
-			If pModel->SelectedCellY > 8 Then
-				pModel->SelectedCellY = 0
-			End If
-			pts(1).x = pModel->SelectedCellX
-			pts(1).y = pModel->SelectedCellY
-			
-			pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
-			
-			pModel->Events.OnLinesChanged( _
-				pModel->Context, _
-				@pts(0), _
-				2 _
-			)
-			
-		Case VK_ESCAPE
-			' Снять выбор шара
-			pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
-			
-			Dim pts As POINT = Any
-			pts.x = pModel->SelectedBallX
-			pts.y = pModel->SelectedBallY
-			pModel->Events.OnLinesChanged( _
-				pModel->Context, _
-				@pts, _
-				1 _
-			)
-			
-	End Select
-	
-End Sub
-
-Sub GameModelKeyUp( _
-		ByVal pModel As GameModel Ptr, _
-		ByVal pStage As Stage Ptr, _
-		ByVal Key As Integer _
-	)
-	
-	Select Case Key
-		
-		Case VK_SPACE, VK_RETURN
-			' Отпустить кнопку
-			pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
-			
-			' Если шар виден, то выбрать его
-			If pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Ball.Visible Then
-				
-				' Развыбрать старый шар
-				pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
-				
-				Dim pts As POINT = Any
-				pts.x = pModel->SelectedBallX
-				pts.y = pModel->SelectedBallY
-				pModel->Events.OnLinesChanged( _
-					pModel->Context, _
-					@pts, _
-					1 _
-				)
-				
-				' Выбрать новый шар
-				pModel->SelectedBallX = pModel->PressedCellX
-				pModel->SelectedBallY = pModel->PressedCellY
-				pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = Not pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected
-				
-			Else
-				' Если есть выделенный шар
-				' то переместить его на новое место
-				If pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected AndAlso pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Visible Then
-					
-					' Переместить шар
-					Dim OldCoord As POINT = Any
-					OldCoord.x = pModel->SelectedBallX
-					OldCoord.y = pModel->SelectedBallY
-					Dim NewCoord As POINT = Any
-					NewCoord.x = pModel->PressedCellX
-					NewCoord.y = pModel->PressedCellY
-					
-					If MoveBall(pModel, pStage, @OldCoord, @NewCoord) Then
-						If RemoveLines(pModel, pStage) = False Then
-							If ExtractBalls(pModel, pStage) Then
-								GenerateTablo(pModel, pStage)
-								RemoveLines(pModel, pStage)
-							End If
-						End If
-						
-						pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
-					Else
-						pModel->Events.OnPathNotExist( _
-							pModel->Context _
-						)
-					End If
-				End If
-			End If
-			
-			Dim pts As POINT = Any
-			pts.x = pModel->PressedCellX
-			pts.y = pModel->PressedCellY
-			pModel->Events.OnLinesChanged( _
-				pModel->Context, _
-				@pts, _
-				1 _
-			)
-			
-	End Select
+	GenerateTablo(pModel)
 	
 End Sub
 
 Function GameModelUpdate( _
-		ByVal pModel As GameModel Ptr, _
-		ByVal pStage As Stage Ptr _
+		ByVal pModel As GameModel Ptr _
 	)As Boolean
 	
 	Return False
@@ -817,10 +366,18 @@ End Function
 
 Function GameModelCommand( _
 		ByVal pModel As GameModel Ptr, _
-		ByVal pStage As Stage Ptr, _
-		ByVal cmd As StageCommands _
+		ByVal cmd As MenuCommands _
 	)As Boolean
 	
 	Return False
 	
 End Function
+
+Sub GameModelGetSelectedCell( _
+		ByVal pModel As GameModel Ptr, _
+		ByVal pCellCoord As POINT Ptr _
+	)
+	
+	*pCellCoord = pModel->SelectedCellCoord
+	
+End Sub
