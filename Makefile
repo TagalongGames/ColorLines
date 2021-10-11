@@ -240,8 +240,8 @@ LIBRARIES_WINAPI=-ladvapi32 -lcomctl32 -lcomdlg32 -lcrypt32 -lgdi32 -lgdiplus -l
 LIBRARIES_BASE=$(LIBRARIES_GCCRUNTIME) $(LIBRARIES_FBRUNTIME) $(LIBRARIES_WINAPI) $(LIBRARIES_UUID) $(LIBRARIES_GMONITOR)
 LIBRARIES_ALL=$(LIBRARIES_BASE)
 
-OBJECTFILES_RELEASE_GUI_MODULES=    $(OBJ_RELEASE_DIR)\DisplayError$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\GameModel$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\GdiMatrix$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\InputHandler$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\ResourceManager$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\Settings$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\Stage$(FILE_SUFFIX_GUI).o
-OBJECTFILES_DEBUG_GUI_MODULES=      $(OBJ_DEBUG_DIR)\DisplayError$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\GdiMatrix$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\InputHandler$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\ResourceManager$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\Settings$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\Stage$(FILE_SUFFIX_GUI).o
+OBJECTFILES_RELEASE_GUI_MODULES=    $(OBJ_RELEASE_DIR)\CreateInstance$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\DisplayError$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\GameModel$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\GdiMatrix$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\Guids$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\InputHandler$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\ResourceManager$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\Scene$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\Settings$(FILE_SUFFIX_GUI).o $(OBJ_RELEASE_DIR)\Stage$(FILE_SUFFIX_GUI).o
+OBJECTFILES_DEBUG_GUI_MODULES=      $(OBJ_DEBUG_DIR)\CreateInstance$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\DisplayError$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\GdiMatrix$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\Guids$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\InputHandler$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\ResourceManager$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\Scene$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\Settings$(FILE_SUFFIX_GUI).o   $(OBJ_DEBUG_DIR)\Stage$(FILE_SUFFIX_GUI).o
 OBJECTFILES_RELEASE_CONSOLE_MODULES=$(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).o  
 OBJECTFILES_DEBUG_CONSOLE_MODULES=  $(OBJ_DEBUG_DIR)\EntryPoint$(FILE_SUFFIX_CONSOLE).o   
 
@@ -291,6 +291,28 @@ configure:
 	mkdir "$(BIN_RELEASE_DIR_86)"
 	mkdir "$(OBJ_DEBUG_DIR_86)"
 	mkdir "$(OBJ_RELEASE_DIR_86)"
+
+
+$(OBJ_RELEASE_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).o: $(OBJ_RELEASE_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_RELEASE) $(OBJ_RELEASE_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).asm -o $(OBJ_RELEASE_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).o
+
+$(OBJ_DEBUG_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).o:   $(OBJ_DEBUG_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).asm -o $(OBJ_DEBUG_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).o
+
+$(OBJ_RELEASE_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_RELEASE_03) $(OBJ_RELEASE_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).c -o $(OBJ_RELEASE_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_DEBUG_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_RELEASE_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).c: Classes\EmptyCommand.bas Classes\EmptyCommand.bi Interfaces\ICommand.bi
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Classes\EmptyCommand.bas"
+	move /y Classes\EmptyCommand.c $(OBJ_RELEASE_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).c
+
+$(OBJ_DEBUG_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).c:   Classes\EmptyCommand.bas Classes\EmptyCommand.bi Interfaces\ICommand.bi
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Classes\EmptyCommand.bas"
+	move /y Classes\EmptyCommand.c $(OBJ_DEBUG_DIR)\EmptyCommand$(FILE_SUFFIX_GUI).c
+
 
 
 $(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_GUI).o: $(OBJ_RELEASE_DIR)\EntryPoint$(FILE_SUFFIX_GUI).asm
@@ -381,6 +403,28 @@ $(OBJ_DEBUG_DIR)\WinMain$(FILE_SUFFIX_GUI).c:   Modules\WinMain.bas Modules\WinM
 
 
 
+$(OBJ_RELEASE_DIR)\CreateInstance$(FILE_SUFFIX_GUI).o: $(OBJ_RELEASE_DIR)\CreateInstance$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_RELEASE) $(OBJ_RELEASE_DIR)\CreateInstance$(FILE_SUFFIX_GUI).asm -o $(OBJ_RELEASE_DIR)\CreateInstance$(FILE_SUFFIX_GUI).o
+
+$(OBJ_DEBUG_DIR)\CreateInstance$(FILE_SUFFIX_GUI).o:   $(OBJ_DEBUG_DIR)\CreateInstance$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\CreateInstance$(FILE_SUFFIX_GUI).asm -o $(OBJ_DEBUG_DIR)\CreateInstance$(FILE_SUFFIX_GUI).o
+
+$(OBJ_RELEASE_DIR)\CreateInstance$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\CreateInstance$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_RELEASE_03) $(OBJ_RELEASE_DIR)\CreateInstance$(FILE_SUFFIX_GUI).c -o $(OBJ_RELEASE_DIR)\CreateInstance$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_DEBUG_DIR)\CreateInstance$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\CreateInstance$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\CreateInstance$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\CreateInstance$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_RELEASE_DIR)\CreateInstance$(FILE_SUFFIX_GUI).c: Classes\CreateInstance.bas Classes\CreateInstance.bi Classes\EmptyCommand.bi Classes\MoveSelectionRectangleCommand.bi Interfaces\IMoveSelectionRectangleCommand.bi Interfaces\ICommand.bi
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Classes\CreateInstance.bas"
+	move /y Classes\CreateInstance.c $(OBJ_RELEASE_DIR)\CreateInstance$(FILE_SUFFIX_GUI).c
+
+$(OBJ_DEBUG_DIR)\CreateInstance$(FILE_SUFFIX_GUI).c:   Classes\CreateInstance.bas Classes\CreateInstance.bi Classes\EmptyCommand.bi Classes\MoveSelectionRectangleCommand.bi Interfaces\IMoveSelectionRectangleCommand.bi Interfaces\ICommand.bi
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Classes\CreateInstance.bas"
+	move /y Classes\CreateInstance.c $(OBJ_DEBUG_DIR)\CreateInstance$(FILE_SUFFIX_GUI).c
+
+
+
 $(OBJ_RELEASE_DIR)\DisplayError$(FILE_SUFFIX_GUI).o: $(OBJ_RELEASE_DIR)\DisplayError$(FILE_SUFFIX_GUI).asm
 	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_RELEASE) $(OBJ_RELEASE_DIR)\DisplayError$(FILE_SUFFIX_GUI).asm -o $(OBJ_RELEASE_DIR)\DisplayError$(FILE_SUFFIX_GUI).o
 
@@ -437,13 +481,35 @@ $(OBJ_RELEASE_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\Mai
 $(OBJ_DEBUG_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).c
 	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).asm
 
-$(OBJ_RELEASE_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).c: Forms\MainFormWndProc.bas Forms\MainFormWndProc.bi Resources.RH Modules\DisplayError.bi Classes\Scene.bi Classes\Stage.bi Classes\GameModel.bi Classes\GdiMatrix.bi Modules\Settings.bi Classes\InputHandler.bi
+$(OBJ_RELEASE_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).c: Forms\MainFormWndProc.bas Forms\MainFormWndProc.bi Resources.RH Modules\DisplayError.bi Classes\Scene.bi Classes\Stage.bi Classes\GameModel.bi Classes\GdiMatrix.bi Modules\Settings.bi Classes\InputHandler.bi Interfaces\ICommand.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Forms\MainFormWndProc.bas"
 	move /y Forms\MainFormWndProc.c $(OBJ_RELEASE_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).c
 
-$(OBJ_DEBUG_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).c:   Forms\MainFormWndProc.bas Forms\MainFormWndProc.bi Resources.RH Modules\DisplayError.bi Classes\Scene.bi Classes\Stage.bi Classes\GameModel.bi Classes\GdiMatrix.bi Modules\Settings.bi Classes\InputHandler.bi
+$(OBJ_DEBUG_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).c:   Forms\MainFormWndProc.bas Forms\MainFormWndProc.bi Resources.RH Modules\DisplayError.bi Classes\Scene.bi Classes\Stage.bi Classes\GameModel.bi Classes\GdiMatrix.bi Modules\Settings.bi Classes\InputHandler.bi Interfaces\ICommand.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Forms\MainFormWndProc.bas"
 	move /y Forms\MainFormWndProc.c $(OBJ_DEBUG_DIR)\MainFormWndProc$(FILE_SUFFIX_GUI).c
+
+
+
+$(OBJ_RELEASE_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).o: $(OBJ_RELEASE_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_RELEASE) $(OBJ_RELEASE_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).asm -o $(OBJ_RELEASE_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).o
+
+$(OBJ_DEBUG_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).o:   $(OBJ_DEBUG_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).asm -o $(OBJ_DEBUG_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).o
+
+$(OBJ_RELEASE_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_RELEASE_03) $(OBJ_RELEASE_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).c -o $(OBJ_RELEASE_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_DEBUG_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_RELEASE_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).c: Modules\GameAlgorithm.bas Modules\GameAlgorithm.bi
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Modules\GameAlgorithm.bas"
+	move /y Modules\GameAlgorithm.c $(OBJ_RELEASE_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).c
+
+$(OBJ_DEBUG_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).c:   Modules\GameAlgorithm.bas Modules\GameAlgorithm.bi
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Modules\GameAlgorithm.bas"
+	move /y Modules\GameAlgorithm.c $(OBJ_DEBUG_DIR)\GameAlgorithm$(FILE_SUFFIX_GUI).c
 
 
 
@@ -459,11 +525,11 @@ $(OBJ_RELEASE_DIR)\GameModel$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\GameModel
 $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).c
 	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).asm
 
-$(OBJ_RELEASE_DIR)\GameModel$(FILE_SUFFIX_GUI).c: Classes\GameModel.bas Classes\GameModel.bi Classes\Stage.bi Classes\Scene.bi Classes\GdiMatrix.bi
+$(OBJ_RELEASE_DIR)\GameModel$(FILE_SUFFIX_GUI).c: Classes\GameModel.bas Classes\GameModel.bi Classes\Stage.bi Classes\Scene.bi Classes\GdiMatrix.bi Modules\GameAlgorithm.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Classes\GameModel.bas"
 	move /y Classes\GameModel.c $(OBJ_RELEASE_DIR)\GameModel$(FILE_SUFFIX_GUI).c
 
-$(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).c:   Classes\GameModel.bas Classes\GameModel.bi Classes\Stage.bi Classes\Scene.bi Classes\GdiMatrix.bi
+$(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).c:   Classes\GameModel.bas Classes\GameModel.bi Classes\Stage.bi Classes\Scene.bi Classes\GdiMatrix.bi Modules\GameAlgorithm.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Classes\GameModel.bas"
 	move /y Classes\GameModel.c $(OBJ_DEBUG_DIR)\GameModel$(FILE_SUFFIX_GUI).c
 
@@ -491,6 +557,28 @@ $(OBJ_DEBUG_DIR)\GdiMatrix$(FILE_SUFFIX_GUI).c:   Classes\GdiMatrix.bas Classes\
 
 
 
+$(OBJ_RELEASE_DIR)\Guids$(FILE_SUFFIX_GUI).o: $(OBJ_RELEASE_DIR)\Guids$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_RELEASE) $(OBJ_RELEASE_DIR)\Guids$(FILE_SUFFIX_GUI).asm -o $(OBJ_RELEASE_DIR)\Guids$(FILE_SUFFIX_GUI).o
+
+$(OBJ_DEBUG_DIR)\Guids$(FILE_SUFFIX_GUI).o:   $(OBJ_DEBUG_DIR)\Guids$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\Guids$(FILE_SUFFIX_GUI).asm -o $(OBJ_DEBUG_DIR)\Guids$(FILE_SUFFIX_GUI).o
+
+$(OBJ_RELEASE_DIR)\Guids$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\Guids$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_RELEASE_03) $(OBJ_RELEASE_DIR)\Guids$(FILE_SUFFIX_GUI).c -o $(OBJ_RELEASE_DIR)\Guids$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_DEBUG_DIR)\Guids$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\Guids$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\Guids$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\Guids$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_RELEASE_DIR)\Guids$(FILE_SUFFIX_GUI).c: Classes\Guids.bas
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Classes\Guids.bas"
+	move /y Classes\Guids.c $(OBJ_RELEASE_DIR)\Guids$(FILE_SUFFIX_GUI).c
+
+$(OBJ_DEBUG_DIR)\Guids$(FILE_SUFFIX_GUI).c:   Classes\Guids.bas
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Classes\Guids.bas"
+	move /y Classes\Guids.c $(OBJ_DEBUG_DIR)\Guids$(FILE_SUFFIX_GUI).c
+
+
+
 $(OBJ_RELEASE_DIR)\InputHandler$(FILE_SUFFIX_GUI).o: $(OBJ_RELEASE_DIR)\InputHandler$(FILE_SUFFIX_GUI).asm
 	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_RELEASE) $(OBJ_RELEASE_DIR)\InputHandler$(FILE_SUFFIX_GUI).asm -o $(OBJ_RELEASE_DIR)\InputHandler$(FILE_SUFFIX_GUI).o
 
@@ -503,13 +591,35 @@ $(OBJ_RELEASE_DIR)\InputHandler$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\InputH
 $(OBJ_DEBUG_DIR)\InputHandler$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\InputHandler$(FILE_SUFFIX_GUI).c
 	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\InputHandler$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\InputHandler$(FILE_SUFFIX_GUI).asm
 
-$(OBJ_RELEASE_DIR)\InputHandler$(FILE_SUFFIX_GUI).c: Classes\InputHandler.bas Classes\InputHandler.bi Classes\Scene.bi Classes\Stage.bi
+$(OBJ_RELEASE_DIR)\InputHandler$(FILE_SUFFIX_GUI).c: Classes\InputHandler.bas Classes\InputHandler.bi Classes\Scene.bi Classes\Stage.bi Classes\GameModel.bi Classes\CreateInstance.bi Classes\MoveSelectionRectangleCommand.bi Interfaces\ICommand.bi Interfaces\IMoveSelectionRectangleCommand.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Classes\InputHandler.bas"
 	move /y Classes\InputHandler.c $(OBJ_RELEASE_DIR)\InputHandler$(FILE_SUFFIX_GUI).c
 
-$(OBJ_DEBUG_DIR)\InputHandler$(FILE_SUFFIX_GUI).c:   Classes\InputHandler.bas Classes\InputHandler.bi Classes\Scene.bi Classes\Stage.bi
+$(OBJ_DEBUG_DIR)\InputHandler$(FILE_SUFFIX_GUI).c:   Classes\InputHandler.bas Classes\InputHandler.bi Classes\Scene.bi Classes\Stage.bi Classes\GameModel.bi Classes\CreateInstance.bi Classes\MoveSelectionRectangleCommand.bi Interfaces\ICommand.bi Interfaces\IMoveSelectionRectangleCommand.bi
 	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Classes\InputHandler.bas"
 	move /y Classes\InputHandler.c $(OBJ_DEBUG_DIR)\InputHandler$(FILE_SUFFIX_GUI).c
+
+
+
+$(OBJ_RELEASE_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).o: $(OBJ_RELEASE_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_RELEASE) $(OBJ_RELEASE_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).asm -o $(OBJ_RELEASE_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).o
+
+$(OBJ_DEBUG_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).o:   $(OBJ_DEBUG_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).asm
+	$(GCC_ASSEMBLER) $(GCC_ASSEMBLER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).asm -o $(OBJ_DEBUG_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).o
+
+$(OBJ_RELEASE_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).asm: $(OBJ_RELEASE_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_RELEASE_03) $(OBJ_RELEASE_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).c -o $(OBJ_RELEASE_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_DEBUG_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).asm:   $(OBJ_DEBUG_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).c
+	$(GCC_COMPILER) $(GCC_COMPILER_PARAMETERS_DEBUG) $(OBJ_DEBUG_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).c -o $(OBJ_DEBUG_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).asm
+
+$(OBJ_RELEASE_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).c: Classes\MoveSelectionRectangleCommand.bas Classes\MoveSelectionRectangleCommand.bi Classes\Scene.bi Classes\Stage.bi Classes\GameModel.bi Interfaces\ICommand.bi Interfaces\IMoveSelectionRectangleCommand.bi
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_RELEASE_GUI) "Classes\MoveSelectionRectangleCommand.bas"
+	move /y Classes\MoveSelectionRectangleCommand.c $(OBJ_RELEASE_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).c
+
+$(OBJ_DEBUG_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).c:   Classes\MoveSelectionRectangleCommand.bas Classes\MoveSelectionRectangleCommand.bi Classes\Scene.bi Classes\Stage.bi Classes\GameModel.bi Interfaces\ICommand.bi Interfaces\IMoveSelectionRectangleCommand.bi
+	$(FREEBASIC_COMPILER) $(FREEBASIC_PARAMETERS_DEBUG_GUI) "Classes\MoveSelectionRectangleCommand.bas"
+	move /y Classes\MoveSelectionRectangleCommand.c $(OBJ_DEBUG_DIR)\MoveSelectionRectangleCommand$(FILE_SUFFIX_GUI).c
 
 
 
