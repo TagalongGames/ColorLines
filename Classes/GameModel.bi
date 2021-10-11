@@ -78,11 +78,6 @@ Declare Sub GameModelNewGame( _
 	ByVal pModel As GameModel Ptr _
 )
 
-Declare Function GameModelCommand( _
-	ByVal pModel As GameModel Ptr, _
-	ByVal cmd As MenuCommands _
-)As Boolean
-
 Declare Function GameModelUpdate( _
 	ByVal pModel As GameModel Ptr _
 )As Boolean
@@ -95,6 +90,11 @@ Declare Sub GameModelGetSelectedCell( _
 Declare Sub GameModelMoveSelectionRectangle( _
 	ByVal pModel As GameModel Ptr, _
 	ByVal Direction As MoveSelectionRectangleDirection _
+)
+
+Declare Sub GameModelMoveSelectionRectangleTo( _
+	ByVal pModel As GameModel Ptr, _
+	ByVal pCellCoord As POINT Ptr _
 )
 
 #endif

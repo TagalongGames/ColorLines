@@ -124,13 +124,13 @@ Function MoveSelectionRectangleCommandExecute( _
 		}
 	'/
 	
-	' —охранить координаты €чейки в команде
 	GameModelGetSelectedCell( _
 		this->pModel, _
 		@this->SelectionCellCoord _
 	)
+	GameModelMoveSelectionRectangle(this->pModel, this->MoveDirection)
 	
-	Return S_FALSE
+	Return S_OK
 	
 End Function
 

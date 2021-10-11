@@ -252,10 +252,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 							GameModelNewGame(pModel)
 							
 						Case IDM_GAME_UNDO
-							GameModelCommand(pModel, MenuCommands.Undo)
+							' GameModelCommand(pModel, MenuCommands.Undo)
 							
 						Case IDM_GAME_REDO
-							GameModelCommand(pModel, MenuCommands.Redo)
+							' GameModelCommand(pModel, MenuCommands.Redo)
 							
 						' Case IDM_GAME_STATISTICS
 							' MainFormMenuStatistics_Click(hWin)
@@ -282,10 +282,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 							GameModelNewGame(pModel)
 							
 						Case IDM_GAME_UNDO_ACS
-							GameModelCommand(pModel, MenuCommands.Undo)
+							' GameModelCommand(pModel, MenuCommands.Undo)
 							
 						Case IDM_GAME_REDO_ACS
-							GameModelCommand(pModel, MenuCommands.Redo)
+							' GameModelCommand(pModel, MenuCommands.Redo)
 							
 						' Case IDM_GAME_STATISTICS_ACS
 							' MainFormMenuStatistics_Click(hWin)

@@ -7,7 +7,8 @@ Type _GameModel
 	Events As StageEvents
 	Context As Any Ptr
 	Grid(9 * 9 - 1) As Integer
-	SelectedCellCoord As POINT
+	SelectedCellX As Integer
+	SelectedCellY As Integer
 End Type
 
 Declare Function MoveBall( _
@@ -296,9 +297,9 @@ Function CreateGameModel( _
 	pModel->Events = *pEvents
 	pModel->Context = Context
 	' pModel->Grid(9 * 9 - 1) = {0}
-	pModel->SelectedCellCoord.x = 0
-	pModel->SelectedCellCoord.y = 0
-	pStage->Lines(pModel->SelectedCellCoord.y, pModel->SelectedCellCoord.x).Selected = True
+	pModel->SelectedCellX = 0
+	pModel->SelectedCellY = 0
+	pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
 	Return pModel
 	
@@ -364,20 +365,89 @@ Function GameModelUpdate( _
 	
 End Function
 
-Function GameModelCommand( _
-		ByVal pModel As GameModel Ptr, _
-		ByVal cmd As MenuCommands _
-	)As Boolean
-	
-	Return False
-	
-End Function
-
 Sub GameModelGetSelectedCell( _
 		ByVal pModel As GameModel Ptr, _
 		ByVal pCellCoord As POINT Ptr _
 	)
 	
-	*pCellCoord = pModel->SelectedCellCoord
+	pCellCoord->x = pModel->SelectedCellX
+	pCellCoord->y = pModel->SelectedCellY
+	
+End Sub
+
+Sub GameModelMoveSelectionRectangle( _
+		ByVal pModel As GameModel Ptr, _
+		ByVal Direction As MoveSelectionRectangleDirection _
+	)
+	
+	Dim pts(1) As POINT = Any
+	pts(0).x = pModel->SelectedCellX
+	pts(0).y = pModel->SelectedCellY
+	
+	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
+	
+	Select Case Direction
+		
+		Case MoveSelectionRectangleDirection.Left
+			pModel->SelectedCellX -= 1
+			If pModel->SelectedCellX < 0 Then
+				pModel->SelectedCellX = 8
+			End If
+			
+		Case MoveSelectionRectangleDirection.Up
+			pModel->SelectedCellY -= 1
+			If pModel->SelectedCellY < 0 Then
+				pModel->SelectedCellY = 8
+			End If
+			
+		Case MoveSelectionRectangleDirection.Right
+			pModel->SelectedCellX += 1
+			If pModel->SelectedCellX > 8 Then
+				pModel->SelectedCellX = 0
+			End If
+			
+		Case MoveSelectionRectangleDirection.Down
+			pModel->SelectedCellY += 1
+			If pModel->SelectedCellY > 8 Then
+				pModel->SelectedCellY = 0
+			End If
+			
+			' JumpNextLeft
+			' JumpNextUp
+			' JumpNextRight
+			' JumpNextDown
+			
+		Case MoveSelectionRectangleDirection.JumpBeginLeft
+			pModel->SelectedCellX = 0
+			
+		Case MoveSelectionRectangleDirection.JumpBeginUp
+			pModel->SelectedCellY = 0
+			
+		Case MoveSelectionRectangleDirection.JumpEndRight
+			pModel->SelectedCellY = 8
+			
+		Case MoveSelectionRectangleDirection.JumpEndDown
+			pModel->SelectedCellX = 8
+			
+		Case MoveSelectionRectangleDirection.JumpBeginStage
+			pModel->SelectedCellX = 0
+			pModel->SelectedCellY = 0
+			
+		Case MoveSelectionRectangleDirection.JumpEndStage
+			pModel->SelectedCellX = 8
+			pModel->SelectedCellY = 8
+			
+	End Select
+	
+	pts(1).x = pModel->SelectedCellX
+	pts(1).y = pModel->SelectedCellY
+	
+	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
+	
+	pModel->Events.OnLinesChanged( _
+		pModel->Context, _
+		@pts(0), _
+		2 _
+	)
 	
 End Sub
