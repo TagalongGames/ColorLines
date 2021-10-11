@@ -3,6 +3,7 @@
 #include once "crt.bi"
 #include once "DisplayError.bi"
 #include once "GameModel.bi"
+#include once "InputHandler.bi"
 #include once "Resources.RH"
 #include once "Scene.bi"
 #include once "Settings.bi"
@@ -18,6 +19,7 @@ End Type
 Dim Shared pScene As Scene Ptr
 Dim Shared pStage As Stage Ptr
 Dim Shared pModel As GameModel Ptr
+Dim Shared pHandler As InputHandler Ptr
 
 Sub ColorLinesStageChanged( _
 		ByVal pContext As Any Ptr, _
@@ -199,8 +201,17 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Events.OnAnimated = @ColorLinesStageAnimated
 			Events.OnPathNotExist = @ColorLinesPathNotExist
 			
-			pModel = CreateGameModel(@Events, pContext)
+			pModel = CreateGameModel(pStage, @Events, pContext)
 			If pModel = NULL Then
+				Return -1
+			End If
+			
+			pHandler = CreateInputHandler( _
+				pStage, _
+				pScene, _
+				pModel _
+			)
+			If pHandler = NULL Then
 				Return -1
 			End If
 			
@@ -238,13 +249,13 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					Select Case LoWord(wParam)
 						
 						Case IDM_GAME_NEW
-							GameModelNewGame(pModel, pStage)
+							GameModelNewGame(pModel)
 							
 						Case IDM_GAME_UNDO
-							GameModelCommand(pModel, pStage, StageCommands.Undo)
+							GameModelCommand(pModel, MenuCommands.Undo)
 							
 						Case IDM_GAME_REDO
-							GameModelCommand(pModel, pStage, StageCommands.Redo)
+							GameModelCommand(pModel, MenuCommands.Redo)
 							
 						' Case IDM_GAME_STATISTICS
 							' MainFormMenuStatistics_Click(hWin)
@@ -268,13 +279,13 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 					Select Case LoWord(wParam)
 						
 						Case IDM_GAME_NEW_ACS
-							GameModelNewGame(pModel, pStage)
+							GameModelNewGame(pModel)
 							
 						Case IDM_GAME_UNDO_ACS
-							GameModelCommand(pModel, pStage, StageCommands.Undo)
+							GameModelCommand(pModel, MenuCommands.Undo)
 							
 						Case IDM_GAME_REDO_ACS
-							GameModelCommand(pModel, pStage, StageCommands.Redo)
+							GameModelCommand(pModel, MenuCommands.Redo)
 							
 						' Case IDM_GAME_STATISTICS_ACS
 							' MainFormMenuStatistics_Click(hWin)
@@ -295,21 +306,22 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 		Case WM_PAINT
 			Dim ps As PAINTSTRUCT = Any
 			Dim hDC As HDC = BeginPaint(hWin, @ps)
-			
 			SceneCopyRectangle(pScene, hDC, @ps.rcPaint)
-			
 			EndPaint(hWin, @ps)
 			
 		Case WM_DESTROY
+			If pHandler <> NULL Then
+				DestroyInputHandler(pHandler)
+			End If
+			If pModel <> NULL Then
+				DestroyGameModel(pModel)
+			End If
 			If pScene <> NULL Then
 				DestroyScene(pScene)
 			End If
 			If pStage <> NULL Then
 				SettingsSetHiScore(pStage->HiScore)
 				DestroyStage(pStage)
-			End If
-			If pModel <> NULL Then
-				DestroyGameModel(pModel)
 			End If
 			PostQuitMessage(0)
 			
@@ -318,26 +330,42 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim pt As POINT = Any
 			pt.x = GET_X_LPARAM(lParam)
 			pt.y = GET_Y_LPARAM(lParam)
-			GameModelLMouseDown(pModel, pStage, pScene, @pt)
+			Dim pICommand As ICommand Ptr = Any
+			Dim hr As HRESULT = InputHandlerLMouseDown(pHandler, @pt, @pICommand)
+			If SUCCEEDED(hr) Then
+				ICommand_Execute(pICommand)
+			End If
 			
 		Case WM_LBUTTONUP
 			ReleaseCapture()
 			Dim pt As POINT = Any
 			pt.x = GET_X_LPARAM(lParam)
 			pt.y = GET_Y_LPARAM(lParam)
-			GameModelLMouseUp(pModel, pStage, pScene, @pt)
+			Dim pICommand As ICommand Ptr = Any
+			Dim hr As HRESULT = InputHandlerLMouseUp(pHandler, @pt, @pICommand)
+			If SUCCEEDED(hr) Then
+				ICommand_Execute(pICommand)
+			End If
 			
 		Case WM_KEYDOWN
-			GameModelKeyDown(pModel, pStage, wParam)
+			Dim pICommand As ICommand Ptr = Any
+			Dim hr As HRESULT = InputHandlerKeyDown(pHandler, wParam, @pICommand)
+			If SUCCEEDED(hr) Then
+				ICommand_Execute(pICommand)
+			End If
 			
 		Case WM_KEYUP
-			GameModelKeyUp(pModel, pStage, wParam)
+			Dim pICommand As ICommand Ptr = Any
+			Dim hr As HRESULT = InputHandlerKeyUp(pHandler, wParam, @pICommand)
+			If SUCCEEDED(hr) Then
+				ICommand_Execute(pICommand)
+			End If
 			
 		Case WM_TIMER
 			Select Case wParam
 				
 				Case ANIMATION_TIMER_ID
-					Dim AnimationNeeded As Boolean = GameModelUpdate(pModel, pStage)
+					Dim AnimationNeeded As Boolean = GameModelUpdate(pModel)
 					If AnimationNeeded = False Then
 						KillTimer(hWin, ANIMATION_TIMER_ID)
 					End If
