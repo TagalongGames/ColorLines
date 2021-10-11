@@ -20,6 +20,11 @@
 	Dim n As Const GUID = Type(l, w1, w2, {b1, b2, b3, b4, b5, b6, b7, b8})
 #endif
 
+' {AD4D5980-343D-4916-A2D9-158775DB0546}
+DEFINE_CLSID(CLSID_EMPTYCOMMAND, _
+	&had4d5980, &h343d, &h4916, &ha2, &hd9, &h15, &h87, &h75, &hdb, &h5, &h46 _
+)
+
 ' {4D1199EB-2DD9-4969-9BD8-CDF3FB2B7A5E}
 DEFINE_CLSID(CLSID_MOVESELECTIONRECTANGLECOMMAND, _
 	&h4d1199eb, &h2dd9, &h4969, &h9b, &hd8, &hcd, &hf3, &hfb, &h2b, &h7a, &h5e _
