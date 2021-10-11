@@ -11,6 +11,7 @@ Type LPICOMMAND As ICommand Ptr
 Extern IID_ICommand Alias "IID_ICommand" As Const IID
 
 Enum CommandType
+	Empty
 	MoveSelectionRectangle
 	PushCell
 	PullCell
