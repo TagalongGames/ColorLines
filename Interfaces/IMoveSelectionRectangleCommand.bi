@@ -2,6 +2,7 @@
 #define IMOVESELECTIONRECTANGLECOMMAND_BI
 
 #include once "ICommand.bi"
+#include once "GameModel.bi"
 
 Type IMoveSelectionRectangleCommand As IMoveSelectionRectangleCommand_
 
@@ -38,6 +39,16 @@ Type IMoveSelectionRectangleCommandVirtualTable
 		ByVal pType As CommandType Ptr _
 	)As HRESULT
 	
+	SetSelectedCellCoord As Function( _
+		ByVal this As IMoveSelectionRectangleCommand Ptr, _
+		ByVal pCellCoord As POINT Ptr _
+	)As HRESULT
+	
+	SetMoveDirection As Function( _
+		ByVal this As IMoveSelectionRectangleCommand Ptr, _
+		ByVal Direction As MoveSelectionRectangleDirection _
+	)As HRESULT
+	
 End Type
 
 Type IMoveSelectionRectangleCommand_
@@ -50,5 +61,7 @@ End Type
 #define IMoveSelectionRectangleCommand_Execute(this) (this)->lpVtbl->Execute(this)
 #define IMoveSelectionRectangleCommand_Undo(this) (this)->lpVtbl->Undo(this)
 #define IMoveSelectionRectangleCommand_GetCommandType(this, pType) (this)->lpVtbl->GetCommandType(this, pType)
+#define IMoveSelectionRectangleCommand_SetSelectedCellCoord(this, pCellCoord) (this)->lpVtbl->SetSelectedCellCoord(this, pCellCoord)
+#define IMoveSelectionRectangleCommand_SetMoveDirection(this, Direction) (this)->lpVtbl->SetMoveDirection(this, Direction)
 
 #endif
