@@ -10,6 +10,7 @@ Type _MoveSelectionRectangleCommand
 	RefCounter As Integer
 	SelectionCellCoord As POINT
 	MoveDirection As MoveSelectionRectangleDirection
+	pModel As GameModel Ptr
 End Type
 
 Sub InitializeMoveSelectionRectangleCommand( _
@@ -21,6 +22,7 @@ Sub InitializeMoveSelectionRectangleCommand( _
 	this->SelectionCellCoord.x = 0
 	this->SelectionCellCoord.y = 0
 	this->MoveDirection = MoveSelectionRectangleDirection.Left
+	this->pModel = NULL
 	
 End Sub
 
@@ -112,6 +114,22 @@ Function MoveSelectionRectangleCommandExecute( _
 		ByVal this As MoveSelectionRectangleCommand Ptr _
 	)As HRESULT
 	
+	/'
+		virtual void execute() {
+			// Запоминаем позицию юнита перед ходом
+			// чтобы потом ее восстановить.
+			xBefore_ = unit_->x();
+			yBefore_ = unit_->y();
+			unit_->moveTo(x_, y_);
+		}
+	'/
+	
+	' Сохранить координаты ячейки в команде
+	GameModelGetSelectedCell( _
+		this->pModel, _
+		@this->SelectionCellCoord _
+	)
+	
 	Return S_FALSE
 	
 End Function
@@ -119,6 +137,12 @@ End Function
 Function MoveSelectionRectangleCommandUndo( _
 		ByVal this As MoveSelectionRectangleCommand Ptr _
 	)As HRESULT
+	
+	/'
+		virtual void undo() {
+			unit_->moveTo(xBefore_, yBefore_);
+		}
+	'/
 	
 	Return S_FALSE
 	
@@ -135,12 +159,12 @@ Function MoveSelectionRectangleCommandGetCommandType( _
 	
 End Function
 
-Function MoveSelectionRectangleCommandSetSelectedCellCoord( _
+Function MoveSelectionRectangleCommandSetGameModel( _
 		ByVal this As MoveSelectionRectangleCommand Ptr, _
-		ByVal pCellCoord As POINT Ptr _
+		ByVal pModel As GameModel Ptr _
 	)As HRESULT
 	
-	this->SelectionCellCoord = *pCellCoord
+	this->pModel = pModel
 	
 	Return S_OK
 	
@@ -197,11 +221,11 @@ Function IMoveSelectionRectangleCommandGetCommandType( _
 	Return MoveSelectionRectangleCommandGetCommandType(ContainerOf(this, MoveSelectionRectangleCommand, lpVtbl), pType)
 End Function
 
-Function IMoveSelectionRectangleCommandSetSelectedCellCoord( _
+Function IMoveSelectionRectangleCommandSetGameModel( _
 		ByVal this As IMoveSelectionRectangleCommand Ptr, _
-		ByVal pCellCoord As POINT Ptr _
+		ByVal pModel As GameModel Ptr _
 	)As ULONG
-	Return MoveSelectionRectangleCommandSetSelectedCellCoord(ContainerOf(this, MoveSelectionRectangleCommand, lpVtbl), pCellCoord)
+	Return MoveSelectionRectangleCommandSetGameModel(ContainerOf(this, MoveSelectionRectangleCommand, lpVtbl), pModel)
 End Function
 
 Function IMoveSelectionRectangleCommandSetMoveDirection( _
@@ -218,6 +242,6 @@ Dim GlobalMoveSelectionRectangleCommandVirtualTable As Const IMoveSelectionRecta
 	@IMoveSelectionRectangleCommandExecute, _
 	@IMoveSelectionRectangleCommandUndo, _
 	@IMoveSelectionRectangleCommandGetCommandType, _
-	@IMoveSelectionRectangleCommandSetSelectedCellCoord, _
+	@IMoveSelectionRectangleCommandSetGameModel, _
 	@IMoveSelectionRectangleCommandSetMoveDirection _
 )

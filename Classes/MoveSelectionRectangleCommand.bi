@@ -44,9 +44,9 @@ Declare Function MoveSelectionRectangleCommandGetCommandType( _
 	ByVal pType As CommandType Ptr _
 )As HRESULT
 
-Declare Function MoveSelectionRectangleCommandSetSelectedCellCoord( _
+Declare Function MoveSelectionRectangleCommandSetGameModel( _
 	ByVal this As MoveSelectionRectangleCommand Ptr, _
-	ByVal pCellCoord As POINT Ptr _
+	ByVal pModel As GameModel Ptr _
 )As HRESULT
 
 Declare Function MoveSelectionRectangleCommandSetMoveDirection( _

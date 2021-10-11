@@ -255,19 +255,10 @@ Function InputHandlerKeyDown( _
 				Return hrCreate
 			End If
 			
-			' Сохранить координаты ячейки в команде
-			Dim SelectedCellCoord As POINT = Any
-			GameModelGetSelectedCell( _
-				pHandler->pModel, _
-				@SelectedCellCoord _
-			)
-			IMoveSelectionRectangleCommand_SetSelectedCellCoord(pCommand, @SelectedCellCoord)
+			IMoveSelectionRectangleCommand_SetGameModel(pCommand, pHandler->pModel)
 			
-			' Указать команде направление движения
 			Dim Direction As MoveSelectionRectangleDirection = GetDirection(Key)
 			IMoveSelectionRectangleCommand_SetMoveDirection(pCommand, Direction)
-			
-			' Вернуть команду
 			
 			' Dim pts(1) As POINT = Any
 			' pts(0).x = pHandler->SelectedCellX
