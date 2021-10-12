@@ -114,16 +114,6 @@ Function MoveSelectionRectangleCommandExecute( _
 		ByVal this As MoveSelectionRectangleCommand Ptr _
 	)As HRESULT
 	
-	/'
-		virtual void execute() {
-			// Запоминаем позицию юнита перед ходом
-			// чтобы потом ее восстановить.
-			xBefore_ = unit_->x();
-			yBefore_ = unit_->y();
-			unit_->moveTo(x_, y_);
-		}
-	'/
-	
 	GameModelGetSelectedCell( _
 		this->pModel, _
 		@this->SelectionCellCoord _
@@ -138,11 +128,7 @@ Function MoveSelectionRectangleCommandUndo( _
 		ByVal this As MoveSelectionRectangleCommand Ptr _
 	)As HRESULT
 	
-	/'
-		virtual void undo() {
-			unit_->moveTo(xBefore_, yBefore_);
-		}
-	'/
+	GameModelMoveSelectionRectangleTo(this->pModel, @this->SelectionCellCoord)
 	
 	Return S_FALSE
 	

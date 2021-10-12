@@ -451,3 +451,30 @@ Sub GameModelMoveSelectionRectangle( _
 	)
 	
 End Sub
+
+Sub GameModelMoveSelectionRectangleTo( _
+		ByVal pModel As GameModel Ptr, _
+		ByVal pCellCoord As POINT Ptr _
+	)
+	
+	Dim pts(1) As POINT = Any
+	pts(0).x = pModel->SelectedCellX
+	pts(0).y = pModel->SelectedCellY
+	
+	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
+	
+	pModel->SelectedCellX = pCellCoord->x
+	pModel->SelectedCellY = pCellCoord->y
+	
+	pts(1).x = pModel->SelectedCellX
+	pts(1).y = pModel->SelectedCellY
+	
+	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
+	
+	pModel->Events.OnLinesChanged( _
+		pModel->Context, _
+		@pts(0), _
+		2 _
+	)
+	
+End Sub
