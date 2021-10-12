@@ -2,6 +2,7 @@
 #include once "CreateInstance.bi"
 #include once "EmptyCommand.bi"
 #include once "MoveSelectionRectangleCommand.bi"
+#include once "crt.bi"
 
 Type _InputHandler
 	pStage As Stage Ptr
@@ -21,63 +22,81 @@ Function GetDirection( _
 	Select Case KeyCode
 		
 		Case VK_TAB
-			If GetKeyState(VK_SHIFT) = 0 Then
+			Dim ShiftKeyState As Short = GetKeyState(VK_SHIFT)
+			Dim ShiftKeyPressed As Boolean = HIBYTE(ShiftKeyState)
+			If ShiftKeyPressed = 0 Then
 				Return MoveSelectionRectangleDirection.JumpNextRight
 			Else
 				Return MoveSelectionRectangleDirection.JumpNextLeft
 			End If
 			
 		Case VK_LEFT
-			If GetKeyState(VK_CONTROL) = 0 Then
+			Dim ControlKeyState As Short = GetKeyState(VK_CONTROL)
+			Dim ControlPressed As Boolean = HIBYTE(ControlKeyState)
+			If ControlPressed = 0 Then
 				Return MoveSelectionRectangleDirection.Left
 			Else
 				Return MoveSelectionRectangleDirection.JumpNextLeft
 			End If
 			
 		Case VK_UP
-			If GetKeyState(VK_CONTROL) = 0 Then
+			Dim ControlKeyState As Short = GetKeyState(VK_CONTROL)
+			Dim ControlPressed As Boolean = HIBYTE(ControlKeyState)
+			If ControlPressed = 0 Then
 				Return MoveSelectionRectangleDirection.Up
 			Else
 				Return MoveSelectionRectangleDirection.JumpNextUp
 			End If
 			
 		Case VK_RIGHT
-			If GetKeyState(VK_CONTROL) = 0 Then
+			Dim ControlKeyState As Short = GetKeyState(VK_CONTROL)
+			Dim ControlPressed As Boolean = HIBYTE(ControlKeyState)
+			If ControlPressed = 0 Then
 				Return MoveSelectionRectangleDirection.Right
 			Else
 				Return MoveSelectionRectangleDirection.JumpNextRight
 			End If
 			
 		Case VK_DOWN
-			If GetKeyState(VK_CONTROL) = 0 Then
+			Dim ControlKeyState As Short = GetKeyState(VK_CONTROL)
+			Dim ControlPressed As Boolean = HIBYTE(ControlKeyState)
+			If ControlPressed = 0 Then
 				Return MoveSelectionRectangleDirection.Down
 			Else
 				Return MoveSelectionRectangleDirection.JumpNextDown
 			End If
 			
 		Case VK_HOME
-			If GetKeyState(VK_CONTROL) = 0 Then
+			Dim ControlKeyState As Short = GetKeyState(VK_CONTROL)
+			Dim ControlPressed As Boolean = HIBYTE(ControlKeyState)
+			If ControlPressed = 0 Then
 				Return MoveSelectionRectangleDirection.JumpBeginLeft
 			Else
 				Return MoveSelectionRectangleDirection.JumpBeginStage
 			End If
 			
 		Case VK_END
-			If GetKeyState(VK_CONTROL) = 0 Then
+			Dim ControlKeyState As Short = GetKeyState(VK_CONTROL)
+			Dim ControlPressed As Boolean = HIBYTE(ControlKeyState)
+			If ControlPressed = 0 Then
 				Return MoveSelectionRectangleDirection.JumpEndRight
 			Else
 				Return MoveSelectionRectangleDirection.JumpEndStage
 			End If
 			
-		Case VK_PRIOR
-			If GetKeyState(VK_CONTROL) = 0 Then
+		Case VK_PRIOR ' PageUp
+			Dim ControlKeyState As Short = GetKeyState(VK_CONTROL)
+			Dim ControlPressed As Boolean = HIBYTE(ControlKeyState)
+			If ControlPressed = 0 Then
 				Return MoveSelectionRectangleDirection.JumpNextUp
 			Else
 				Return MoveSelectionRectangleDirection.JumpBeginUp
 			End If
 			
-		Case VK_NEXT
-			If GetKeyState(VK_CONTROL) = 0 Then
+		Case VK_NEXT ' PageDown
+			Dim ControlKeyState As Short = GetKeyState(VK_CONTROL)
+			Dim ControlPressed As Boolean = HIBYTE(ControlKeyState)
+			If ControlPressed = 0 Then
 				Return MoveSelectionRectangleDirection.JumpNextDown
 			Else
 				Return MoveSelectionRectangleDirection.JumpEndDown
@@ -259,6 +278,14 @@ Function InputHandlerKeyDown( _
 			
 			Dim Direction As MoveSelectionRectangleDirection = GetDirection(Key)
 			IMoveSelectionRectangleCommand_SetMoveDirection(pCommand, Direction)
+			
+			
+			' Dim buffer As WString * (255 + 1) = Any
+			' Const ffFormat = WStr("{%d}")
+			' swprintf(@buffer, @ffFormat, Direction)
+			' buffer[255] = 0
+			' MessageBoxW(NULL, @buffer, NULL, MB_OK)
+			
 			
 			*ppvObject = pCommand
 			Return S_OK

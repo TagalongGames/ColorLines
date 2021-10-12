@@ -424,10 +424,10 @@ Sub GameModelMoveSelectionRectangle( _
 			pModel->SelectedCellY = 0
 			
 		Case MoveSelectionRectangleDirection.JumpEndRight
-			pModel->SelectedCellY = 8
+			pModel->SelectedCellX = 8
 			
 		Case MoveSelectionRectangleDirection.JumpEndDown
-			pModel->SelectedCellX = 8
+			pModel->SelectedCellY = 8
 			
 		Case MoveSelectionRectangleDirection.JumpBeginStage
 			pModel->SelectedCellX = 0
