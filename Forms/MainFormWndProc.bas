@@ -21,6 +21,20 @@ Dim Shared pStage As Stage Ptr
 Dim Shared pModel As GameModel Ptr
 Dim Shared pHandler As InputHandler Ptr
 
+Sub CommandListAppendCommand( _
+		ByVal pCommand As ICommand Ptr _
+	)
+	
+End Sub
+
+Sub CommandListUndo()
+	
+End Sub
+
+Sub CommandListRedo()
+	
+End Sub
+
 Sub ColorLinesStageChanged( _
 		ByVal pContext As Any Ptr, _
 		ByVal pCoordinates As POINT Ptr, _
@@ -252,10 +266,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 							GameModelNewGame(pModel)
 							
 						Case IDM_GAME_UNDO
-							' GameModelCommand(pModel, MenuCommands.Undo)
+							CommandListUndo()
 							
 						Case IDM_GAME_REDO
-							' GameModelCommand(pModel, MenuCommands.Redo)
+							CommandListRedo()
 							
 						' Case IDM_GAME_STATISTICS
 							' MainFormMenuStatistics_Click(hWin)
@@ -282,10 +296,10 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 							GameModelNewGame(pModel)
 							
 						Case IDM_GAME_UNDO_ACS
-							' GameModelCommand(pModel, MenuCommands.Undo)
+							CommandListUndo()
 							
 						Case IDM_GAME_REDO_ACS
-							' GameModelCommand(pModel, MenuCommands.Redo)
+							CommandListRedo()
 							
 						' Case IDM_GAME_STATISTICS_ACS
 							' MainFormMenuStatistics_Click(hWin)
@@ -334,6 +348,8 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim hr As HRESULT = InputHandlerLMouseDown(pHandler, @pt, @pICommand)
 			If SUCCEEDED(hr) Then
 				ICommand_Execute(pICommand)
+				CommandListAppendCommand(pICommand)
+				ICommand_Release(pICommand)
 			End If
 			
 		Case WM_LBUTTONUP
@@ -345,6 +361,8 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim hr As HRESULT = InputHandlerLMouseUp(pHandler, @pt, @pICommand)
 			If SUCCEEDED(hr) Then
 				ICommand_Execute(pICommand)
+				CommandListAppendCommand(pICommand)
+				ICommand_Release(pICommand)
 			End If
 			
 		Case WM_KEYDOWN
@@ -352,6 +370,8 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim hr As HRESULT = InputHandlerKeyDown(pHandler, wParam, @pICommand)
 			If SUCCEEDED(hr) Then
 				ICommand_Execute(pICommand)
+				CommandListAppendCommand(pICommand)
+				ICommand_Release(pICommand)
 			End If
 			
 		Case WM_KEYUP
@@ -359,6 +379,8 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			Dim hr As HRESULT = InputHandlerKeyUp(pHandler, wParam, @pICommand)
 			If SUCCEEDED(hr) Then
 				ICommand_Execute(pICommand)
+				CommandListAppendCommand(pICommand)
+				ICommand_Release(pICommand)
 			End If
 			
 		Case WM_TIMER
