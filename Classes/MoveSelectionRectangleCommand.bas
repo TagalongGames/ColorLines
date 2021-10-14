@@ -8,9 +8,9 @@ Extern GlobalMoveSelectionRectangleCommandVirtualTable As Const IMoveSelectionRe
 Type _MoveSelectionRectangleCommand
 	lpVtbl As Const IMoveSelectionRectangleCommandVirtualTable Ptr
 	RefCounter As Integer
-	SelectionCellCoord As POINT
-	MoveDirection As MoveSelectionRectangleDirection
 	pModel As GameModel Ptr
+	MoveDirection As MoveSelectionRectangleDirection
+	SelectionCellCoord As POINT
 End Type
 
 Sub InitializeMoveSelectionRectangleCommand( _
