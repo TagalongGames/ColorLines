@@ -3,6 +3,7 @@
 #include once "DeselectBallCommand.bi"
 #include once "EmptyCommand.bi"
 #include once "MoveSelectionRectangleCommand.bi"
+#include once "PushCellCommand.bi"
 #include once "crt.bi"
 
 Type _InputHandler
@@ -10,8 +11,6 @@ Type _InputHandler
 	pScene As Scene Ptr
 	pModel As GameModel Ptr
 	pEmptyCommand As ICommand Ptr
-	PressedCellX As Integer
-	PressedCellY As Integer
 End Type
 
 Function GetDirection( _
@@ -293,22 +292,22 @@ Function InputHandlerKeyDown( _
 			*ppvObject = pCommand
 			Return S_OK
 			
-		' Case VK_SPACE, VK_RETURN
-			' Нажать кнопку
-			' pHandler->PressedCellX = pHandler->SelectedCellX
-			' pHandler->PressedCellY = pHandler->SelectedCellY
+		Case VK_SPACE, VK_RETURN
+			Dim pCommand As IPushCellCommand Ptr = Any
+			Dim hrCreate As HRESULT = CreateInstance( _
+				@CLSID_PUSHCELLCOMMAND, _
+				@IID_IPushCellCommand, _
+				@pCommand _
+			)
+			If FAILED(hrCreate) Then
+				*ppvObject = NULL
+				Return hrCreate
+			End If
 			
-			' pHandler->pStage->Lines(pHandler->PressedCellY, pHandler->PressedCellX).Pressed = True
+			IPushCellCommand_SetGameModel(pCommand, pHandler->pModel)
 			
-			' Dim pts As POINT = Any
-			' pts.x = pHandler->PressedCellX
-			' pts.y = pHandler->PressedCellY
-			
-			' pModel->Events.OnLinesChanged( _
-				' pModel->Context, _
-				' @pts, _
-				' 1 _
-			' )
+			*ppvObject = pCommand
+			Return S_OK
 			
 	End Select
 	

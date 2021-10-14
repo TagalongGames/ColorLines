@@ -2,6 +2,70 @@
 #include once "GameAlgorithm.bi"
 #include once "crt.bi"
 
+/'
+Type _MoveBallCommand
+	pModel As GameModel Ptr
+	' Шар
+	BallCoord As POINT
+	' Новые координаты шара
+	NewBallCoord As POINT
+	' Путь шара
+	PathLength As Integer
+	BallPath(9 * 9 - 1) As POINT
+	
+	' Удалённые шары
+	RemovedBallsCount As Integer
+	RemovedBallsCoord(9 * 9 - 1) As POINT
+	RemovedBallsColor(9 * 9 - 1) As BallColors
+	
+	' Шары, извлечённые из табла
+	ExtractedBalls(2) As ColorBall
+	
+	' Удалённые шары после извлечения из табла
+	RemovedBalls2Count As Integer
+	RemovedBalls2Coord(9 * 9 - 1) As POINT
+	RemovedBalls2Color(9 * 9 - 1) As BallColors
+	
+	' Старый счёт
+	Score As Integer
+	HiScore As Integer
+	
+End Type
+
+Function MoveBallCommandExecute( _
+		ByVal pMoveCommand As MoveBallCommand Ptr, _
+		ByVal NewBallCoord As POINT Ptr _
+	)As Boolean
+	
+	pMoveCommand->pModel = pModel
+	pMoveCommand->BallCoord = *BallCoord
+	pMoveCommand->NewBallCoord = *NewBallCoord
+	
+	Dim IsBallMoved As Boolean = MoveBall( _
+		pModel, _
+		BallCoord, _
+		NewBallCoord, _
+		@pMoveCommand->BallPath(0), _
+		@pMoveCommand->PathLength _
+	)
+	
+	If IsBallMoved Then
+		' If RemoveLines(pModel, pStage) = False Then
+			' If ExtractBalls(pModel, pStage) Then
+				' GenerateTablo(pModel, pStage)
+				' RemoveLines(pModel, pStage)
+			' End If
+		' End If
+		
+		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
+		
+	End If
+	
+	Return False
+	
+End Function
+'/
+
 Type _GameModel
 	pStage As Stage Ptr
 	Events As StageEvents
@@ -11,6 +75,8 @@ Type _GameModel
 	SelectedCellY As Integer
 	SelectedBallX As Integer
 	SelectedBallY As Integer
+	PressedCellX As Integer
+	PressedCellY As Integer
 End Type
 
 Declare Function MoveBall( _
@@ -303,6 +369,8 @@ Function CreateGameModel( _
 	pModel->SelectedCellY = 0
 	pModel->SelectedBallX = 0
 	pModel->SelectedBallY = 0
+	pModel->PressedCellX = 0
+	pModel->PressedCellY = 0
 	
 	pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
@@ -535,5 +603,57 @@ Sub GameModelDeselectBall( _
 		)
 		
 	End If
+	
+End Sub
+
+Sub GameModelGetPressedCell( _
+		ByVal pModel As GameModel Ptr, _
+		ByVal pPressedCellCoord As POINT Ptr _
+	)
+	
+	pPressedCellCoord->x = pModel->PressedCellX
+	pPressedCellCoord->y = pModel->PressedCellY
+	
+End Sub
+
+Sub GameModelPushCell( _
+		ByVal pModel As GameModel Ptr _
+	)
+	
+	Dim pts(1) As POINT = Any
+	pts(0).x = pModel->PressedCellX
+	pts(0).y = pModel->PressedCellY
+	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
+	
+	pModel->PressedCellX = pModel->SelectedCellX
+	pModel->PressedCellY = pModel->SelectedCellY
+	
+	pts(1).x = pModel->PressedCellX
+	pts(1).y = pModel->PressedCellY
+	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = True
+	
+	pModel->Events.OnLinesChanged( _
+		pModel->Context, _
+		@pts(0), _
+		2 _
+	)
+	
+End Sub
+
+Sub GameModelUnPushCell( _
+		ByVal pModel As GameModel Ptr _
+	)
+	
+	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
+	
+	Dim pts As POINT = Any
+	pts.x = pModel->PressedCellX
+	pts.y = pModel->PressedCellY
+	
+	pModel->Events.OnLinesChanged( _
+		pModel->Context, _
+		@pts, _
+		1 _
+	)
 	
 End Sub
