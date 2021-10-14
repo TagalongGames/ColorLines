@@ -35,6 +35,11 @@ DEFINE_CLSID(CLSID_MOVESELECTIONRECTANGLECOMMAND, _
 	&h4d1199eb, &h2dd9, &h4969, &h9b, &hd8, &hcd, &hf3, &hfb, &h2b, &h7a, &h5e _
 )
 
+' {C3637BCB-9A0A-4D5D-95C4-025F1291A95A}
+DEFINE_GUID(CLSID_PULLCELLCOMMAND, _
+	&hc3637bcb, &h9a0a, &h4d5d, &h95, &hc4, &h2, &h5f, &h12, &h91, &ha9, &h5a _
+)
+
 ' {B6041150-B0F2-4FED-8A8A-72A9652627AA}
 DEFINE_GUID(CLSID_PUSHCELLCOMMAND, _
 	&hb6041150, &hb0f2, &h4fed, &h8a, &h8a, &h72, &ha9, &h65, &h26, &h27, &haa _
@@ -53,6 +58,11 @@ DEFINE_GUID(IID_IDeselectBallCommand, _
 ' {22A3603C-85C8-45EA-B839-C696663F74DA}
 DEFINE_IID(IID_IMoveSelectionRectangleCommand, _
 	&h22a3603c, &h85c8, &h45ea, &hb8, &h39, &hc6, &h96, &h66, &h3f, &h74, &hda _
+)
+
+' {BC01FF80-7328-4217-9E65-87926120BF3B}
+DEFINE_GUID(IID_IPullCellCommand, _
+	&hbc01ff80, &h7328, &h4217, &h9e, &h65, &h87, &h92, &h61, &h20, &hbf, &h3b _
 )
 
 ' {F518590C-8A2F-4386-9341-E01ADCC747AD}

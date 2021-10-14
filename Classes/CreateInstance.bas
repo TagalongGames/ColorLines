@@ -2,6 +2,7 @@
 #include once "DeselectBallCommand.bi"
 #include once "EmptyCommand.bi"
 #include once "MoveSelectionRectangleCommand.bi"
+#include once "PullCellCommand.bi"
 #include once "PushCellCommand.bi"
 
 Function CreateInstance( _
@@ -49,6 +50,20 @@ Function CreateInstance( _
 		Dim hr As HRESULT = MoveSelectionRectangleCommandQueryInterface(pCommand, riid, ppv)
 		If FAILED(hr) Then
 			DestroyMoveSelectionRectangleCommand(pCommand)
+		End If
+		
+		Return hr
+	End If
+	
+	If IsEqualCLSID(@CLSID_PULLCELLCOMMAND, rclsid) Then
+		Dim pCommand As PullCellCommand Ptr = CreatePullCellCommand()
+		If pCommand = NULL Then
+			Return E_OUTOFMEMORY
+		End If
+		
+		Dim hr As HRESULT = PullCellCommandQueryInterface(pCommand, riid, ppv)
+		If FAILED(hr) Then
+			DestroyPullCellCommand(pCommand)
 		End If
 		
 		Return hr

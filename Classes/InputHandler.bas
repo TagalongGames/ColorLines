@@ -185,6 +185,24 @@ Function InputHandlerLMouseDown( _
 		@CellCoord _
 	)
 	If CellExists Then
+		Dim pCommand As IPushCellCommand Ptr = Any
+		Dim hrCreate As HRESULT = CreateInstance( _
+			@CLSID_PUSHCELLCOMMAND, _
+			@IID_IPushCellCommand, _
+			@pCommand _
+		)
+		If FAILED(hrCreate) Then
+			*ppvObject = NULL
+			Return hrCreate
+		End If
+		
+		IPushCellCommand_SetGameModel(pCommand, pHandler->pModel)
+		
+		IPushCellCommand_SetPushCellCoord(pCommand, @CellCoord)
+		
+		*ppvObject = pCommand
+		Return S_OK
+		
 		' Развыбрать старую ячейку
 		' Dim pts(1) As POINT = Any
 		' pts(0).x = pHandler->SelectedCellX
@@ -198,11 +216,6 @@ Function InputHandlerLMouseDown( _
 		
 		' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
 		
-		Return InputHandlerKeyDown( _
-			pHandler, _
-			VK_SPACE, _
-			ppvObject _
-		)
 		' pts(1).x = CellCoord.x
 		' pts(1).y = CellCoord.y
 		
@@ -306,6 +319,13 @@ Function InputHandlerKeyDown( _
 			
 			IPushCellCommand_SetGameModel(pCommand, pHandler->pModel)
 			
+			Dim SelectedCell As POINT = Any
+			GameModelGetSelectedCell( _
+				pHandler->pModel, _
+				@SelectedCell _
+			)
+			IPushCellCommand_SetPushCellCoord(pCommand, @SelectedCell)
+			
 			*ppvObject = pCommand
 			Return S_OK
 			
@@ -323,9 +343,9 @@ Function InputHandlerKeyUp( _
 		ByVal ppvObject As Any Ptr Ptr _
 	)As HRESULT
 	
-	' Select Case Key
+	Select Case Key
 		
-		' Case VK_SPACE, VK_RETURN
+		Case VK_SPACE, VK_RETURN
 			' Отпустить кнопку
 			' pHandler->pStage->Lines(pHandler->PressedCellY, pHandler->PressedCellX).Pressed = False
 			
@@ -394,7 +414,7 @@ Function InputHandlerKeyUp( _
 				' 1 _
 			' )
 			
-	' End Select
+	End Select
 	
 	ICommand_AddRef(pHandler->pEmptyCommand)
 	*ppvObject = pHandler->pEmptyCommand

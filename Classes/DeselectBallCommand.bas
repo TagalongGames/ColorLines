@@ -124,7 +124,7 @@ Function DeselectBallCommandUndo( _
 	
 	GameModelSelectBall(this->pModel)
 	
-	Return S_FALSE
+	Return S_OK
 	
 End Function
 

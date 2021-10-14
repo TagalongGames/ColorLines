@@ -463,9 +463,13 @@ Sub GameModelMoveSelectionRectangle( _
 		ByVal Direction As MoveSelectionRectangleDirection _
 	)
 	
-	Dim pts(1) As POINT = Any
-	pts(0).x = pModel->SelectedCellX
-	pts(0).y = pModel->SelectedCellY
+	Dim pts(2) As POINT = Any
+	pts(0).x = pModel->PressedCellX
+	pts(0).y = pModel->PressedCellY
+	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
+	
+	pts(1).x = pModel->SelectedCellX
+	pts(1).y = pModel->SelectedCellY
 	
 	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 	
@@ -522,15 +526,15 @@ Sub GameModelMoveSelectionRectangle( _
 			
 	End Select
 	
-	pts(1).x = pModel->SelectedCellX
-	pts(1).y = pModel->SelectedCellY
+	pts(2).x = pModel->SelectedCellX
+	pts(2).y = pModel->SelectedCellY
 	
 	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
 	pModel->Events.OnLinesChanged( _
 		pModel->Context, _
 		@pts(0), _
-		2 _
+		3 _
 	)
 	
 End Sub
@@ -540,24 +544,28 @@ Sub GameModelMoveSelectionRectangleTo( _
 		ByVal pCellCoord As POINT Ptr _
 	)
 	
-	Dim pts(1) As POINT = Any
-	pts(0).x = pModel->SelectedCellX
-	pts(0).y = pModel->SelectedCellY
+	Dim pts(2) As POINT = Any
+	pts(0).x = pModel->PressedCellX
+	pts(0).y = pModel->PressedCellY
+	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
+	
+	pts(1).x = pModel->SelectedCellX
+	pts(1).y = pModel->SelectedCellY
 	
 	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 	
 	pModel->SelectedCellX = pCellCoord->x
 	pModel->SelectedCellY = pCellCoord->y
 	
-	pts(1).x = pModel->SelectedCellX
-	pts(1).y = pModel->SelectedCellY
+	pts(2).x = pModel->SelectedCellX
+	pts(2).y = pModel->SelectedCellY
 	
 	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
 	pModel->Events.OnLinesChanged( _
 		pModel->Context, _
 		@pts(0), _
-		2 _
+		3 _
 	)
 	
 End Sub
@@ -617,25 +625,35 @@ Sub GameModelGetPressedCell( _
 End Sub
 
 Sub GameModelPushCell( _
-		ByVal pModel As GameModel Ptr _
+		ByVal pModel As GameModel Ptr, _
+		ByVal pPushCellCoord As POINT Ptr _
 	)
 	
-	Dim pts(1) As POINT = Any
+	Dim pts(2) As POINT = Any
+	
 	pts(0).x = pModel->PressedCellX
 	pts(0).y = pModel->PressedCellY
 	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
 	
-	pModel->PressedCellX = pModel->SelectedCellX
-	pModel->PressedCellY = pModel->SelectedCellY
+	pModel->PressedCellX = pPushCellCoord->x
+	pModel->PressedCellY = pPushCellCoord->y
 	
 	pts(1).x = pModel->PressedCellX
 	pts(1).y = pModel->PressedCellY
 	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = True
 	
+	pts(2).x = pModel->SelectedCellX
+	pts(2).y = pModel->SelectedCellY
+	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
+	
+	pModel->SelectedCellX = pPushCellCoord->x
+	pModel->SelectedCellY = pPushCellCoord->y
+	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
+	
 	pModel->Events.OnLinesChanged( _
 		pModel->Context, _
 		@pts(0), _
-		2 _
+		3 _
 	)
 	
 End Sub
@@ -654,6 +672,18 @@ Sub GameModelUnPushCell( _
 		pModel->Context, _
 		@pts, _
 		1 _
+	)
+	
+End Sub
+
+Sub GameModelPullCell( _
+		ByVal pModel As GameModel Ptr _
+	)
+	
+End Sub
+
+Sub GameModelUnPullCell( _
+		ByVal pModel As GameModel Ptr _
 	)
 	
 End Sub

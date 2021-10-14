@@ -130,7 +130,7 @@ Function MoveSelectionRectangleCommandUndo( _
 	
 	GameModelMoveSelectionRectangleTo(this->pModel, @this->SelectionCellCoord)
 	
-	Return S_FALSE
+	Return S_OK
 	
 End Function
 

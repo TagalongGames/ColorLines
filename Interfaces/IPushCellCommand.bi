@@ -44,6 +44,11 @@ Type IPushCellCommandVirtualTable
 		ByVal pModel As GameModel Ptr _
 	)As HRESULT
 	
+	SetPushCellCoord As Function( _
+		ByVal this As IPushCellCommand Ptr, _
+		ByVal pPushCellCoord As POINT Ptr _
+	)As HRESULT
+	
 End Type
 
 Type IPushCellCommand_
@@ -57,5 +62,6 @@ End Type
 #define IPushCellCommand_Undo(this) (this)->lpVtbl->Undo(this)
 #define IPushCellCommand_GetCommandType(this, pType) (this)->lpVtbl->GetCommandType(this, pType)
 #define IPushCellCommand_SetGameModel(this, pModel) (this)->lpVtbl->SetGameModel(this, pModel)
+#define IPushCellCommand_SetPushCellCoord(this, pPushCellCoord) (this)->lpVtbl->SetPushCellCoord(this, pPushCellCoord)
 
 #endif

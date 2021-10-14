@@ -48,4 +48,9 @@ Declare Function PushCellCommandSetGameModel( _
 	ByVal pModel As GameModel Ptr _
 )As HRESULT
 
+Declare Function PushCellCommandSetPushCellCoord( _
+	ByVal this As PushCellCommand Ptr, _
+	ByVal pPushCellCoord As POINT Ptr _
+)As HRESULT
+
 #endif

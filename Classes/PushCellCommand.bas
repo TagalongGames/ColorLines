@@ -7,6 +7,7 @@ Type _PushCellCommand
 	lpVtbl As Const IPushCellCommandVirtualTable Ptr
 	RefCounter As Integer
 	pModel As GameModel Ptr
+	PushCellCoord As POINT
 End Type
 
 Sub InitializePushCellCommand( _
@@ -16,6 +17,8 @@ Sub InitializePushCellCommand( _
 	this->lpVtbl = @GlobalPushCellCommandVirtualTable
 	this->RefCounter = 0
 	this->pModel = NULL
+	this->PushCellCoord.x = 0
+	this->PushCellCoord.y = 0
 	
 End Sub
 
@@ -107,7 +110,7 @@ Function PushCellCommandExecute( _
 		ByVal this As PushCellCommand Ptr _
 	)As HRESULT
 	
-	GameModelPushCell(this->pModel)
+	GameModelPushCell(this->pModel, @this->PushCellCoord)
 	
 	Return S_OK
 	
@@ -117,8 +120,9 @@ Function PushCellCommandUndo( _
 		ByVal this As PushCellCommand Ptr _
 	)As HRESULT
 	
+	GameModelUnPushCell(this->pModel)
 	
-	Return S_FALSE
+	Return S_OK
 	
 End Function
 
@@ -144,6 +148,16 @@ Function PushCellCommandSetGameModel( _
 	
 End Function
 
+Function PushCellCommandSetPushCellCoord( _
+		ByVal this As PushCellCommand Ptr, _
+		ByVal pPushCellCoord As POINT Ptr _
+	)As HRESULT
+	
+	this->PushCellCoord = *pPushCellCoord
+	
+	Return S_OK
+	
+End Function
 
 Function IPushCellCommandQueryInterface( _
 		ByVal this As IPushCellCommand Ptr, _
@@ -191,6 +205,13 @@ Function IPushCellCommandSetGameModel( _
 	Return PushCellCommandSetGameModel(ContainerOf(this, PushCellCommand, lpVtbl), pModel)
 End Function
 
+Function IPushCellCommandSetPushCellCoord( _
+		ByVal this As IPushCellCommand Ptr, _
+		ByVal pPushCellCoord As POINT Ptr _
+	)As ULONG
+	Return PushCellCommandSetPushCellCoord(ContainerOf(this, PushCellCommand, lpVtbl), pPushCellCoord)
+End Function
+
 Dim GlobalPushCellCommandVirtualTable As Const IPushCellCommandVirtualTable = Type( _
 	@IPushCellCommandQueryInterface, _
 	@IPushCellCommandAddRef, _
@@ -198,5 +219,6 @@ Dim GlobalPushCellCommandVirtualTable As Const IPushCellCommandVirtualTable = Ty
 	@IPushCellCommandExecute, _
 	@IPushCellCommandUndo, _
 	@IPushCellCommandGetCommandType, _
-	@IPushCellCommandSetGameModel _
+	@IPushCellCommandSetGameModel, _
+	@IPushCellCommandSetPushCellCoord _
 )

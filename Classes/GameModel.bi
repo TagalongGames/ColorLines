@@ -116,10 +116,19 @@ Declare Sub GameModelGetPressedCell( _
 )
 
 Declare Sub GameModelPushCell( _
-	ByVal pModel As GameModel Ptr _
+	ByVal pModel As GameModel Ptr, _
+	ByVal pPushCellCoord As POINT Ptr _
 )
 
 Declare Sub GameModelUnPushCell( _
+	ByVal pModel As GameModel Ptr _
+)
+
+Declare Sub GameModelPullCell( _
+	ByVal pModel As GameModel Ptr _
+)
+
+Declare Sub GameModelUnPullCell( _
 	ByVal pModel As GameModel Ptr _
 )
 
