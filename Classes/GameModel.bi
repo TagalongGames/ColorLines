@@ -87,6 +87,11 @@ Declare Sub GameModelGetSelectedCell( _
 	ByVal pCellCoord As POINT Ptr _
 )
 
+Declare Sub GameModelGetSelectedBall( _
+	ByVal pModel As GameModel Ptr, _
+	ByVal pBallCoord As POINT Ptr _
+)
+
 Declare Sub GameModelMoveSelectionRectangle( _
 	ByVal pModel As GameModel Ptr, _
 	ByVal Direction As MoveSelectionRectangleDirection _
@@ -95,6 +100,14 @@ Declare Sub GameModelMoveSelectionRectangle( _
 Declare Sub GameModelMoveSelectionRectangleTo( _
 	ByVal pModel As GameModel Ptr, _
 	ByVal pCellCoord As POINT Ptr _
+)
+
+Declare Sub GameModelSelectBall( _
+	ByVal pModel As GameModel Ptr _
+)
+
+Declare Sub GameModelDeselectBall( _
+	ByVal pModel As GameModel Ptr _
 )
 
 #endif

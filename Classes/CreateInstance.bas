@@ -1,4 +1,5 @@
 #include once "CreateInstance.bi"
+#include once "DeselectBallCommand.bi"
 #include once "EmptyCommand.bi"
 #include once "MoveSelectionRectangleCommand.bi"
 
@@ -9,6 +10,20 @@ Function CreateInstance( _
 	)As HRESULT
 	
 	*ppv = NULL
+	
+	If IsEqualCLSID(@CLSID_DESELECTBALLCOMMAND, rclsid) Then
+		Dim pCommand As DeselectBallCommand Ptr = CreateDeselectBallCommand()
+		If pCommand = NULL Then
+			Return E_OUTOFMEMORY
+		End If
+		
+		Dim hr As HRESULT = DeselectBallCommandQueryInterface(pCommand, riid, ppv)
+		If FAILED(hr) Then
+			DestroyDeselectBallCommand(pCommand)
+		End If
+		
+		Return hr
+	End If
 	
 	If IsEqualCLSID(@CLSID_EMPTYCOMMAND, rclsid) Then
 		Dim pCommand As EmptyCommand Ptr = CreateEmptyCommand()

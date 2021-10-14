@@ -9,6 +9,8 @@ Type _GameModel
 	Grid(9 * 9 - 1) As Integer
 	SelectedCellX As Integer
 	SelectedCellY As Integer
+	SelectedBallX As Integer
+	SelectedBallY As Integer
 End Type
 
 Declare Function MoveBall( _
@@ -299,6 +301,9 @@ Function CreateGameModel( _
 	' pModel->Grid(9 * 9 - 1) = {0}
 	pModel->SelectedCellX = 0
 	pModel->SelectedCellY = 0
+	pModel->SelectedBallX = 0
+	pModel->SelectedBallY = 0
+	
 	pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
 	Return pModel
@@ -372,6 +377,16 @@ Sub GameModelGetSelectedCell( _
 	
 	pCellCoord->x = pModel->SelectedCellX
 	pCellCoord->y = pModel->SelectedCellY
+	
+End Sub
+
+Sub GameModelGetSelectedBall( _
+		ByVal pModel As GameModel Ptr, _
+		ByVal pBallCoord As POINT Ptr _
+	)
+	
+	pBallCoord->x = pModel->SelectedBallX
+	pBallCoord->y = pModel->SelectedBallY
 	
 End Sub
 
@@ -476,5 +491,49 @@ Sub GameModelMoveSelectionRectangleTo( _
 		@pts(0), _
 		2 _
 	)
+	
+End Sub
+
+Sub GameModelSelectBall( _
+		ByVal pModel As GameModel Ptr _
+	)
+	
+	Dim Selected As Boolean = pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected
+	If Selected = False Then
+		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = True
+		
+		Dim pts As POINT = Any
+		pts.x = pModel->SelectedBallX
+		pts.y = pModel->SelectedBallY
+		
+		pModel->Events.OnLinesChanged( _
+			pModel->Context, _
+			@pts, _
+			1 _
+		)
+		
+	End If
+	
+End Sub
+
+Sub GameModelDeselectBall( _
+		ByVal pModel As GameModel Ptr _
+	)
+	
+	Dim Selected As Boolean = pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected
+	If Selected Then
+		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
+		
+		Dim pts As POINT = Any
+		pts.x = pModel->SelectedBallX
+		pts.y = pModel->SelectedBallY
+		
+		pModel->Events.OnLinesChanged( _
+			pModel->Context, _
+			@pts, _
+			1 _
+		)
+		
+	End If
 	
 End Sub

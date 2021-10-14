@@ -20,6 +20,11 @@
 	Dim n As Const GUID = Type(l, w1, w2, {b1, b2, b3, b4, b5, b6, b7, b8})
 #endif
 
+' {6352DA7B-D2A3-4BD5-AD71-BD946D03CC25}
+DEFINE_GUID(CLSID_DESELECTBALLCOMMAND, _
+	&h6352da7b, &hd2a3, &h4bd5, &had, &h71, &hbd, &h94, &h6d, &h3, &hcc, &h25 _
+)
+
 ' {AD4D5980-343D-4916-A2D9-158775DB0546}
 DEFINE_CLSID(CLSID_EMPTYCOMMAND, _
 	&had4d5980, &h343d, &h4916, &ha2, &hd9, &h15, &h87, &h75, &hdb, &h5, &h46 _
@@ -30,12 +35,27 @@ DEFINE_CLSID(CLSID_MOVESELECTIONRECTANGLECOMMAND, _
 	&h4d1199eb, &h2dd9, &h4969, &h9b, &hd8, &hcd, &hf3, &hfb, &h2b, &h7a, &h5e _
 )
 
+' {B6041150-B0F2-4FED-8A8A-72A9652627AA}
+DEFINE_GUID(CLSID_PUSHCELLCOMMAND, _
+	&hb6041150, &hb0f2, &h4fed, &h8a, &h8a, &h72, &ha9, &h65, &h26, &h27, &haa _
+)
+
 ' {F6369A61-726B-4617-A6B2-50FF97FDE53E}
 DEFINE_IID(IID_ICommand, _
 	&hf6369a61, &h726b, &h4617, &ha6, &hb2, &h50, &hff, &h97, &hfd, &he5, &h3e _
 )
 
+' {08D2995E-05B1-4EA9-9956-973DA96AE64F}
+DEFINE_GUID(IID_IDeselectBallCommand, _
+	&h8d2995e, &h5b1, &h4ea9, &h99, &h56, &h97, &h3d, &ha9, &h6a, &he6, &h4f _
+)
+
 ' {22A3603C-85C8-45EA-B839-C696663F74DA}
 DEFINE_IID(IID_IMoveSelectionRectangleCommand, _
 	&h22a3603c, &h85c8, &h45ea, &hb8, &h39, &hc6, &h96, &h66, &h3f, &h74, &hda _
+)
+
+' {F518590C-8A2F-4386-9341-E01ADCC747AD}
+DEFINE_GUID(IID_IPushCellCommand, _
+	&hf518590c, &h8a2f, &h4386, &h93, &h41, &he0, &h1a, &hdc, &hc7, &h47, &had _
 )

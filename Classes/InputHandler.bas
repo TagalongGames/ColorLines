@@ -1,5 +1,6 @@
 #include once "InputHandler.bi"
 #include once "CreateInstance.bi"
+#include once "DeselectBallCommand.bi"
 #include once "EmptyCommand.bi"
 #include once "MoveSelectionRectangleCommand.bi"
 #include once "crt.bi"
@@ -9,8 +10,6 @@ Type _InputHandler
 	pScene As Scene Ptr
 	pModel As GameModel Ptr
 	pEmptyCommand As ICommand Ptr
-	SelectedBallX As Integer
-	SelectedBallY As Integer
 	PressedCellX As Integer
 	PressedCellY As Integer
 End Type
@@ -159,10 +158,6 @@ Function CreateInputHandler( _
 	pHandler->pStage = pStage
 	pHandler->pScene = pScene
 	pHandler->pModel = pModel
-	pHandler->SelectedBallX = 0
-	pHandler->SelectedBallY = 0
-	pHandler->PressedCellX = 0
-	pHandler->PressedCellY = 0
 	
 	Return pHandler
 	
@@ -262,7 +257,6 @@ Function InputHandlerKeyDown( _
 	Select Case Key
 		
 		Case VK_TAB, VK_LEFT, VK_UP, VK_RIGHT, VK_DOWN, VK_HOME, VK_END, VK_PRIOR, VK_NEXT
-			' Ctrl+Стрелка переход к следующему шару
 			Dim pCommand As IMoveSelectionRectangleCommand Ptr = Any
 			Dim hrCreate As HRESULT = CreateInstance( _
 				@CLSID_MOVESELECTIONRECTANGLECOMMAND, _
@@ -279,30 +273,25 @@ Function InputHandlerKeyDown( _
 			Dim Direction As MoveSelectionRectangleDirection = GetDirection(Key)
 			IMoveSelectionRectangleCommand_SetMoveDirection(pCommand, Direction)
 			
-			
-			' Dim buffer As WString * (255 + 1) = Any
-			' Const ffFormat = WStr("{%d}")
-			' swprintf(@buffer, @ffFormat, Direction)
-			' buffer[255] = 0
-			' MessageBoxW(NULL, @buffer, NULL, MB_OK)
-			
-			
 			*ppvObject = pCommand
 			Return S_OK
 			
-		' Case VK_ESCAPE
-			' Снять выбор шара
-			' pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected = False
+		Case VK_ESCAPE
+			Dim pCommand As IDeselectBallCommand Ptr = Any
+			Dim hrCreate As HRESULT = CreateInstance( _
+				@CLSID_DESELECTBALLCOMMAND, _
+				@IID_IDeselectBallCommand, _
+				@pCommand _
+			)
+			If FAILED(hrCreate) Then
+				*ppvObject = NULL
+				Return hrCreate
+			End If
 			
-			' Dim pts As POINT = Any
-			' pts.x = pHandler->SelectedBallX
-			' pts.y = pHandler->SelectedBallY
+			IDeselectBallCommand_SetGameModel(pCommand, pHandler->pModel)
 			
-			' pModel->Events.OnLinesChanged( _
-				' pModel->Context, _
-				' @pts, _
-				' 1 _
-			' )
+			*ppvObject = pCommand
+			Return S_OK
 			
 		' Case VK_SPACE, VK_RETURN
 			' Нажать кнопку
