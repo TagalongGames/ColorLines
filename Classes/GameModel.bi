@@ -74,6 +74,10 @@ Declare Sub DestroyGameModel( _
 	ByVal pModel As GameModel Ptr _
 )
 
+Declare Function GameModelIsBusy( _
+	ByVal pModel As GameModel Ptr _
+)As Boolean
+
 Declare Sub GameModelNewGame( _
 	ByVal pModel As GameModel Ptr _
 )

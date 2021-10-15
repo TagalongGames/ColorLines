@@ -77,6 +77,7 @@ Type _GameModel
 	SelectedBallY As Integer
 	PressedCellX As Integer
 	PressedCellY As Integer
+	Busy As Boolean
 End Type
 
 Function RemoveLines( _
@@ -363,6 +364,7 @@ Function CreateGameModel( _
 	pModel->SelectedBallY = 0
 	pModel->PressedCellX = 0
 	pModel->PressedCellY = 0
+	pModel->Busy = False
 	
 	pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
@@ -378,9 +380,19 @@ Sub DestroyGameModel( _
 	
 End Sub
 
+Function GameModelIsBusy( _
+		ByVal pModel As GameModel Ptr _
+	)As Boolean
+	
+	Return pModel->Busy
+	
+End Function
+
 Sub GameModelNewGame( _
 		ByVal pModel As GameModel Ptr _
 	)
+	
+	pModel->Busy = True
 	
 	pModel->pStage->Score = 0
 	pModel->Events.OnScoreChanged( _
@@ -418,11 +430,17 @@ Sub GameModelNewGame( _
 	
 	GenerateTablo(pModel)
 	
+	pModel->Busy = False
+	
 End Sub
 
 Function GameModelUpdate( _
 		ByVal pModel As GameModel Ptr _
 	)As Boolean
+	
+	pModel->Busy = True
+	
+	pModel->Busy = False
 	
 	Return False
 	
@@ -462,6 +480,8 @@ Sub GameModelMoveSelectionRectangle( _
 		ByVal pModel As GameModel Ptr, _
 		ByVal Direction As MoveSelectionRectangleDirection _
 	)
+	
+	pModel->Busy = True
 	
 	Dim pts(2) As POINT = Any
 	
@@ -536,12 +556,16 @@ Sub GameModelMoveSelectionRectangle( _
 		3 _
 	)
 	
+	pModel->Busy = False
+	
 End Sub
 
 Sub GameModelMoveSelectionRectangleTo( _
 		ByVal pModel As GameModel Ptr, _
 		ByVal pCellCoord As POINT Ptr _
 	)
+	
+	pModel->Busy = True
 	
 	Dim pts(2) As POINT = Any
 	
@@ -566,6 +590,8 @@ Sub GameModelMoveSelectionRectangleTo( _
 		3 _
 	)
 	
+	pModel->Busy = False
+	
 End Sub
 
 Sub GameModelSelectBall( _
@@ -574,6 +600,8 @@ Sub GameModelSelectBall( _
 	
 	Dim Selected As Boolean = pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected
 	If Selected = False Then
+		pModel->Busy = True
+		
 		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = True
 		
 		Dim pts As POINT = Any
@@ -586,6 +614,8 @@ Sub GameModelSelectBall( _
 			1 _
 		)
 		
+		pModel->Busy = False
+		
 	End If
 	
 End Sub
@@ -596,6 +626,8 @@ Sub GameModelDeselectBall( _
 	
 	Dim Selected As Boolean = pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected
 	If Selected Then
+		
+		pModel->Busy = True
 		
 		Dim pts As POINT = Any
 		pts.x = pModel->SelectedBallX
@@ -608,6 +640,8 @@ Sub GameModelDeselectBall( _
 			1 _
 		)
 		
+		pModel->Busy = False
+		
 	End If
 	
 End Sub
@@ -616,6 +650,8 @@ Sub GameModelPushCell( _
 		ByVal pModel As GameModel Ptr, _
 		ByVal pPushCellCoord As POINT Ptr _
 	)
+	
+	pModel->Busy = True
 	
 	Dim pts(2) As POINT = Any
 	
@@ -644,11 +680,15 @@ Sub GameModelPushCell( _
 		3 _
 	)
 	
+	pModel->Busy = False
+	
 End Sub
 
 Sub GameModelUnPushCell( _
 		ByVal pModel As GameModel Ptr _
 	)
+	
+	pModel->Busy = True
 	
 	Dim pts As POINT = Any
 	pts.x = pModel->PressedCellX
@@ -661,11 +701,15 @@ Sub GameModelUnPushCell( _
 		1 _
 	)
 	
+	pModel->Busy = False
+	
 End Sub
 
 Sub GameModelPullCell( _
 		ByVal pModel As GameModel Ptr _
 	)
+	
+	pModel->Busy = True
 	
 	Dim pts(2) As POINT = Any
 	pts(0).x = pModel->PressedCellX
@@ -681,6 +725,12 @@ Sub GameModelPullCell( _
 	pts(2).x = pModel->SelectedCellX
 	pts(2).y = pModel->SelectedCellY
 	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
+	
+	pModel->Events.OnLinesChanged( _
+		pModel->Context, _
+		@pts(0), _
+		3 _
+	)
 	
 	Dim BallVisible As Boolean = pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Ball.Visible
 	
@@ -741,16 +791,16 @@ Sub GameModelPullCell( _
 		
 	End If
 	
-	pModel->Events.OnLinesChanged( _
-		pModel->Context, _
-		@pts(0), _
-		3 _
-	)
+	pModel->Busy = False
 	
 End Sub
 
 Sub GameModelUnPullCell( _
 		ByVal pModel As GameModel Ptr _
 	)
+	
+	pModel->Busy = True
+	
+	pModel->Busy = False
 	
 End Sub

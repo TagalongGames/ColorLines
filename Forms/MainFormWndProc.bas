@@ -340,45 +340,61 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			PostQuitMessage(0)
 			
 		Case WM_LBUTTONDOWN
-			Dim pt As POINT = Any
-			pt.x = GET_X_LPARAM(lParam)
-			pt.y = GET_Y_LPARAM(lParam)
-			Dim pICommand As ICommand Ptr = Any
-			Dim hr As HRESULT = InputHandlerLMouseDown(pHandler, @pt, @pICommand)
-			If SUCCEEDED(hr) Then
-				ICommand_Execute(pICommand)
-				CommandListAppendCommand(pICommand)
-				ICommand_Release(pICommand)
+			If GameModelIsBusy(pModel) Then
+				Return DefWindowProc(hWin, wMsg, wParam, lParam)
+			Else
+				Dim pt As POINT = Any
+				pt.x = GET_X_LPARAM(lParam)
+				pt.y = GET_Y_LPARAM(lParam)
+				Dim pICommand As ICommand Ptr = Any
+				Dim hr As HRESULT = InputHandlerLMouseDown(pHandler, @pt, @pICommand)
+				If SUCCEEDED(hr) Then
+					ICommand_Execute(pICommand)
+					CommandListAppendCommand(pICommand)
+					ICommand_Release(pICommand)
+				End If
 			End If
 			
 		Case WM_LBUTTONUP
-			Dim pt As POINT = Any
-			pt.x = GET_X_LPARAM(lParam)
-			pt.y = GET_Y_LPARAM(lParam)
-			Dim pICommand As ICommand Ptr = Any
-			Dim hr As HRESULT = InputHandlerLMouseUp(pHandler, @pt, @pICommand)
-			If SUCCEEDED(hr) Then
-				ICommand_Execute(pICommand)
-				CommandListAppendCommand(pICommand)
-				ICommand_Release(pICommand)
+			If GameModelIsBusy(pModel) Then
+				Return DefWindowProc(hWin, wMsg, wParam, lParam)
+			Else
+				Dim pt As POINT = Any
+				pt.x = GET_X_LPARAM(lParam)
+				pt.y = GET_Y_LPARAM(lParam)
+				Dim pICommand As ICommand Ptr = Any
+				Dim hr As HRESULT = InputHandlerLMouseUp(pHandler, @pt, @pICommand)
+				If SUCCEEDED(hr) Then
+					ICommand_Execute(pICommand)
+					CommandListAppendCommand(pICommand)
+					ICommand_Release(pICommand)
+				End If
 			End If
 			
 		Case WM_KEYDOWN
-			Dim pICommand As ICommand Ptr = Any
-			Dim hr As HRESULT = InputHandlerKeyDown(pHandler, wParam, @pICommand)
-			If SUCCEEDED(hr) Then
-				ICommand_Execute(pICommand)
-				CommandListAppendCommand(pICommand)
-				ICommand_Release(pICommand)
+			If GameModelIsBusy(pModel) Then
+				Return DefWindowProc(hWin, wMsg, wParam, lParam)
+			Else
+				Dim pICommand As ICommand Ptr = Any
+				Dim hr As HRESULT = InputHandlerKeyDown(pHandler, wParam, @pICommand)
+				If SUCCEEDED(hr) Then
+					ICommand_Execute(pICommand)
+					CommandListAppendCommand(pICommand)
+					ICommand_Release(pICommand)
+				End If
 			End If
 			
 		Case WM_KEYUP
-			Dim pICommand As ICommand Ptr = Any
-			Dim hr As HRESULT = InputHandlerKeyUp(pHandler, wParam, @pICommand)
-			If SUCCEEDED(hr) Then
-				ICommand_Execute(pICommand)
-				CommandListAppendCommand(pICommand)
-				ICommand_Release(pICommand)
+			If GameModelIsBusy(pModel) Then
+				Return DefWindowProc(hWin, wMsg, wParam, lParam)
+			Else
+				Dim pICommand As ICommand Ptr = Any
+				Dim hr As HRESULT = InputHandlerKeyUp(pHandler, wParam, @pICommand)
+				If SUCCEEDED(hr) Then
+					ICommand_Execute(pICommand)
+					CommandListAppendCommand(pICommand)
+					ICommand_Release(pICommand)
+				End If
 			End If
 			
 		Case WM_TIMER
