@@ -338,13 +338,6 @@ Function InputHandlerKeyUp( _
 			
 			IPullCellCommand_SetGameModel(pCommand, pHandler->pModel)
 			
-			' Dim SelectedCell As SquareCoord = Any
-			' GameModelGetSelectedCell( _
-				' pHandler->pModel, _
-				' @SelectedCell _
-			' )
-			' IPushCellCommand_SetPushCellCoord(pCommand, @SelectedCell)
-			
 			*ppvObject = pCommand
 			Return S_OK
 			
