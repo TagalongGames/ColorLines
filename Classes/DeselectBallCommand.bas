@@ -9,7 +9,7 @@ Type _DeselectBallCommand
 	lpVtbl As Const IDeselectBallCommandVirtualTable Ptr
 	RefCounter As Integer
 	pModel As GameModel Ptr
-	SelectionBallCoord As POINT
+	SelectionBallCoord As SquareCoord
 End Type
 
 Sub InitializeDeselectBallCommand( _

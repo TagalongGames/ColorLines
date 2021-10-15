@@ -46,7 +46,7 @@ Type IPushCellCommandVirtualTable
 	
 	SetPushCellCoord As Function( _
 		ByVal this As IPushCellCommand Ptr, _
-		ByVal pPushCellCoord As POINT Ptr _
+		ByVal pPushCellCoord As SquareCoord Ptr _
 	)As HRESULT
 	
 End Type

@@ -30,7 +30,7 @@ Type StageEvents
 	
 	OnLinesChanged As Sub( _
 		ByVal pContext As Any Ptr, _
-		ByVal pCoordinates As POINT Ptr, _
+		ByVal pCoordinates As SquareCoord Ptr, _
 		ByVal Count As Integer _
 	)
 	
@@ -88,12 +88,12 @@ Declare Function GameModelUpdate( _
 
 Declare Sub GameModelGetSelectedCell( _
 	ByVal pModel As GameModel Ptr, _
-	ByVal pCellCoord As POINT Ptr _
+	ByVal pCellCoord As SquareCoord Ptr _
 )
 
 Declare Sub GameModelGetSelectedBall( _
 	ByVal pModel As GameModel Ptr, _
-	ByVal pBallCoord As POINT Ptr _
+	ByVal pBallCoord As SquareCoord Ptr _
 )
 
 Declare Sub GameModelMoveSelectionRectangle( _
@@ -103,7 +103,7 @@ Declare Sub GameModelMoveSelectionRectangle( _
 
 Declare Sub GameModelMoveSelectionRectangleTo( _
 	ByVal pModel As GameModel Ptr, _
-	ByVal pCellCoord As POINT Ptr _
+	ByVal pCellCoord As SquareCoord Ptr _
 )
 
 Declare Sub GameModelSelectBall( _
@@ -116,12 +116,12 @@ Declare Sub GameModelDeselectBall( _
 
 Declare Sub GameModelGetPressedCell( _
 	ByVal pModel As GameModel Ptr, _
-	ByVal pPressedCellCoord As POINT Ptr _
+	ByVal pPressedCellCoord As SquareCoord Ptr _
 )
 
 Declare Sub GameModelPushCell( _
 	ByVal pModel As GameModel Ptr, _
-	ByVal pPushCellCoord As POINT Ptr _
+	ByVal pPushCellCoord As SquareCoord Ptr _
 )
 
 Declare Sub GameModelUnPushCell( _

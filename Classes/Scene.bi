@@ -29,7 +29,7 @@ Declare Sub SceneCopyRectangle( _
 Declare Sub SceneTranslateBounds( _
 	ByVal pScene As Scene Ptr, _
 	ByVal pObjectBounds As RECT Ptr, _
-	ByVal pPositionMatrix As XFORM Ptr, _
+	ByVal pPosition As XFORM Ptr, _
 	ByVal pScreenBounds As RECT Ptr _
 )
 

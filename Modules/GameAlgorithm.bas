@@ -1,13 +1,13 @@
 #include once "GameAlgorithm.bi"
 
 Function GetLeePath( _
-		ByVal ptStart As POINT, _
-		ByVal ptEnd As POINT, _
+		ByVal ptStart As SquareCoord Ptr, _
+		ByVal ptEnd As SquareCoord Ptr , _
 		ByVal StageWidth As Integer, _
 		ByVal StageHeight As Integer, _
 		ByVal Grid As Integer Ptr, _
 		ByVal IncludeDiagonalPath As Boolean, _
-		ByVal pPath As POINT Ptr _
+		ByVal pPath As SquareCoord Ptr _
 	)As LeePathLength
 	
 	' смещения, соответствующие соседям ячейки
@@ -22,13 +22,13 @@ Function GetLeePath( _
 		MaxK = 3
 	End If
 	
-	Dim d As Integer, x As Integer, y As Integer, stopp As Integer
+	Dim d As Integer, x As Integer, y As Integer, StopFlag As Boolean
 	
 	' распространение волны
 	
 	Do
 		' предполагаем, что все свободные клетки уже помечены
-		stopp = 1
+		StopFlag = True
 		
 		For y = 0 To StageHeight - 1
 			For x = 0 To StageWidth - 1
@@ -42,7 +42,7 @@ Function GetLeePath( _
 							'y * StageWidth + x
 							If Grid[(y + dy(k)) * StageWidth + x + dx(k)] = SquareLType.Blank Then
 								' найдены непомеченные клетки
-								stopp = 0
+								StopFlag = False
 								' распространяем волну
 								Grid[(y + dy(k)) * StageWidth + x + dx(k)] = d + 1
 							End If
@@ -55,9 +55,9 @@ Function GetLeePath( _
 		
 		d += 1
 		
-	Loop While stopp = 0 AndAlso Grid[ptEnd.y * StageWidth + ptEnd.x] = SquareLType.Blank
+	Loop While StopFlag = False AndAlso Grid[ptEnd->Y * StageWidth + ptEnd->X] = SquareLType.Blank
 	
-	If Grid[ptEnd.y * StageWidth + ptEnd.x] = SquareLType.Blank Then
+	If Grid[ptEnd->Y * StageWidth + ptEnd->X] = SquareLType.Blank Then
 		' путь не найден
 		Return 0
 	End If
@@ -65,9 +65,9 @@ Function GetLeePath( _
 	' восстановление пути
 	
 	' длина кратчайшего пути из (StartX, StartY) в (EndX, EndY)
-	Dim PathLen As Integer = Grid[ptEnd.y * StageWidth + ptEnd.x]
-	x = ptEnd.x
-	y = ptEnd.y
+	Dim PathLen As Integer = Grid[ptEnd->Y * StageWidth + ptEnd->X]
+	x = ptEnd->X
+	y = ptEnd->Y
 	d = PathLen
 	
 	Do While d > 0
@@ -90,10 +90,9 @@ Function GetLeePath( _
 	Loop
 	
 	' Теперь путь будет с начала и до конца
-	pPath[d].x = ptStart.x
-	pPath[d].y = ptStart.y
+	pPath[d].x = ptStart->X
+	pPath[d].y = ptStart->Y
 	
 	Return PathLen
 	
 End Function
-

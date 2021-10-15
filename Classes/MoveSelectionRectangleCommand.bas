@@ -10,7 +10,7 @@ Type _MoveSelectionRectangleCommand
 	RefCounter As Integer
 	pModel As GameModel Ptr
 	MoveDirection As MoveSelectionRectangleDirection
-	SelectionCellCoord As POINT
+	SelectionCellCoord As SquareCoord
 End Type
 
 Sub InitializeMoveSelectionRectangleCommand( _

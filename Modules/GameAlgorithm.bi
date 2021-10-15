@@ -1,8 +1,6 @@
 #ifndef GAMEALGORITHM_BI
 #define GAMEALGORITHM_BI
 
-#include once "windows.bi"
-
 ' Тип ячейки в лабиринте
 Enum SquareLType
 	' Свободная непомеченная ячейка
@@ -42,14 +40,24 @@ Type LeePathLength As Integer
 	
 '/
 
+#ifndef _SQUARECOORD_DEFINED_
+#define _SQUARECOORD_DEFINED_
+
+Type SquareCoord
+	X As Integer
+	Y As Integer
+End Type
+
+#endif
+
 Declare Function GetLeePath( _
-	ByVal ptStart As POINT, _
-	ByVal ptEnd As POINT, _
+	ByVal ptStart As SquareCoord Ptr, _
+	ByVal ptEnd As SquareCoord Ptr , _
 	ByVal StageWidth As Integer, _
 	ByVal StageHeight As Integer, _
 	ByVal Grid As Integer Ptr, _
 	ByVal IncludeDiagonalPath As Boolean, _
-	ByVal pPath As POINT Ptr _
+	ByVal pPath As SquareCoord Ptr _
 )As LeePathLength
 
 #endif

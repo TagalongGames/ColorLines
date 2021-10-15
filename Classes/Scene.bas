@@ -75,49 +75,49 @@ Type _Scene
 End Type
 
 Sub GetCOLOR16RGB( _
-		ByVal BallColor As BallColors, _
+		ByVal BallColor As ColorBallKind, _
 		ByVal pColor As COLOR16RGB Ptr _
 	)
 	
 	Select Case BallColor
 		
-		Case BallColors.Red
+		Case ColorBallKind.Red
 			pColor->Red =   &hFF00
 			pColor->Green = &h0000
 			pColor->Blue  = &h0000
 			pColor->Alpha = &hFF00
 			
-		Case BallColors.Green
+		Case ColorBallKind.Green
 			pColor->Red =   &h0000
 			pColor->Green = &hFF00
 			pColor->Blue  = &h0000
 			pColor->Alpha = &hFF00
 			
-		Case BallColors.Blue
+		Case ColorBallKind.Blue
 			pColor->Red =   &h0000
 			pColor->Green = &h0000
 			pColor->Blue  = &hFF00
 			pColor->Alpha = &hFF00
 			
-		Case BallColors.Yellow
+		Case ColorBallKind.Yellow
 			pColor->Red =   &hFF00
 			pColor->Green = &hFF00
 			pColor->Blue  = &h0000
 			pColor->Alpha = &hFF00
 			
-		Case BallColors.Magenta
+		Case ColorBallKind.Magenta
 			pColor->Red =   &hFF00
 			pColor->Green = &h0000
 			pColor->Blue  = &hFF00
 			pColor->Alpha = &hFF00
 			
-		Case BallColors.DarkRed
+		Case ColorBallKind.DarkRed
 			pColor->Red =   &h8000
 			pColor->Green = &h0000
 			pColor->Blue  = &h0000
 			pColor->Alpha = &hFF00
 			
-		Case Else ' BallColors.Cyan
+		Case Else ' ColorBallKind.Cyan
 			pColor->Red =   &h0000
 			pColor->Green = &hFF00
 			pColor->Blue  = &hFF00
@@ -139,16 +139,16 @@ Sub DrawBall( _
 		
 		If Pressed Then
 			MatrixApplyTranslate( _
-				@pBall->PositionMatrix, _
+				@pBall->Position, _
 				CSng(1), _
 				CSng(1) _
 			)
 		End If
 		
-		ModifyWorldTransform(hDC, @pBall->PositionMatrix, MWT_LEFTMULTIPLY)
+		ModifyWorldTransform(hDC, @pBall->Position, MWT_LEFTMULTIPLY)
 		
 		Dim WorldMatrix As XFORM = Any
-		CombineTransform(@WorldMatrix, @pBall->PositionMatrix, @pScene->WorldMatrix)
+		CombineTransform(@WorldMatrix, @pBall->Position, @pScene->WorldMatrix)
 		
 		Dim elRgn As HRGN = CreateEllipticRgn( _
 			pBall->Bounds.left, _
@@ -165,7 +165,7 @@ Sub DrawBall( _
 			Dim elRgn2 As HRGN = ExtCreateRegion(@WorldMatrix, nCount, lpData)
 			
 			Dim c As COLOR16RGB = Any
-			GetCOLOR16RGB(pBall->Color, @c)
+			GetCOLOR16RGB(pBall->Kind, @c)
 			
 			Dim vertex(0 To 1) As TRIVERTEX = Any
 			vertex(0).x     = pBall->Bounds.left
@@ -210,7 +210,7 @@ Sub DrawBall( _
 		
 		If Pressed Then
 			MatrixApplyTranslate( _
-				@pBall->PositionMatrix, _
+				@pBall->Position, _
 				CSng(-1), _
 				CSng(-1) _
 			)
@@ -222,10 +222,10 @@ End Sub
 Sub DrawCell( _
 		ByVal hDC As HDC, _
 		ByVal pBrushes As SceneBrushes Ptr, _
-		ByVal pCell As Cell Ptr _
+		ByVal pCell As ColorCell Ptr _
 	)
 	
-	ModifyWorldTransform(hDC, @pCell->PositionMatrix, MWT_LEFTMULTIPLY)
+	ModifyWorldTransform(hDC, @pCell->Position, MWT_LEFTMULTIPLY)
 	
 	Dim LocalBounds As RECT = Any
 	CopyRect(@LocalBounds, @pCell->Bounds)
@@ -398,7 +398,7 @@ Sub SceneRender( _
 		
 		TextOutW( _
 			pScene->DeviceContext, _
-			pStage->Tablo(0).Bounds.left, _
+			pStage->TabloCells(0).Bounds.left, _
 			0, _
 			@Buffer(0), _
 			lstrlenw(@Buffer(0)) _
@@ -411,8 +411,8 @@ Sub SceneRender( _
 		
 		TextOutW( _
 			pScene->DeviceContext, _
-			pStage->Tablo(0).Bounds.left, _
-			pStage->Tablo(2).Bounds.bottom, _
+			pStage->TabloCells(0).Bounds.left, _
+			pStage->TabloCells(2).Bounds.bottom, _
 			@Buffer(0), _
 			lstrlenw(@Buffer(0)) _
 		)
@@ -428,7 +428,7 @@ Sub SceneRender( _
 			DrawCell( _
 				pScene->DeviceContext, _
 				@pScene->Brushes, _
-				@pStage->Lines(j, i) _
+				@pStage->Cells(j, i) _
 			)
 			
 			SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
@@ -441,7 +441,7 @@ Sub SceneRender( _
 		DrawCell( _
 			pScene->DeviceContext, _
 			@pScene->Brushes, _
-			@pStage->Tablo(i) _
+			@pStage->TabloCells(i) _
 		)
 		
 		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
@@ -460,8 +460,8 @@ Sub SceneRender( _
 				pScene, _
 				pScene->DeviceContext, _
 				@pScene->Brushes, _
-				@pStage->Lines(j, i).Ball, _
-				pStage->Lines(j, i).Pressed _
+				@pStage->Balls(j, i), _
+				pStage->Cells(j, i).Pressed _
 			)
 			
 			SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)
@@ -475,8 +475,8 @@ Sub SceneRender( _
 			pScene, _
 			pScene->DeviceContext, _
 			@pScene->Brushes, _
-			@pStage->Tablo(i).Ball, _
-			pStage->Tablo(i).Pressed _
+			@pStage->TabloBalls(i), _
+			False _
 		)
 		
 		SetWorldTransform(pScene->DeviceContext, @OldWorldMatrix)

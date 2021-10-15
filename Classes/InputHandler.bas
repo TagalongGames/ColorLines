@@ -111,7 +111,7 @@ Function GetCellFromPoint( _
 		ByVal pStage As Stage Ptr, _
 		ByVal pScene As Scene Ptr, _
 		ByVal pp As POINT Ptr, _
-		ByVal ppCell As POINT Ptr _
+		ByVal ppCell As SquareCoord Ptr _
 	)As Boolean
 	
 	For j As Integer = 0 To 8
@@ -119,8 +119,8 @@ Function GetCellFromPoint( _
 			Dim ScreenRectangle As RECT = Any
 			SceneTranslateBounds( _
 				pScene, _
-				@pStage->Lines(j, i).Bounds, _
-				@pStage->Lines(j, i).PositionMatrix, _
+				@pStage->Cells(j, i).Bounds, _
+				@pStage->Cells(j, i).Position, _
 				@ScreenRectangle _
 			)
 			If PtInRect(@ScreenRectangle, *pp) Then
@@ -178,7 +178,7 @@ Function InputHandlerLMouseDown( _
 		ByVal ppvObject As Any Ptr Ptr _
 	)As HRESULT
 	
-	Dim CellCoord As Point = Any
+	Dim CellCoord As SquareCoord = Any
 	Dim CellExists As Boolean = GetCellFromPoint( _
 		pHandler->pStage, _
 		pHandler->pScene, _
@@ -218,7 +218,7 @@ Function InputHandlerLMouseUp( _
 		ByVal ppvObject As Any Ptr Ptr _
 	)As HRESULT
 	
-	Dim CellCoord As Point = Any
+	Dim CellCoord As SquareCoord = Any
 	Dim CellExists As Boolean = GetCellFromPoint( _
 		pHandler->pStage, _
 		pHandler->pScene, _
@@ -298,7 +298,7 @@ Function InputHandlerKeyDown( _
 			
 			IPushCellCommand_SetGameModel(pCommand, pHandler->pModel)
 			
-			Dim SelectedCell As POINT = Any
+			Dim SelectedCell As SquareCoord = Any
 			GameModelGetSelectedCell( _
 				pHandler->pModel, _
 				@SelectedCell _
@@ -338,7 +338,7 @@ Function InputHandlerKeyUp( _
 			
 			IPullCellCommand_SetGameModel(pCommand, pHandler->pModel)
 			
-			' Dim SelectedCell As POINT = Any
+			' Dim SelectedCell As SquareCoord = Any
 			' GameModelGetSelectedCell( _
 				' pHandler->pModel, _
 				' @SelectedCell _

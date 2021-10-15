@@ -11,28 +11,17 @@ Const BallMarginHeight As Long = (CellHeight - BallHeight) \ 2
 Const Sine45   = 0.70710678118654752440084436210485
 Const Cosine45 = 0.70710678118654752440084436210485
 
-Function GetRandomBoolean()As Boolean
+Function GenerateRandomColorBallKind( _
+	)As ColorBallKind
 	
 	Dim RndValue As Long = rand()
 	
-	If RndValue > RAND_MAX \ 2 Then
-		Return True
-	End If
-	
-	Return False
-	
-End Function
-
-Function GetRandomBallColor()As BallColors
-	
-	Dim RndValue As Long = rand()
-	
-	Return Cast(BallColors, RndValue Mod 7)
+	Return Cast(ColorBallKind, RndValue Mod 7)
 	
 End Function
 
 Sub CellInitialize( _
-		ByVal pCell As Cell Ptr, _
+		ByVal pCell As ColorCell Ptr, _
 		ByVal xCoord As Integer, _
 		ByVal yCoord As Integer _
 	)
@@ -47,9 +36,9 @@ Sub CellInitialize( _
 	
 	CopyRect(@pCell->Bounds, @CellRectangle)
 	
-	MatrixSetIdentity(@pCell->PositionMatrix)
+	MatrixSetIdentity(@pCell->Position)
 	MatrixApplyTranslate( _
-		@pCell->PositionMatrix, _
+		@pCell->Position, _
 		CSng(xCoord * CellWidth + CellWidth \ 2), _
 		CSng(yCoord * CellHeight + CellHeight \ 2) _
 	)
@@ -75,23 +64,59 @@ Sub BallInitialize( _
 	
 	CopyRect(@pBall->Bounds, @BallRectangle)
 	
-	MatrixSetIdentity(@pBall->PositionMatrix)
+	MatrixSetIdentity(@pBall->Position)
 	MatrixApplyRRotate( _
-		@pBall->PositionMatrix, _
+		@pBall->Position, _
 		Sine45, _
 		Cosine45 _
 	)
 	MatrixApplyTranslate( _
-		@pBall->PositionMatrix, _
+		@pBall->Position, _
 		CSng(xCoord * CellWidth + CellWidth \ 2 - 1), _
 		CSng(yCoord * CellHeight + CellHeight \ 2 - 1) _
 	)
 	
-	Dim RandomColor As BallColors = GetRandomBallColor()
-	pBall->Color = RandomColor
+	Dim RandomColor As ColorBallKind = GenerateRandomColorBallKind()
+	pBall->Kind = RandomColor
 	pBall->Frame = AnimationFrames.Stopped
 	pBall->Visible = False
 	pBall->Selected = False
+	
+End Sub
+
+Function StageGetEmptyCells( _
+		ByVal pStage As Stage Ptr, _
+		ByVal pEmptyCells As SquareCoord Ptr _
+	)As Integer
+	
+	Dim EmptyCellsCount As Integer = 0
+	
+	For j As Integer = 0 To 8
+		For i As Integer = 0 To 8
+			If pStage->Balls(j, i).Visible = False Then
+				pEmptyCells[EmptyCellsCount].x = i
+				pEmptyCells[EmptyCellsCount].y = j
+				EmptyCellsCount += 1
+			End If
+		Next
+	Next
+	
+	Return EmptyCellsCount
+	
+End Function
+
+Sub StageRandomizeCells( _
+		ByVal pCells As SquareCoord Ptr, _
+		ByVal Length As Integer _
+	)
+	
+	For i As Integer = 0 To Length - 1
+		Dim RandomIndex As Integer = rand() Mod Length
+		
+		Dim t As SquareCoord = pCells[i]
+		pCells[i] = pCells[RandomIndex]
+		pCells[RandomIndex] = t
+	Next
 	
 End Sub
 
@@ -106,15 +131,15 @@ Function CreateStage( _
 	
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			CellInitialize(@pStage->Lines(j, i), i, j)
-			BallInitialize(@pStage->Lines(j, i).Ball, i, j)
+			CellInitialize(@pStage->Cells(j, i), i, j)
+			BallInitialize(@pStage->Balls(j, i), i, j)
 		Next
 	Next
 	
 	For j As Integer = 0 To 2
-		CellInitialize(@pStage->Tablo(j), 10, j + 1)
-		BallInitialize(@pStage->Tablo(j).Ball, 10, j + 1)
-		pStage->Tablo(j).Ball.Visible = True
+		CellInitialize(@pStage->TabloCells(j), 10, j + 1)
+		BallInitialize(@pStage->TabloBalls(j), 10, j + 1)
+		pStage->TabloBalls(j).Visible = True
 	Next
 	
 	BallInitialize(@pStage->MovedBall, 0, 0)
@@ -123,9 +148,9 @@ Function CreateStage( _
 	pStage->HiScore = HiScore
 	
 	For i As Integer = 0 To 2
-		Dim pt As POINT = Any
+		Dim pt As SquareCoord = Any
 		StageGetRandomEmptyCellCoord(pStage, @pt)
-		pStage->Lines(pt.y, pt.x).Ball.Visible = True
+		pStage->Balls(pt.y, pt.x).Visible = True
 	Next
 	
 	Return pStage
@@ -157,39 +182,22 @@ End Sub
 
 Function StageGetRandomEmptyCellCoord( _
 		ByVal pStage As Stage Ptr, _
-		ByVal pp As POINT Ptr _
+		ByVal pp As SquareCoord Ptr _
 	)As Boolean
 	
-	' Получить список пустых ячеек
-	Dim EmptyCells(0 To 9 * 9 - 1) As POINT = Any
-	Dim EmptyCellsCount As Integer = 0
-	
-	For j As Integer = 0 To 8
-		For i As Integer = 0 To 8
-			If pStage->Lines(j, i).Ball.Visible = False Then
-				EmptyCells(EmptyCellsCount).x = i
-				EmptyCells(EmptyCellsCount).y = j
-				EmptyCellsCount += 1
-			End If
-		Next
-	Next
-	
+	Dim EmptyCells(0 To 9 * 9 - 1) As SquareCoord = Any
+	Dim EmptyCellsCount As Integer = StageGetEmptyCells( _
+		pStage, _
+		@EmptyCells(0) _
+	)
 	If EmptyCellsCount = 0 Then
 		Return False
 	End If
 	
-	' Перетасовать список
-	For i As Integer = 0 To EmptyCellsCount - 1
-		Dim RandomNumber As Integer = rand() Mod EmptyCellsCount
-		
-		Dim t As POINT = EmptyCells(i)
-		EmptyCells(i) = EmptyCells(RandomNumber)
-		EmptyCells(RandomNumber) = t
-	Next
+	StageRandomizeCells(@EmptyCells(0), EmptyCellsCount)
 	
-	' Вернуть случайную ячейку из списка
-	Dim RandomNumber As Integer = rand() Mod EmptyCellsCount
-	*pp = EmptyCells(RandomNumber)
+	Dim RandomIndex As Integer = rand() Mod EmptyCellsCount
+	*pp = EmptyCells(RandomIndex)
 	
 	Return True
 	
@@ -199,18 +207,18 @@ Function RowSequenceLength( _
 		ByVal pStage As Stage Ptr, _
 		ByVal X As Integer, _
 		ByVal Y As Integer, _
-		ByVal BallColor As BallColors _
+		ByVal BallColor As ColorBallKind _
 	)As Integer
 	
 	If X > 8 Then
 		Return 0
 	End If
 	
-	If pStage->Lines(Y, X).Ball.Visible = False Then
+	If pStage->Balls(Y, X).Visible = False Then
 		Return 0
 	End If
 	
-	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+	If pStage->Balls(Y, X).Kind <> BallColor Then
 		Return 0
 	End If
 	
@@ -222,18 +230,18 @@ Function ColSequenceLength( _
 		ByVal pStage As Stage Ptr, _
 		ByVal X As Integer, _
 		ByVal Y As Integer, _
-		ByVal BallColor As BallColors _
+		ByVal BallColor As ColorBallKind _
 	)As Integer
 	
 	If Y > 8 Then
 		Return 0
 	End If
 	
-	If pStage->Lines(Y, X).Ball.Visible = False Then
+	If pStage->Balls(Y, X).Visible = False Then
 		Return 0
 	End If
 	
-	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+	If pStage->Balls(Y, X).Kind <> BallColor Then
 		Return 0
 	End If
 	
@@ -245,7 +253,7 @@ Function ForwardDiagonalSequenceLength( _
 		ByVal pStage As Stage Ptr, _
 		ByVal X As Integer, _
 		ByVal Y As Integer, _
-		ByVal BallColor As BallColors _
+		ByVal BallColor As ColorBallKind _
 	)As Integer
 	
 	If Y > 8 Then
@@ -256,11 +264,11 @@ Function ForwardDiagonalSequenceLength( _
 		Return 0
 	End If
 	
-	If pStage->Lines(Y, X).Ball.Visible = False Then
+	If pStage->Balls(Y, X).Visible = False Then
 		Return 0
 	End If
 	
-	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+	If pStage->Balls(Y, X).Kind <> BallColor Then
 		Return 0
 	End If
 	
@@ -272,7 +280,7 @@ Function BackwardDiagonalSequenceLength( _
 		ByVal pStage As Stage Ptr, _
 		ByVal X As Integer, _
 		ByVal Y As Integer, _
-		ByVal BallColor As BallColors _
+		ByVal BallColor As ColorBallKind _
 	)As Integer
 	
 	If Y > 8 Then
@@ -283,11 +291,11 @@ Function BackwardDiagonalSequenceLength( _
 		Return 0
 	End If
 	
-	If pStage->Lines(Y, X).Ball.Visible = False Then
+	If pStage->Balls(Y, X).Visible = False Then
 		Return 0
 	End If
 	
-	If pStage->Lines(Y, X).Ball.Color <> BallColor Then
+	If pStage->Balls(Y, X).Kind <> BallColor Then
 		Return 0
 	End If
 	

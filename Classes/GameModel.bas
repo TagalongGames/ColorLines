@@ -6,25 +6,25 @@
 Type _MoveBallCommand
 	pModel As GameModel Ptr
 	' Шар
-	BallCoord As POINT
+	BallCoord As SquareCoord
 	' Новые координаты шара
-	NewBallCoord As POINT
+	NewBallCoord As SquareCoord
 	' Путь шара
 	PathLength As Integer
-	BallPath(9 * 9 - 1) As POINT
+	BallPath(9 * 9 - 1) As SquareCoord
 	
 	' Удалённые шары
 	RemovedBallsCount As Integer
-	RemovedBallsCoord(9 * 9 - 1) As POINT
-	RemovedBallsColor(9 * 9 - 1) As BallColors
+	RemovedBallsCoord(9 * 9 - 1) As SquareCoord
+	RemovedBallsColor(9 * 9 - 1) As ColorBallKind
 	
 	' Шары, извлечённые из табла
 	ExtractedBalls(2) As ColorBall
 	
 	' Удалённые шары после извлечения из табла
 	RemovedBalls2Count As Integer
-	RemovedBalls2Coord(9 * 9 - 1) As POINT
-	RemovedBalls2Color(9 * 9 - 1) As BallColors
+	RemovedBalls2Coord(9 * 9 - 1) As SquareCoord
+	RemovedBalls2Color(9 * 9 - 1) As ColorBallKind
 	
 	' Старый счёт
 	Score As Integer
@@ -34,7 +34,7 @@ End Type
 
 Function MoveBallCommandExecute( _
 		ByVal pMoveCommand As MoveBallCommand Ptr, _
-		ByVal NewBallCoord As POINT Ptr _
+		ByVal NewBallCoord As SquareCoord Ptr _
 	)As Boolean
 	
 	pMoveCommand->pModel = pModel
@@ -84,19 +84,18 @@ Function RemoveLines( _
 		ByVal pModel As GameModel Ptr _
 	)As Boolean
 	
-	' Cписок удаляемых ячеек
-	Dim RemovedCells(0 To 9 * 9 - 1) As POINT = Any
-	Dim RemovedCellsCount As Integer = 0
+	Dim RemovedBalls(0 To 9 * 9 - 1) As SquareCoord = Any
+	Dim RemovedBallsCount As Integer = 0
 	
 	' Строки
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			Dim Length As Integer = RowSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = RowSequenceLength(pModel->pStage, i, j, pModel->pStage->Balls(j, i).Kind)
 			If Length >= 5 Then
 				For k As Integer = i To Length + i - 1
-					RemovedCells(RemovedCellsCount).x = k
-					RemovedCells(RemovedCellsCount).y = j
-					RemovedCellsCount += 1
+					RemovedBalls(RemovedBallsCount).x = k
+					RemovedBalls(RemovedBallsCount).y = j
+					RemovedBallsCount += 1
 				Next
 				i += Length
 			End If
@@ -105,12 +104,12 @@ Function RemoveLines( _
 	' Столбцы
 	For i As Integer = 0 To 8
 		For j As Integer = 0 To 8
-			Dim Length As Integer = ColSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = ColSequenceLength(pModel->pStage, i, j, pModel->pStage->Balls(j, i).Kind)
 			If Length >= 5 Then
 				For k As Integer = j To Length + j - 1
-					RemovedCells(RemovedCellsCount).x = i
-					RemovedCells(RemovedCellsCount).y = k
-					RemovedCellsCount += 1
+					RemovedBalls(RemovedBallsCount).x = i
+					RemovedBalls(RemovedBallsCount).y = k
+					RemovedBallsCount += 1
 				Next
 				j += Length
 			End If
@@ -121,12 +120,12 @@ Function RemoveLines( _
 		Dim i As Integer = 0
 		Dim j As Integer = t
 		Do While (i <= 8) OrElse (j <= 8)
-			Dim Length As Integer = ForwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = ForwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Balls(j, i).Kind)
 			If Length >= 5 Then
 				For k As Integer = 0 To Length - 1
-					RemovedCells(RemovedCellsCount).x = i + k
-					RemovedCells(RemovedCellsCount).y = j + k
-					RemovedCellsCount += 1
+					RemovedBalls(RemovedBallsCount).x = i + k
+					RemovedBalls(RemovedBallsCount).y = j + k
+					RemovedBallsCount += 1
 				Next
 				i += Length
 				j += Length
@@ -140,12 +139,12 @@ Function RemoveLines( _
 		Dim i As Integer = t
 		Dim j As Integer = 0
 		Do While (i <= 8) OrElse (j <= 8)
-			Dim Length As Integer = ForwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = ForwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Balls(j, i).Kind)
 			If Length >= 5 Then
 				For k As Integer = 0 To Length - 1
-					RemovedCells(RemovedCellsCount).x = i + k
-					RemovedCells(RemovedCellsCount).y = j + k
-					RemovedCellsCount += 1
+					RemovedBalls(RemovedBallsCount).x = i + k
+					RemovedBalls(RemovedBallsCount).y = j + k
+					RemovedBallsCount += 1
 				Next
 				i += Length
 				j += Length
@@ -160,12 +159,12 @@ Function RemoveLines( _
 		Dim i As Integer = t
 		Dim j As Integer = 0
 		Do While (i >= 0) OrElse (j <= 8)
-			Dim Length As Integer = BackwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = BackwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Balls(j, i).Kind)
 			If Length >= 5 Then
 				For k As Integer = 0 To Length - 1
-					RemovedCells(RemovedCellsCount).x = i - k
-					RemovedCells(RemovedCellsCount).y = j + k
-					RemovedCellsCount += 1
+					RemovedBalls(RemovedBallsCount).x = i - k
+					RemovedBalls(RemovedBallsCount).y = j + k
+					RemovedBallsCount += 1
 				Next
 				i -= Length
 				j += Length
@@ -179,12 +178,12 @@ Function RemoveLines( _
 		Dim i As Integer = 8
 		Dim j As Integer = t
 		Do While (i >= 0) OrElse (j <= 8)
-			Dim Length As Integer = BackwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Lines(j, i).Ball.Color)
+			Dim Length As Integer = BackwardDiagonalSequenceLength(pModel->pStage, i, j, pModel->pStage->Balls(j, i).Kind)
 			If Length >= 5 Then
 				For k As Integer = 0 To Length - 1
-					RemovedCells(RemovedCellsCount).x = i - k
-					RemovedCells(RemovedCellsCount).y = j + k
-					RemovedCellsCount += 1
+					RemovedBalls(RemovedBallsCount).x = i - k
+					RemovedBalls(RemovedBallsCount).y = j + k
+					RemovedBallsCount += 1
 				Next
 				i -= Length
 				j += Length
@@ -195,31 +194,31 @@ Function RemoveLines( _
 		Loop
 	Next
 	
-	If RemovedCellsCount = 0 Then
+	If RemovedBallsCount = 0 Then
 		Return False
 	End If
 	
-	For i As Integer = 0 To RemovedCellsCount - 1
-		pModel->pStage->Lines(RemovedCells(i).y, RemovedCells(i).x).Ball.Visible = False
+	For i As Integer = 0 To RemovedBallsCount - 1
+		pModel->pStage->Balls(RemovedBalls(i).y, RemovedBalls(i).x).Visible = False
 	Next
 	
 	pModel->Events.OnLinesChanged( _
 		pModel->Context, _
-		@RemovedCells(0), _
-		RemovedCellsCount _
+		@RemovedBalls(0), _
+		RemovedBallsCount _
 	)
 	
-	pModel->pStage->Score += RemovedCellsCount
+	pModel->pStage->Score += RemovedBallsCount
 	pModel->Events.OnScoreChanged( _
 		pModel->Context, _
-		RemovedCellsCount _
+		RemovedBallsCount _
 	)
 	
 	If pModel->pStage->Score > pModel->pStage->HiScore Then
 		pModel->pStage->HiScore = pModel->pStage->Score
 		pModel->Events.OnHiScoreChanged( _
 			pModel->Context, _
-			RemovedCellsCount _
+			RemovedBallsCount _
 		)
 	End If
 	
@@ -232,8 +231,8 @@ Sub GenerateTablo( _
 	)
 	
 	For i As Integer = 0 To 2
-		Dim RandomColor As BallColors = GetRandomBallColor()
-		pModel->pStage->Tablo(i).Ball.Color = RandomColor
+		Dim RandomColor As ColorBallKind = GenerateRandomColorBallKind()
+		pModel->pStage->TabloBalls(i).Kind = RandomColor
 	Next
 	
 	pModel->Events.OnTabloChanged( _
@@ -251,12 +250,14 @@ Function ExtractBalls( _
 	For i As Integer = 0 To 2
 		' Выбрать случайную свободную ячейку
 		' Если пустых нет, то вернуть ошибку
-		Dim pt As POINT = Any
-		Dim NotEmpty As Boolean = StageGetRandomEmptyCellCoord(pModel->pStage, @pt)
-		
+		Dim pt As SquareCoord = Any
+		Dim NotEmpty As Boolean = StageGetRandomEmptyCellCoord( _
+			pModel->pStage, _
+			@pt _
+		)
 		If NotEmpty Then
 			
-			Dim RandomColor As BallColors = pModel->pStage->Tablo(i).Ball.Color
+			Dim RandomColor As ColorBallKind = pModel->pStage->TabloBalls(i).Kind
 			
 			/'
 			Dim buffer As WString * (255 + 1) = Any
@@ -267,9 +268,9 @@ Function ExtractBalls( _
 			'/
 			
 			' Поместить на игровое поле
-			pModel->pStage->Lines(pt.y, pt.x).Ball.Color = RandomColor
-			pModel->pStage->Lines(pt.y, pt.x).Ball.Frame = AnimationFrames.Birth0
-			pModel->pStage->Lines(pt.y, pt.x).Ball.Visible = True
+			pModel->pStage->Balls(pt.y, pt.x).Kind = RandomColor
+			pModel->pStage->Balls(pt.y, pt.x).Frame = AnimationFrames.Birth0
+			pModel->pStage->Balls(pt.y, pt.x).Visible = True
 			
 			ExtractCount += 1
 			
@@ -291,29 +292,29 @@ End Function
 
 Function MoveBall( _
 		ByVal pModel As GameModel Ptr, _
-		ByVal OldCoord As POINT Ptr, _
-		ByVal NewCoord As POINT Ptr, _
-		ByVal pPath As POINT Ptr, _
+		ByVal pOldCoord As SquareCoord Ptr, _
+		ByVal pNewCoord As SquareCoord Ptr, _
+		ByVal pPath As SquareCoord Ptr, _
 		ByVal pPathLength As Integer Ptr _
 	)As Boolean
 	
 	Scope
 		For j As Integer = 0 To 8
 			For i As Integer = 0 To 8
-				If pModel->pStage->Lines(j, i).Ball.Visible Then
+				If pModel->pStage->Balls(j, i).Visible Then
 					pModel->Grid(j * 9 + i) = SquareLType.Wall
 				Else
 					pModel->Grid(j * 9 + i) = SquareLType.Blank
 				End If
 			Next
 		Next
-		pModel->Grid(OldCoord->y * 9 + OldCoord->x) = SquareLType.Start
+		pModel->Grid(pOldCoord->y * 9 + pOldCoord->x) = SquareLType.Start
 	End Scope
 	
 	' Получить путь
 	Dim PathLength As Integer = GetLeePath( _
-		*OldCoord, _
-		*NewCoord, _
+		pOldCoord, _
+		pNewCoord, _
 		9, _
 		9, _
 		@pModel->Grid(0), _
@@ -325,13 +326,13 @@ Function MoveBall( _
 	End If
 	
 	' Переместить шар
-	pModel->pStage->Lines(OldCoord->y, OldCoord->x).Ball.Visible = False
-	pModel->pStage->Lines(NewCoord->y, NewCoord->x).Ball.Color = pModel->pStage->Lines(OldCoord->y, OldCoord->x).Ball.Color
-	pModel->pStage->Lines(NewCoord->y, NewCoord->x).Ball.Visible = True
+	pModel->pStage->Balls(pOldCoord->y, pOldCoord->x).Visible = False
+	pModel->pStage->Balls(pNewCoord->y, pNewCoord->x).Kind = pModel->pStage->Balls(pOldCoord->y, pOldCoord->x).Kind
+	pModel->pStage->Balls(pNewCoord->y, pNewCoord->x).Visible = True
 	
-	Dim pts As POINT = Any
-	pts.x = OldCoord->x
-	pts.y = OldCoord->y
+	Dim pts As SquareCoord = Any
+	pts.x = pOldCoord->x
+	pts.y = pOldCoord->y
 	pModel->Events.OnLinesChanged( _
 		pModel->Context, _
 		@pts, _
@@ -366,7 +367,7 @@ Function CreateGameModel( _
 	pModel->PressedCellY = 0
 	pModel->Busy = False
 	
-	pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
+	pStage->Cells(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
 	Return pModel
 	
@@ -400,13 +401,13 @@ Sub GameModelNewGame( _
 		0 _
 	)
 	
-	Dim pts(9 * 9 - 1) As POINT = Any
+	Dim pts(9 * 9 - 1) As SquareCoord = Any
 	
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
-			pModel->pStage->Lines(j, i).Ball.Frame = AnimationFrames.Stopped
-			pModel->pStage->Lines(j, i).Ball.Visible = False
-			pModel->pStage->Lines(j, i).Ball.Selected = False
+			pModel->pStage->Balls(j, i).Frame = AnimationFrames.Stopped
+			pModel->pStage->Balls(j, i).Visible = False
+			pModel->pStage->Balls(j, i).Selected = False
 			
 			pts(j * 9 + i).x = i
 			pts(j * 9 + i).y = j
@@ -448,7 +449,7 @@ End Function
 
 Sub GameModelGetSelectedCell( _
 		ByVal pModel As GameModel Ptr, _
-		ByVal pCellCoord As POINT Ptr _
+		ByVal pCellCoord As SquareCoord Ptr _
 	)
 	
 	pCellCoord->x = pModel->SelectedCellX
@@ -458,7 +459,7 @@ End Sub
 
 Sub GameModelGetSelectedBall( _
 		ByVal pModel As GameModel Ptr, _
-		ByVal pBallCoord As POINT Ptr _
+		ByVal pBallCoord As SquareCoord Ptr _
 	)
 	
 	pBallCoord->x = pModel->SelectedBallX
@@ -468,7 +469,7 @@ End Sub
 
 Sub GameModelGetPressedCell( _
 		ByVal pModel As GameModel Ptr, _
-		ByVal pPressedCellCoord As POINT Ptr _
+		ByVal pPressedCellCoord As SquareCoord Ptr _
 	)
 	
 	pPressedCellCoord->x = pModel->PressedCellX
@@ -483,15 +484,15 @@ Sub GameModelMoveSelectionRectangle( _
 	
 	pModel->Busy = True
 	
-	Dim pts(2) As POINT = Any
+	Dim pts(2) As SquareCoord = Any
 	
 	pts(0).x = pModel->PressedCellX
 	pts(0).y = pModel->PressedCellY
-	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
+	pModel->pStage->Cells(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
 	
 	pts(1).x = pModel->SelectedCellX
 	pts(1).y = pModel->SelectedCellY
-	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
+	pModel->pStage->Cells(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 	
 	Select Case Direction
 		
@@ -548,7 +549,7 @@ Sub GameModelMoveSelectionRectangle( _
 	
 	pts(2).x = pModel->SelectedCellX
 	pts(2).y = pModel->SelectedCellY
-	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
+	pModel->pStage->Cells(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
 	pModel->Events.OnLinesChanged( _
 		pModel->Context, _
@@ -562,27 +563,27 @@ End Sub
 
 Sub GameModelMoveSelectionRectangleTo( _
 		ByVal pModel As GameModel Ptr, _
-		ByVal pCellCoord As POINT Ptr _
+		ByVal pCellCoord As SquareCoord Ptr _
 	)
 	
 	pModel->Busy = True
 	
-	Dim pts(2) As POINT = Any
+	Dim pts(2) As SquareCoord = Any
 	
 	pts(0).x = pModel->PressedCellX
 	pts(0).y = pModel->PressedCellY
-	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
+	pModel->pStage->Cells(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
 	
 	pts(1).x = pModel->SelectedCellX
 	pts(1).y = pModel->SelectedCellY
-	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
+	pModel->pStage->Cells(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 	
 	pModel->SelectedCellX = pCellCoord->x
 	pModel->SelectedCellY = pCellCoord->y
 	
 	pts(2).x = pModel->SelectedCellX
 	pts(2).y = pModel->SelectedCellY
-	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
+	pModel->pStage->Cells(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
 	pModel->Events.OnLinesChanged( _
 		pModel->Context, _
@@ -598,13 +599,13 @@ Sub GameModelSelectBall( _
 		ByVal pModel As GameModel Ptr _
 	)
 	
-	Dim Selected As Boolean = pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected
+	Dim Selected As Boolean = pModel->pStage->Cells(pModel->SelectedBallY, pModel->SelectedBallX).Selected
 	If Selected = False Then
 		pModel->Busy = True
 		
-		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = True
+		pModel->pStage->Balls(pModel->SelectedBallY, pModel->SelectedBallX).Selected = True
 		
-		Dim pts As POINT = Any
+		Dim pts As SquareCoord = Any
 		pts.x = pModel->SelectedBallX
 		pts.y = pModel->SelectedBallY
 		
@@ -624,15 +625,16 @@ Sub GameModelDeselectBall( _
 		ByVal pModel As GameModel Ptr _
 	)
 	
-	Dim Selected As Boolean = pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected
+	Dim Selected As Boolean = pModel->pStage->Balls(pModel->SelectedBallY, pModel->SelectedBallX).Selected
+	
 	If Selected Then
 		
 		pModel->Busy = True
 		
-		Dim pts As POINT = Any
+		Dim pts As SquareCoord = Any
 		pts.x = pModel->SelectedBallX
 		pts.y = pModel->SelectedBallY
-		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
+		pModel->pStage->Balls(pModel->SelectedBallY, pModel->SelectedBallX).Selected = False
 		
 		pModel->Events.OnLinesChanged( _
 			pModel->Context, _
@@ -648,31 +650,31 @@ End Sub
 
 Sub GameModelPushCell( _
 		ByVal pModel As GameModel Ptr, _
-		ByVal pPushCellCoord As POINT Ptr _
+		ByVal pPushCellCoord As SquareCoord Ptr _
 	)
 	
 	pModel->Busy = True
 	
-	Dim pts(2) As POINT = Any
+	Dim pts(2) As SquareCoord = Any
 	
 	pts(0).x = pModel->PressedCellX
 	pts(0).y = pModel->PressedCellY
-	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
+	pModel->pStage->Cells(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
 	
 	pModel->PressedCellX = pPushCellCoord->x
 	pModel->PressedCellY = pPushCellCoord->y
 	
 	pts(1).x = pModel->PressedCellX
 	pts(1).y = pModel->PressedCellY
-	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = True
+	pModel->pStage->Cells(pModel->PressedCellY, pModel->PressedCellX).Pressed = True
 	
 	pts(2).x = pModel->SelectedCellX
 	pts(2).y = pModel->SelectedCellY
-	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
+	pModel->pStage->Cells(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 	
 	pModel->SelectedCellX = pPushCellCoord->x
 	pModel->SelectedCellY = pPushCellCoord->y
-	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
+	pModel->pStage->Cells(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
 	pModel->Events.OnLinesChanged( _
 		pModel->Context, _
@@ -690,10 +692,10 @@ Sub GameModelUnPushCell( _
 	
 	pModel->Busy = True
 	
-	Dim pts As POINT = Any
+	Dim pts As SquareCoord = Any
 	pts.x = pModel->PressedCellX
 	pts.y = pModel->PressedCellY
-	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
+	pModel->pStage->Cells(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
 	
 	pModel->Events.OnLinesChanged( _
 		pModel->Context, _
@@ -711,20 +713,20 @@ Sub GameModelPullCell( _
 	
 	pModel->Busy = True
 	
-	Dim pts(2) As POINT = Any
+	Dim pts(2) As SquareCoord = Any
 	pts(0).x = pModel->PressedCellX
 	pts(0).y = pModel->PressedCellY
-	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
+	pModel->pStage->Cells(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
 	
 	pts(1).x = pModel->SelectedCellX
 	pts(1).y = pModel->SelectedCellY
-	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
+	pModel->pStage->Cells(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 	
 	pModel->SelectedCellX = pModel->PressedCellX
 	pModel->SelectedCellY = pModel->PressedCellY
 	pts(2).x = pModel->SelectedCellX
 	pts(2).y = pModel->SelectedCellY
-	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
+	pModel->pStage->Cells(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
 	pModel->Events.OnLinesChanged( _
 		pModel->Context, _
@@ -732,22 +734,22 @@ Sub GameModelPullCell( _
 		3 _
 	)
 	
-	Dim BallVisible As Boolean = pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Ball.Visible
+	Dim BallVisible As Boolean = pModel->pStage->Balls(pModel->PressedCellY, pModel->PressedCellX).Visible
 	
 	If BallVisible Then
 		
-		Dim pts2(1) As POINT = Any
+		Dim pts2(1) As SquareCoord = Any
 		
 		pts2(0).x = pModel->SelectedBallX
 		pts2(0).y = pModel->SelectedBallY
-		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
+		pModel->pStage->Balls(pModel->SelectedBallY, pModel->SelectedBallX).Selected = False
 		
 		pModel->SelectedBallX = pModel->PressedCellX
 		pModel->SelectedBallY = pModel->PressedCellY
 		
 		pts2(1).x = pModel->SelectedBallX
 		pts2(1).y = pModel->SelectedBallY
-		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = True
+		pModel->pStage->Balls(pModel->SelectedBallY, pModel->SelectedBallX).Selected = True
 		
 		pModel->Events.OnLinesChanged( _
 			pModel->Context, _
@@ -758,15 +760,16 @@ Sub GameModelPullCell( _
 	Else
 		' Если есть выделенный шар
 		' то переместить его на новое место
-		Dim OldBallSelected As Boolean = pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected
-		Dim OldBallVisible As Boolean = pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Visible
+		Dim OldBallSelected As Boolean = pModel->pStage->Balls(pModel->SelectedBallY, pModel->SelectedBallX).Selected
+		Dim OldBallVisible As Boolean = pModel->pStage->Balls(pModel->SelectedBallY, pModel->SelectedBallX).Visible
 		
 		If OldBallSelected AndAlso OldBallVisible Then
 			
-			' Dim OldBallCoord As POINT = Any
+			' Dim OldBallCoord As SquareCoord = Any
 			' OldBallCoord.x = pModel->SelectedBallX
 			' OldBallCoord.y = pModel->SelectedBallY
-			' Dim NewBallCoord As POINT = Any
+			
+			' Dim NewBallCoord As SquareCoord = Any
 			' NewBallCoord.x = pModel->PressedCellX
 			' NewBallCoord.y = pModel->PressedCellY
 			

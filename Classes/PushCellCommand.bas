@@ -7,7 +7,7 @@ Type _PushCellCommand
 	lpVtbl As Const IPushCellCommandVirtualTable Ptr
 	RefCounter As Integer
 	pModel As GameModel Ptr
-	PushCellCoord As POINT
+	PushCellCoord As SquareCoord
 End Type
 
 Sub InitializePushCellCommand( _
@@ -150,7 +150,7 @@ End Function
 
 Function PushCellCommandSetPushCellCoord( _
 		ByVal this As PushCellCommand Ptr, _
-		ByVal pPushCellCoord As POINT Ptr _
+		ByVal pPushCellCoord As SquareCoord Ptr _
 	)As HRESULT
 	
 	this->PushCellCoord = *pPushCellCoord
@@ -207,7 +207,7 @@ End Function
 
 Function IPushCellCommandSetPushCellCoord( _
 		ByVal this As IPushCellCommand Ptr, _
-		ByVal pPushCellCoord As POINT Ptr _
+		ByVal pPushCellCoord As SquareCoord Ptr _
 	)As ULONG
 	Return PushCellCommandSetPushCellCoord(ContainerOf(this, PushCellCommand, lpVtbl), pPushCellCoord)
 End Function

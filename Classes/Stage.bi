@@ -3,7 +3,7 @@
 
 #include once "windows.bi"
 
-Enum BallColors
+Enum ColorBallKind
 	Red
 	Green
 	Blue
@@ -44,30 +44,44 @@ Enum AnimationFrames
 	Bouncing7
 End Enum
 
+#ifndef _SQUARECOORD_DEFINED_
+#define _SQUARECOORD_DEFINED_
+
+Type SquareCoord
+	X As Integer
+	Y As Integer
+End Type
+
+#endif
+
 Type ColorBall
 	Bounds As RECT
-	PositionMatrix As XFORM
-	Color As BallColors
+	Position As XFORM
+	Kind As ColorBallKind
 	Frame As AnimationFrames
 	Visible As Boolean
 	Selected As Boolean
 End Type
 
-Type Cell
+Type ColorCell
 	Bounds As RECT
-	PositionMatrix As XFORM
-	Ball As ColorBall
+	Position As XFORM
 	Selected As Boolean
 	Pressed As Boolean
 End Type
 
 Type Stage
-	Lines(0 To 8, 0 To 8) As Cell
-	Tablo(0 To 2) As Cell
+	Cells(0 To 8, 0 To 8) As ColorCell
+	Balls(0 To 8, 0 To 8) As ColorBall
+	TabloCells(0 To 2) As ColorCell
+	TabloBalls(0 To 2) As ColorBall
 	MovedBall As ColorBall
 	Score As Integer
 	HiScore As Integer
 End Type
+
+Declare Function GenerateRandomColorBallKind( _
+)As ColorBallKind
 
 Declare Function CreateStage( _
 	ByVal HiScore As Integer _
@@ -84,39 +98,35 @@ Declare Sub StageGetBounds( _
 
 Declare Function StageGetRandomEmptyCellCoord( _
 	ByVal pStage As Stage Ptr, _
-	ByVal pp As POINT Ptr _
+	ByVal pp As SquareCoord Ptr _
 )As Boolean
-
-Declare Function GetRandomBoolean()As Boolean
-
-Declare Function GetRandomBallColor()As BallColors
 
 Declare Function RowSequenceLength( _
 	ByVal pStage As Stage Ptr, _
 	ByVal X As Integer, _
 	ByVal Y As Integer, _
-	ByVal BallColor As BallColors _
+	ByVal BallColor As ColorBallKind _
 )As Integer
 
 Declare Function ColSequenceLength( _
 	ByVal pStage As Stage Ptr, _
 	ByVal X As Integer, _
 	ByVal Y As Integer, _
-	ByVal BallColor As BallColors _
+	ByVal BallColor As ColorBallKind _
 )As Integer
 
 Declare Function ForwardDiagonalSequenceLength( _
 	ByVal pStage As Stage Ptr, _
 	ByVal X As Integer, _
 	ByVal Y As Integer, _
-	ByVal BallColor As BallColors _
+	ByVal BallColor As ColorBallKind _
 )As Integer
 
 Declare Function BackwardDiagonalSequenceLength( _
 	ByVal pStage As Stage Ptr, _
 	ByVal X As Integer, _
 	ByVal Y As Integer, _
-	ByVal BallColor As BallColors _
+	ByVal BallColor As ColorBallKind _
 )As Integer
 
 #endif

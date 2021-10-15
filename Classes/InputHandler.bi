@@ -19,9 +19,11 @@ Declare Sub DestroyInputHandler( _
 )
 
 /'
-	Returns:
+	Returns OK:
 		S_OK
 		S_FALSE
+	Returns FAIL:
+		Any error code
 '/
 Declare Function InputHandlerLMouseDown( _
 	ByVal pHandler As InputHandler Ptr, _

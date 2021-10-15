@@ -37,7 +37,7 @@ End Sub
 
 Sub ColorLinesStageChanged( _
 		ByVal pContext As Any Ptr, _
-		ByVal pCoordinates As POINT Ptr, _
+		ByVal pCoordinates As SquareCoord Ptr, _
 		ByVal Count As Integer _
 	)
 	
@@ -52,8 +52,8 @@ Sub ColorLinesStageChanged( _
 		Dim ScreenRectangle As RECT = Any
 		SceneTranslateBounds( _
 			pScene, _
-			@pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).Bounds, _
-			@pStage->Lines(pCoordinates[i].y, pCoordinates[i].x).PositionMatrix, _
+			@pStage->Cells(pCoordinates[i].y, pCoordinates[i].x).Bounds, _
+			@pStage->Cells(pCoordinates[i].y, pCoordinates[i].x).Position, _
 			@ScreenRectangle _
 		)
 		
@@ -77,8 +77,8 @@ Sub ColorLinesTabloChanged( _
 		Dim ScreenRectangle As RECT = Any
 		SceneTranslateBounds( _
 			pScene, _
-			@pStage->Tablo(i).Bounds, _
-			@pStage->Tablo(i).PositionMatrix, _
+			@pStage->TabloCells(i).Bounds, _
+			@pStage->TabloCells(i).Position, _
 			@ScreenRectangle _
 		)
 		
