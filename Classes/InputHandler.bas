@@ -3,6 +3,7 @@
 #include once "DeselectBallCommand.bi"
 #include once "EmptyCommand.bi"
 #include once "MoveSelectionRectangleCommand.bi"
+#include once "PullCellCommand.bi"
 #include once "PushCellCommand.bi"
 #include once "crt.bi"
 
@@ -203,28 +204,6 @@ Function InputHandlerLMouseDown( _
 		*ppvObject = pCommand
 		Return S_OK
 		
-		' Развыбрать старую ячейку
-		' Dim pts(1) As POINT = Any
-		' pts(0).x = pHandler->SelectedCellX
-		' pts(0).y = pHandler->SelectedCellY
-		
-		' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = False
-		
-		' Выбрать новую ячейку
-		' pHandler->SelectedCellX = CellCoord.x
-		' pHandler->SelectedCellY = CellCoord.y
-		
-		' pHandler->pStage->Lines(pHandler->SelectedCellY, pHandler->SelectedCellX).Selected = True
-		
-		' pts(1).x = CellCoord.x
-		' pts(1).y = CellCoord.y
-		
-		' pModel->Events.OnLinesChanged( _
-			' pModel->Context, _
-			' @pts(0), _
-			' 2 _
-		' )
-		
 	End If
 	
 	ICommand_AddRef(pHandler->pEmptyCommand)
@@ -346,73 +325,28 @@ Function InputHandlerKeyUp( _
 	Select Case Key
 		
 		Case VK_SPACE, VK_RETURN
-			' Отпустить кнопку
-			' pHandler->pStage->Lines(pHandler->PressedCellY, pHandler->PressedCellX).Pressed = False
+			Dim pCommand As IPullCellCommand Ptr = Any
+			Dim hrCreate As HRESULT = CreateInstance( _
+				@CLSID_PULLCELLCOMMAND, _
+				@IID_IPullCellCommand, _
+				@pCommand _
+			)
+			If FAILED(hrCreate) Then
+				*ppvObject = NULL
+				Return hrCreate
+			End If
 			
-			' Если шар виден, то выбрать его
-			' If pHandler->pStage->Lines(pHandler->PressedCellY, pHandler->PressedCellX).Ball.Visible Then
-				
-				' Развыбрать старый шар
-				' pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected = False
-				
-				' Dim pts As POINT = Any
-				' pts.x = pHandler->SelectedBallX
-				' pts.y = pHandler->SelectedBallY
-				
-				' pModel->Events.OnLinesChanged( _
-					' pModel->Context, _
-					' @pts, _
-					' 1 _
-				' )
-				
-				' Выбрать новый шар
-				' pHandler->SelectedBallX = pHandler->PressedCellX
-				' pHandler->SelectedBallY = pHandler->PressedCellY
-				' pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected = Not pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected
-				
-			' Else
-				' Если есть выделенный шар
-				' то переместить его на новое место
-				' Dim BallSelected As Boolean = pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Selected
-				' Dim BallVisible As Boolean = pHandler->pStage->Lines(pHandler->SelectedBallY, pHandler->SelectedBallX).Ball.Visible
-				' If BallSelected AndAlso BallVisible Then
-					
-					' Dim OldBallCoord As POINT = Any
-					' OldBallCoord.x = pHandler->SelectedBallX
-					' OldBallCoord.y = pHandler->SelectedBallY
-					' Dim NewBallCoord As POINT = Any
-					' NewBallCoord.x = pHandler->PressedCellX
-					' NewBallCoord.y = pHandler->PressedCellY
-					
-					' Dim Executed As Boolean = MoveBallCommandExecute( _
-						' @pModel->Commands(pModel->CommandsIndex), _
-						' pModel, _
-						' @OldBallCoord, _
-						' @NewBallCoord _
-					' )
-					
-					' If Executed Then
-						' pModel->CommandsIndex += 1
-						' If pModel->CommandsIndex > COMMANDS_CAPACITY Then
-							' Передвинуть
-						' End If
-					' Else
-						' pModel->Events.OnPathNotExist( _
-							' pModel->Context _
-						' )
-					' End If
-				' End If
-			' End If
+			IPullCellCommand_SetGameModel(pCommand, pHandler->pModel)
 			
-			' Dim pts As POINT = Any
-			' pts.x = pHandler->PressedCellX
-			' pts.y = pHandler->PressedCellY
-			
-			' pModel->Events.OnLinesChanged( _
-				' pModel->Context, _
-				' @pts, _
-				' 1 _
+			' Dim SelectedCell As POINT = Any
+			' GameModelGetSelectedCell( _
+				' pHandler->pModel, _
+				' @SelectedCell _
 			' )
+			' IPushCellCommand_SetPushCellCoord(pCommand, @SelectedCell)
+			
+			*ppvObject = pCommand
+			Return S_OK
 			
 	End Select
 	

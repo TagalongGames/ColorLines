@@ -79,14 +79,6 @@ Type _GameModel
 	PressedCellY As Integer
 End Type
 
-Declare Function MoveBall( _
-	ByVal pModel As GameModel Ptr, _
-	ByVal OldCoord As POINT Ptr, _
-	ByVal NewCoord As POINT Ptr, _
-	ByVal pPath As POINT Ptr, _
-	ByVal pPathLength As Integer Ptr _
-)As Boolean
-
 Function RemoveLines( _
 		ByVal pModel As GameModel Ptr _
 	)As Boolean
@@ -390,8 +382,6 @@ Sub GameModelNewGame( _
 		ByVal pModel As GameModel Ptr _
 	)
 	
-	' Обнуление
-	
 	pModel->pStage->Score = 0
 	pModel->Events.OnScoreChanged( _
 		pModel->Context, _
@@ -458,19 +448,29 @@ Sub GameModelGetSelectedBall( _
 	
 End Sub
 
+Sub GameModelGetPressedCell( _
+		ByVal pModel As GameModel Ptr, _
+		ByVal pPressedCellCoord As POINT Ptr _
+	)
+	
+	pPressedCellCoord->x = pModel->PressedCellX
+	pPressedCellCoord->y = pModel->PressedCellY
+	
+End Sub
+
 Sub GameModelMoveSelectionRectangle( _
 		ByVal pModel As GameModel Ptr, _
 		ByVal Direction As MoveSelectionRectangleDirection _
 	)
 	
 	Dim pts(2) As POINT = Any
+	
 	pts(0).x = pModel->PressedCellX
 	pts(0).y = pModel->PressedCellY
 	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
 	
 	pts(1).x = pModel->SelectedCellX
 	pts(1).y = pModel->SelectedCellY
-	
 	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 	
 	Select Case Direction
@@ -528,7 +528,6 @@ Sub GameModelMoveSelectionRectangle( _
 	
 	pts(2).x = pModel->SelectedCellX
 	pts(2).y = pModel->SelectedCellY
-	
 	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
 	pModel->Events.OnLinesChanged( _
@@ -545,13 +544,13 @@ Sub GameModelMoveSelectionRectangleTo( _
 	)
 	
 	Dim pts(2) As POINT = Any
+	
 	pts(0).x = pModel->PressedCellX
 	pts(0).y = pModel->PressedCellY
 	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
 	
 	pts(1).x = pModel->SelectedCellX
 	pts(1).y = pModel->SelectedCellY
-	
 	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
 	
 	pModel->SelectedCellX = pCellCoord->x
@@ -559,7 +558,6 @@ Sub GameModelMoveSelectionRectangleTo( _
 	
 	pts(2).x = pModel->SelectedCellX
 	pts(2).y = pModel->SelectedCellY
-	
 	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
 	
 	pModel->Events.OnLinesChanged( _
@@ -598,11 +596,11 @@ Sub GameModelDeselectBall( _
 	
 	Dim Selected As Boolean = pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected
 	If Selected Then
-		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
 		
 		Dim pts As POINT = Any
 		pts.x = pModel->SelectedBallX
 		pts.y = pModel->SelectedBallY
+		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
 		
 		pModel->Events.OnLinesChanged( _
 			pModel->Context, _
@@ -611,16 +609,6 @@ Sub GameModelDeselectBall( _
 		)
 		
 	End If
-	
-End Sub
-
-Sub GameModelGetPressedCell( _
-		ByVal pModel As GameModel Ptr, _
-		ByVal pPressedCellCoord As POINT Ptr _
-	)
-	
-	pPressedCellCoord->x = pModel->PressedCellX
-	pPressedCellCoord->y = pModel->PressedCellY
 	
 End Sub
 
@@ -662,11 +650,10 @@ Sub GameModelUnPushCell( _
 		ByVal pModel As GameModel Ptr _
 	)
 	
-	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
-	
 	Dim pts As POINT = Any
 	pts.x = pModel->PressedCellX
 	pts.y = pModel->PressedCellY
+	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
 	
 	pModel->Events.OnLinesChanged( _
 		pModel->Context, _
@@ -678,6 +665,86 @@ End Sub
 
 Sub GameModelPullCell( _
 		ByVal pModel As GameModel Ptr _
+	)
+	
+	Dim pts(2) As POINT = Any
+	pts(0).x = pModel->PressedCellX
+	pts(0).y = pModel->PressedCellY
+	pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Pressed = False
+	
+	pts(1).x = pModel->SelectedCellX
+	pts(1).y = pModel->SelectedCellY
+	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = False
+	
+	pModel->SelectedCellX = pModel->PressedCellX
+	pModel->SelectedCellY = pModel->PressedCellY
+	pts(2).x = pModel->SelectedCellX
+	pts(2).y = pModel->SelectedCellY
+	pModel->pStage->Lines(pModel->SelectedCellY, pModel->SelectedCellX).Selected = True
+	
+	Dim BallVisible As Boolean = pModel->pStage->Lines(pModel->PressedCellY, pModel->PressedCellX).Ball.Visible
+	
+	If BallVisible Then
+		
+		Dim pts2(1) As POINT = Any
+		
+		pts2(0).x = pModel->SelectedBallX
+		pts2(0).y = pModel->SelectedBallY
+		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
+		
+		pModel->SelectedBallX = pModel->PressedCellX
+		pModel->SelectedBallY = pModel->PressedCellY
+		
+		pts2(1).x = pModel->SelectedBallX
+		pts2(1).y = pModel->SelectedBallY
+		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = True
+		
+		pModel->Events.OnLinesChanged( _
+			pModel->Context, _
+			@pts2(0), _
+			2 _
+		)
+		
+	Else
+		' Если есть выделенный шар
+		' то переместить его на новое место
+		Dim OldBallSelected As Boolean = pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected
+		Dim OldBallVisible As Boolean = pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Visible
+		
+		If OldBallSelected AndAlso OldBallVisible Then
+			
+			' Dim OldBallCoord As POINT = Any
+			' OldBallCoord.x = pModel->SelectedBallX
+			' OldBallCoord.y = pModel->SelectedBallY
+			' Dim NewBallCoord As POINT = Any
+			' NewBallCoord.x = pModel->PressedCellX
+			' NewBallCoord.y = pModel->PressedCellY
+			
+			' Dim Executed As Boolean = MoveBallCommandExecute( _
+				' @pModel->Commands(pModel->CommandsIndex), _
+				' pModel, _
+				' @OldBallCoord, _
+				' @NewBallCoord _
+			' )
+			
+			' If Executed Then
+				' pModel->CommandsIndex += 1
+				' If pModel->CommandsIndex > COMMANDS_CAPACITY Then
+					' Передвинуть
+				' End If
+			' Else
+				' pModel->Events.OnPathNotExist( _
+					' pModel->Context _
+				' )
+			' End If
+		End If
+		
+	End If
+	
+	pModel->Events.OnLinesChanged( _
+		pModel->Context, _
+		@pts(0), _
+		3 _
 	)
 	
 End Sub
