@@ -4,7 +4,6 @@
 
 /'
 Type _MoveBallCommand
-	pModel As GameModel Ptr
 	' Шар
 	BallCoord As SquareCoord
 	' Новые координаты шара
@@ -31,39 +30,6 @@ Type _MoveBallCommand
 	HiScore As Integer
 	
 End Type
-
-Function MoveBallCommandExecute( _
-		ByVal pMoveCommand As MoveBallCommand Ptr, _
-		ByVal NewBallCoord As SquareCoord Ptr _
-	)As Boolean
-	
-	pMoveCommand->pModel = pModel
-	pMoveCommand->BallCoord = *BallCoord
-	pMoveCommand->NewBallCoord = *NewBallCoord
-	
-	Dim IsBallMoved As Boolean = MoveBall( _
-		pModel, _
-		BallCoord, _
-		NewBallCoord, _
-		@pMoveCommand->BallPath(0), _
-		@pMoveCommand->PathLength _
-	)
-	
-	If IsBallMoved Then
-		' If RemoveLines(pModel, pStage) = False Then
-			' If ExtractBalls(pModel, pStage) Then
-				' GenerateTablo(pModel, pStage)
-				' RemoveLines(pModel, pStage)
-			' End If
-		' End If
-		
-		pModel->pStage->Lines(pModel->SelectedBallY, pModel->SelectedBallX).Ball.Selected = False
-		
-	End If
-	
-	Return False
-	
-End Function
 '/
 
 Type _GameModel
@@ -596,8 +562,11 @@ Sub GameModelMoveSelectionRectangleTo( _
 End Sub
 
 Sub GameModelSelectBall( _
-		ByVal pModel As GameModel Ptr _
+		ByVal pModel As GameModel Ptr, _
+		ByVal pBallCoord As SquareCoord Ptr _
 	)
+	pModel->SelectedBallY = pBallCoord->X
+	pModel->SelectedBallX = pBallCoord->Y
 	
 	Dim Selected As Boolean = pModel->pStage->Cells(pModel->SelectedBallY, pModel->SelectedBallX).Selected
 	If Selected = False Then
@@ -765,31 +734,34 @@ Sub GameModelPullCell( _
 		
 		If OldBallSelected AndAlso OldBallVisible Then
 			
-			' Dim OldBallCoord As SquareCoord = Any
-			' OldBallCoord.x = pModel->SelectedBallX
-			' OldBallCoord.y = pModel->SelectedBallY
+			Dim OldBallCoord As SquareCoord = Any
+			OldBallCoord.x = pModel->SelectedBallX
+			OldBallCoord.y = pModel->SelectedBallY
 			
-			' Dim NewBallCoord As SquareCoord = Any
-			' NewBallCoord.x = pModel->PressedCellX
-			' NewBallCoord.y = pModel->PressedCellY
+			Dim NewBallCoord As SquareCoord = Any
+			NewBallCoord.x = pModel->PressedCellX
+			NewBallCoord.y = pModel->PressedCellY
 			
-			' Dim Executed As Boolean = MoveBallCommandExecute( _
-				' @pModel->Commands(pModel->CommandsIndex), _
+			' Dim IsBallMoved As Boolean = MoveBall( _
 				' pModel, _
 				' @OldBallCoord, _
-				' @NewBallCoord _
+				' @NewBallCoord, _
+				' @pMoveCommand->BallPath(0), _
+				' @pMoveCommand->PathLength _
 			' )
 			
-			' If Executed Then
-				' pModel->CommandsIndex += 1
-				' If pModel->CommandsIndex > COMMANDS_CAPACITY Then
-					' Передвинуть
+			' If IsBallMoved Then
+				' If RemoveLines(pModel, pStage) = False Then
+					' If ExtractBalls(pModel, pStage) Then
+						' GenerateTablo(pModel, pStage)
+						' RemoveLines(pModel, pStage)
+					' End If
 				' End If
-			' Else
-				' pModel->Events.OnPathNotExist( _
-					' pModel->Context _
-				' )
+				
+				' pModel->pStage->Balls(pModel->SelectedBallY, pModel->SelectedBallX).Selected = False
+				
 			' End If
+			
 		End If
 		
 	End If

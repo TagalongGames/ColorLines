@@ -96,6 +96,11 @@ Declare Sub GameModelGetSelectedBall( _
 	ByVal pBallCoord As SquareCoord Ptr _
 )
 
+Declare Sub GameModelGetPressedCell( _
+	ByVal pModel As GameModel Ptr, _
+	ByVal pPressedCellCoord As SquareCoord Ptr _
+)
+
 Declare Sub GameModelMoveSelectionRectangle( _
 	ByVal pModel As GameModel Ptr, _
 	ByVal Direction As MoveSelectionRectangleDirection _
@@ -107,16 +112,12 @@ Declare Sub GameModelMoveSelectionRectangleTo( _
 )
 
 Declare Sub GameModelSelectBall( _
-	ByVal pModel As GameModel Ptr _
+	ByVal pModel As GameModel Ptr, _
+	ByVal pBallCoord As SquareCoord Ptr _
 )
 
 Declare Sub GameModelDeselectBall( _
 	ByVal pModel As GameModel Ptr _
-)
-
-Declare Sub GameModelGetPressedCell( _
-	ByVal pModel As GameModel Ptr, _
-	ByVal pPressedCellCoord As SquareCoord Ptr _
 )
 
 Declare Sub GameModelPushCell( _

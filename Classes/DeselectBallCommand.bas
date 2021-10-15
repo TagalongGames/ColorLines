@@ -112,6 +112,10 @@ Function DeselectBallCommandExecute( _
 		ByVal this As DeselectBallCommand Ptr _
 	)As HRESULT
 	
+	GameModelGetSelectedBall( _
+		this->pModel, _
+		@this->SelectionBallCoord _
+	)
 	GameModelDeselectBall(this->pModel)
 	
 	Return S_OK
@@ -122,7 +126,10 @@ Function DeselectBallCommandUndo( _
 		ByVal this As DeselectBallCommand Ptr _
 	)As HRESULT
 	
-	GameModelSelectBall(this->pModel)
+	GameModelSelectBall( _
+		this->pModel, _
+		@this->SelectionBallCoord _
+	)
 	
 	Return S_OK
 	
