@@ -340,7 +340,6 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			PostQuitMessage(0)
 			
 		Case WM_LBUTTONDOWN
-			SetCapture(hWin)
 			Dim pt As POINT = Any
 			pt.x = GET_X_LPARAM(lParam)
 			pt.y = GET_Y_LPARAM(lParam)
@@ -353,7 +352,6 @@ Function MainFormWndProc(ByVal hWin As HWND, ByVal wMsg As UINT, ByVal wParam As
 			End If
 			
 		Case WM_LBUTTONUP
-			ReleaseCapture()
 			Dim pt As POINT = Any
 			pt.x = GET_X_LPARAM(lParam)
 			pt.y = GET_Y_LPARAM(lParam)
