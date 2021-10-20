@@ -14,6 +14,12 @@ Const GETMESSAGE_ERRORSTRING = __TEXT("Error in GetMessage")
 Const GDIPLUS_ERRORSTRING = __TEXT("Failed to initialize GDIPlus")
 Const ACCELERATOR_ERRORSTRING = __TEXT("Failed to load Accelerators")
 
+Const TCHARFIXEDVECTOR_CAPACITY As Integer = 512
+
+Type TCharFixedVector
+	Buffer(TCHARFIXEDVECTOR_CAPACITY - 1 + 1) As TCHAR
+End Type
+
 Function wWinMain( _
 		Byval hInst As HINSTANCE, _
 		ByVal hPrevInstance As HINSTANCE, _
@@ -89,13 +95,13 @@ Function wWinMain( _
 			Return 1
 		End If
 		
-		Dim WindowText(255) As TCHAR = Any
-		LoadString(hInst, IDS_WINDOWTITLE, @WindowText(0), 255)
+		Dim WindowText As TCharFixedVector = Any
+		LoadString(hInst, IDS_WINDOWTITLE, @WindowText.Buffer(0), TCHARFIXEDVECTOR_CAPACITY)
 		
 		Dim hWndMain As HWND = CreateWindowEx( _
 			WS_EX_OVERLAPPEDWINDOW, _
 			@MainWindowClassName, _
-			@WindowText(0), _
+			@WindowText.Buffer(0), _
 			WS_OVERLAPPEDWINDOW, _
 			CW_USEDEFAULT, _
 			CW_USEDEFAULT, _

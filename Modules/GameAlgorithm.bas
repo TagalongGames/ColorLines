@@ -1,5 +1,10 @@
 #include once "GameAlgorithm.bi"
 
+' смещени€, соответствующие сосед€м €чейки
+' справа, снизу, слева, сверху и диагональные
+Dim Shared dx(7) As Integer = {1, 0, -1, 0, 1, -1, -1, 1}
+Dim Shared dy(7) As Integer = {0, 1, 0, -1, 1, 1, -1, -1}
+
 Function GetLeePath( _
 		ByVal ptStart As SquareCoord Ptr, _
 		ByVal ptEnd As SquareCoord Ptr , _
@@ -9,11 +14,6 @@ Function GetLeePath( _
 		ByVal IncludeDiagonalPath As Boolean, _
 		ByVal pPath As SquareCoord Ptr _
 	)As LeePathLength
-	
-	' смещени€, соответствующие сосед€м €чейки
-	' справа, снизу, слева, сверху и диагональные
-	Dim dx(7) As Integer = {1, 0, -1, 0, 1, -1, -1, 1}
-	Dim dy(7) As Integer = {0, 1, 0, -1, 1, 1, -1, -1}
 	
 	Dim MaxK As Integer = Any
 	If IncludeDiagonalPath Then
