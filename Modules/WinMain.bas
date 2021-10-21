@@ -20,7 +20,7 @@ Type TCharFixedVector
 	Buffer(TCHARFIXEDVECTOR_CAPACITY - 1 + 1) As TCHAR
 End Type
 
-Function wWinMain( _
+Function wWinMain Alias "wWinMain"( _
 		Byval hInst As HINSTANCE, _
 		ByVal hPrevInstance As HINSTANCE, _
 		ByVal lpCmdLine As LPWSTR, _

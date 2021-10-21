@@ -5,10 +5,10 @@
 Sub ENTRYPOINT Alias "ENTRYPOINT"()
 #endif
 	
-	Dim RetCode As Long = wWinMain( _
+	Dim RetCode As Long = tWinMain( _
 		GetModuleHandle(0), _
 		NULL, _
-		GetCommandLineW(), _
+		GetCommandLine(), _
 		SW_SHOW _
 	)
 	
