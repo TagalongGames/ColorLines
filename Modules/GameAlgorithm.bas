@@ -2,8 +2,8 @@
 
 ' смещения, соответствующие соседям ячейки
 ' справа, снизу, слева, сверху и диагональные
-Dim Shared dx(7) As Integer = {1, 0, -1, 0, 1, -1, -1, 1}
-Dim Shared dy(7) As Integer = {0, 1, 0, -1, 1, 1, -1, -1}
+Dim Shared m_dx(7) As Integer = {1, 0, -1, 0, 1, -1, -1, 1}
+Dim Shared m_dy(7) As Integer = {0, 1, 0, -1, 1, 1, -1, -1}
 
 Function GetLeePath( _
 		ByVal ptStart As SquareCoord Ptr, _
@@ -38,13 +38,13 @@ Function GetLeePath( _
 					' проходим по всем непомеченным соседям
 					For k As Integer = 0 To MaxK
 						' Чтобы не вылезти за границы массива
-						If y + dy(k) >= 0 AndAlso y + dy(k) < StageHeight AndAlso x + dx(k) >= 0 AndAlso x + dx(k) < StageWidth Then
+						If y + m_dy(k) >= 0 AndAlso y + m_dy(k) < StageHeight AndAlso x + m_dx(k) >= 0 AndAlso x + m_dx(k) < StageWidth Then
 							'y * StageWidth + x
-							If Grid[(y + dy(k)) * StageWidth + x + dx(k)] = SquareLType.Blank Then
+							If Grid[(y + m_dy(k)) * StageWidth + x + m_dx(k)] = SquareLType.Blank Then
 								' найдены непомеченные клетки
 								StopFlag = False
 								' распространяем волну
-								Grid[(y + dy(k)) * StageWidth + x + dx(k)] = d + 1
+								Grid[(y + m_dy(k)) * StageWidth + x + m_dx(k)] = d + 1
 							End If
 						End If
 					Next
@@ -77,11 +77,11 @@ Function GetLeePath( _
 		d -= 1
 		
 		For k As Integer = 0 To MaxK
-			If y + dy(k) >= 0 AndAlso y + dy(k) < StageWidth AndAlso x + dx(k) >= 0 AndAlso x + dx(k) < StageWidth Then
-				If Grid[(y + dy(k)) * StageWidth + x + dx(k)] = d Then
-					x += dx(k)
+			If y + m_dy(k) >= 0 AndAlso y + m_dy(k) < StageWidth AndAlso x + m_dx(k) >= 0 AndAlso x + m_dx(k) < StageWidth Then
+				If Grid[(y + m_dy(k)) * StageWidth + x + m_dx(k)] = d Then
+					x += m_dx(k)
 					' переходим в ячейку, которая на 1 ближе к старту
-					y += dy(k)
+					y += m_dy(k)
 					Exit For
 				End If
 			End If
